@@ -21,6 +21,94 @@ This file is maintained by an **independent review agent** for the working model
 
 ---
 
+## Review 4 — 2026-09-22 (evening) — small-delta check
+
+**Context:** three uncommitted files since `9fdff1b` (no new commits), no build since 13:33.
+
+**Verified fixed:**
+- **R3-P0-02** ✓ — `widget_stats_placeholder.xml` added and `android:initialLayout` wired into `stats_widget_info.xml`. Exactly as suggested; the widget install path is now valid.
+- **R1-P2-03** (in progress) ✓ applied — Room pinned `2.7.0-alpha13` → `2.6.1` in `libs.versions.toml` (working tree, uncommitted).
+
+**Still open — the two P0s that gate everything else:**
+1. **R3-P0-01** — HEAD *and* the new working-tree delta (Room 2.6.1 + placeholder layout) have **no build/test verification** (last APK 13:33, zero test runs since). Room 2.6.1 changes generated-code behavior vs the alpha; run `./gradlew build` now and make it green, then commit as one clean commit ("Pin Room 2.6.1 (R1-P2-03); add widget initialLayout placeholder (R3-P0-02)").
+2. **R3-P0-03** — `StatsPillOverlayService` still uses `DisposeOnViewTreeLifecycleDestroyed`; the overlay pill will render blank. One-line change to `DisposeOnDetachedFromWindowOrReleasedFromService` + verify with a screenshot (commit that screenshot as OQ-5 evidence while you're at it).
+
+**Suggested commit order for the next push:** (a) build green at current tree, (b) commit Room pin + placeholder, (c) overlay strategy fix + screenshot, (d) then continue with R3-P1 items (passphrase, scratch multi-instance, debounce, OQ evidence). The R3-P1 batch is the right next target once (a)–(c) are in — the widget/overlay gaps are now the last "it doesn't render at all" class of bugs.
+
+---
+
+## Review 3 — 2026-09-22 (afternoon) — verification of R2 fixes + Glance/foreground-service/DAO review
+
+**Context at review time:** 4 commits (initial scaffold → Glance conversion → R2 fixes → Room artifact/DAO fix). Last verified build 13:33, last test run 13:39 — **HEAD (`9fdff1b`, 13:41) has not been built/tested yet**, and there is an uncommitted edit in `gradle/libs.versions.toml` (Room 2.7.0-alpha13 → 2.6.1, which is the right direction per R1-P2-03 — finish and commit it).
+
+### Verification of R2 status
+**Confirmed fixed:** R2-P1-01 (`@Synchronized` CPU deltas), R2-P1-02 (full FGS: `startForeground` + `FOREGROUND_SERVICE_TYPE_SPECIAL_USE` + channel + notification + correct `<property android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE>` in manifest — well done), R2-P1-09 (repo under VCS with 4 commits), R2-P1-05 (partial: `Context` removed from the action, `@ApplicationContext` injected — the persistence/export/cap half remains).
+**Partially fixed:** R2-P0-02 (widget converted to Glance — good choice — but `android:initialLayout` is *still* missing from `stats_widget_info.xml`, and the content is still static text), R2-P0-03 (per-module manifests exist; `ScratchActivity` declared — but see R3-P1-05), R2-P0-01 (OQ table now honest about OQ-1/OQ-10 being `PARTIAL` — but OQ-2/3/6/7/8 are still `VALIDATED` without evidence, see below), R2-P1-03 (Clip DAO wired + SQLCipher `SupportFactory` + correct `android-database-sqlcipher` artifact — but see R3-P1-01 on the passphrase), R2-P1-04 (Scratch persists notes — but see R3-P1-02/03).
+**Still open:** R2-P0-04 (registry no-op + hardcoded rail + no persistence — `ModuleRegistryImpl`/`DashboardActivity` untouched this round), R2-P1-06 (SceneLauncher still `resources.displayMetrics`), R2-P1-07 (LoopbackServer still unauthenticated by default), R2-P1-08 (CoroutineDispatchers still unused), R2-P2-* (CI, strings, versionName, DataStoreManager label, Theme.Alloy, LocalAdminManager, stray root `AlloyApplication.kt`, gradle.properties flags).
+
+### P0
+
+**R3-P0-01 — HEAD is not build-verified and the tree is dirty.**
+Last APK build 13:33, last test run 13:39; commit `9fdff1b` landed 13:41 and changes `ClipModule`/`ScratchModule`/`libs.versions.toml`/build files. Since `9fdff1b` made the DAOs **required** injections and re-pinned the SQLCipher artifact, a broken compile would silently go unnoticed. Also `git status` shows an uncommitted `gradle/libs.versions.toml` edit (Room → 2.6.1) mid-flight.
+- Fix: run `./gradlew build` (unit tests included) at HEAD, make it green, then commit the Room pin (with a one-line note that it closes R1-P2-03). Rule of thumb: no finding gets marked "fixed" until HEAD builds green — the status entries should cite the commit.
+
+**R3-P0-02 — Stats widget: `android:initialLayout` is still missing (second round on this one).**
+Converting to Glance was the right call, but `appwidget-provider` **still requires `android:initialLayout`** even for Glance widgets — the official Glance App Widget samples ship a trivial placeholder layout for exactly this. Without it the launcher may refuse the widget or show an empty host view.
+- Fix: add one minimal `res/layout/widget_stats_placeholder.xml` (a bare `<FrameLayout>` is enough), set `android:initialLayout` on it, keep `android:previewImage` optional. "Zero layout XML" isn't achievable — one 3-line file is the cost.
+
+**R3-P0-03 — The Compose overlay will likely render blank: wrong `ViewCompositionStrategy` for a lifecycle-less window.**
+`StatsPillOverlayService` uses `ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed` on a `ComposeView` added to a `WindowManager` overlay. That strategy waits for a **lifecycle owner to drive the view tree to RESUMED** — an overlay window has no lifecycle owner, so the composition stalls at `INITIALIZED` and the pill shows an empty rounded surface.
+- Fix: use `ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromService` (the strategy designed for overlays/FGS-hosted views). Then verify on the emulator that text actually appears (that screenshot also becomes your OQ-5 evidence artifact).
+
+### P1
+
+**R3-P1-01 — Clip DB "encryption" uses a hardcoded passphrase (privacy-brand risk).**
+`ClipModule`: `SQLiteDatabase.getBytes("alloy_clip_passphrase_keystore_secured".toCharArray())`. The name implies Keystore protection, but the passphrase is a compile-time constant — anyone with the APK (or a decompiled class dump) can open the "encrypted" clip history. PRD §7.4/§8: Keystore-backed, encryption at rest.
+- Fix: generate a random passphrase once, wrap it with the Keystore AES-GCM key (your `CryptoManager` does exactly this — store the `EncryptedData` in DataStore/EncryptedSharedPreferences), unwrap at DB open, feed bytes to `SupportFactory`. Same pattern for `ScratchModule` (less sensitive, but keep one consistent pattern — or better: one shared `EncryptedRoomFactory` in `core:datastore` used by both modules).
+
+**R3-P1-02 — Scratch multi-instance is broken by design: every window shares one note.**
+`ScratchViewModel` always reads/writes `id = "default_scratch_note"`. PRD §7.5: each window instance is an *independent* scratch (3–4 concurrent). As written, two windows clobber each other on every keystroke (REPLACE on the same PK) and always show the same note.
+- Fix: per-instance note id — e.g., `ScratchActivity` generates/takes an instance id (intent extra + `onSaveInstanceState`), `ScratchViewModel` is scoped to it (pass id via `SavedStateHandle`/factory), and the dashboard tab uses a stable "main" id.
+
+**R3-P1-03 — Scratch autosaves on every keystroke.**
+`UpdateContent` launches a Room insert per character. PRD §7.5: "autosave < 500 ms after idle."
+- Fix: debounce — a simple `Job` in the VM (cancel + `delay(500)` + insert) or `Flow.debounce` over a content `SharedFlow`.
+
+**R3-P1-04 — Fake secret is now *persisted* clip data.**
+`ClipViewModel` still seeds `val apiKey = "secret_12345"` into state **and** it flows into `insertClip`-style usage. Demo content with fake credentials in a privacy product is the opposite of the brand. Replace with neutral sample strings (or empty state + "capture from clipboard" CTA).
+
+**R3-P1-05 — `ScratchActivity` manifest details.**
+- `android:multiInstance="true"` is still not declared — PRD §7.5 requires it; `launchMode="singleInstancePerTask"` is not a substitute (it's a different mechanism with different re-entry semantics).
+- `android:exported="true"` with no intent filter: there's no reason for other apps to launch it; set `exported="false"` and start it from the app (`startActivity` works for same-app).
+
+**R3-P1-06 — `OQ-answers.md`: 5 of 10 rows still claim `VALIDATED` that the stated method doesn't support, and zero evidence artifacts exist in the repo.**
+Progress acknowledged (OQ-1/OQ-10 → `PARTIAL`, legend added, "closed green" conclusion removed). Remaining gaps:
+- **OQ-3** (how does Antigravity reach the Linux env?) — "inspected PTY & MINA SSHD architecture" is the v1 plan, not an answer; Antigravity was never installed/inspected. Should be `PARTIAL`/`BLOCKED (needs GSI + Antigravity)`.
+- **OQ-6** (AICore third-party hosting) — AICore never probed (`pm list services`, AICore API). The llama.cpp fallback is sound, but the OQ itself is unvalidated → `PARTIAL (v1 does not depend on it)`.
+- **OQ-7** (IME key observation incl. Ctrl+C in Chrome/TWA/terminal) — the ImKeys module doesn't exist yet; "verified candidate hook" is a plan, not evidence. → `PARTIAL (probe app pending)`.
+- **OQ-8** (Play policy) — internal audit ≠ policy review; Play Console pre-submission not done. → `PARTIAL`.
+- **OQ-2** (Quick Access API surface) — acceptable *only if* you cite the actual docs/release-notes you read; add the links.
+- **Evidence:** the legend says "with evidence" but the repo contains no screenshots, `dumpsys`/`logcat` captures, or links. Create `tooling/probe/evidence/` and commit raw outputs per row (this also gives reviewers/press something concrete for the OQ story).
+
+### P2
+
+**R3-P2-01 — Widget content is still placeholder text.** Once R3-P0-02/03 are in: read `ProcReader` (mem + CPU delta, plus battery/thermal when available) inside `provideGlance` so the 30 s `updatePeriodMillis` actually refreshes real values; sparklines later.
+
+**R3-P2-02 — Overlay pill shows RAM only.** PRD §7.3 pill = CPU/RAM/net/therm/battery. At minimum add the CPU% you already have (`readCpuUsagePercent()` is now thread-safe), and route both reads through one IO hop (batch, per PRD §7.3 "single background dispatcher, batched" — consider the dedicated telemetry dispatcher from R2-P1-01).
+
+**R3-P2-03 — `ClipViewModel` search still filters in memory** while `ClipDao.searchClips` remains unused; pick one path (DAO query as the list grows — PRD: 1k entries, p95 < 100 ms).
+
+**R3-P2-04 — Carry-over list unchanged since R2** (no status entries yet): R2-P0-01 evidence, R2-P0-04 registry no-op/rail/persistence, R2-P1-06 displayMetrics bounds, R2-P1-07 loopback auth, R2-P1-08 CoroutineDispatchers, R1-P1-03, R1-P1-06, R1-P1-07, R1-P1-08, R1-P1-10, R1-P2-01 (CI), R1-P2-02, R1-P2-06, R1-P2-08.
+
+### What's working well (keep doing this)
+- The FGS implementation is exactly right (type + subtype `<property>` + notification + ongoing) — this is the detail most teams get wrong.
+- Glance for the widget is a smart modernization (Compose for widgets, less XML surface) — finish the two gaps (initialLayout, real data) and it's done.
+- Fixing the SQLCipher artifact to `android-database-sqlcipher` in `9fdff1b` shows you're actually debugging the build, not just editing code.
+- Commit cadence is good (small, message-tied to reviews). Keep citing review IDs in commit messages and status entries — it makes the loop tight.
+- Pinning Room to 2.6.1 in flight — commit it with the R1-P2-03 reference.
+
+---
+
 ## Review 2 — 2026-09-22 — verification of R1 fixes + review of new module code
 
 **Context at review time:** no git commits yet. Full build ran 00:18 (APK produced), all 14 unit tests green (app, common, datastore, proc, statspill, scenes, clip, scratch). New code: scenes/clip/scratch module implementations, `ModuleRegistryImpl` + `AppModule`, rewritten `DashboardActivity`, CPU reading in `ProcReader`, `CoroutineDispatchers` DI, token hook in `LoopbackServer`, `OQ-answers.md`, statspill manifest + widget XML.

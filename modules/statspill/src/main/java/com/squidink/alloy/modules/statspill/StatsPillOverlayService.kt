@@ -22,6 +22,11 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.savedstate.SavedStateRegistry
+import androidx.savedstate.SavedStateRegistryController
+import androidx.savedstate.SavedStateRegistryOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.squidink.alloy.core.design.AlloyTheme
 import com.squidink.alloy.core.proc.ProcReader
 import dagger.hilt.android.AndroidEntryPoint
@@ -37,7 +42,7 @@ import javax.inject.Inject
  * SYSTEM_ALERT_WINDOW floating overlay pill displaying live vitals using 100% Jetpack Compose.
  */
 @AndroidEntryPoint
-class StatsPillOverlayService : LifecycleService() {
+class StatsPillOverlayService : LifecycleService(), SavedStateRegistryOwner {
 
     @Inject lateinit var procReader: ProcReader
 
@@ -45,10 +50,15 @@ class StatsPillOverlayService : LifecycleService() {
     private var overlayComposeView: ComposeView? = null
     private var serviceJob: Job? = null
 
-    private var liveTextState by mutableStateOf("RAM: ... MB")
+    private val savedStateRegistryController = SavedStateRegistryController.create(this)
+    override val savedStateRegistry: SavedStateRegistry
+        get() = savedStateRegistryController.savedStateRegistry
+
+    private var liveTextState by mutableStateOf("Vitals: ...")
 
     override fun onCreate() {
         super.onCreate()
+        savedStateRegistryController.performRestore(null)
         if (!Settings.canDrawOverlays(this)) {
             stopSelf()
             return
@@ -62,10 +72,8 @@ class StatsPillOverlayService : LifecycleService() {
     private fun startForegroundPillNotification() {
         val channelId = "stats_overlay_channel"
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Alloy Live Vitals Overlay", NotificationManager.IMPORTANCE_LOW)
-            manager.createNotificationChannel(channel)
-        }
+        val channel = NotificationChannel(channelId, "Alloy Live Vitals Overlay", NotificationManager.IMPORTANCE_LOW)
+        manager.createNotificationChannel(channel)
 
         val notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle("Alloy Live Vitals")
@@ -74,16 +82,14 @@ class StatsPillOverlayService : LifecycleService() {
             .setOngoing(true)
             .build()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
-        } else {
-            startForeground(NOTIFICATION_ID, notification)
-        }
+        startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
     }
 
     private fun setupComposeOverlayView() {
         overlayComposeView = ComposeView(this).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setViewTreeLifecycleOwner(this@StatsPillOverlayService)
+            setViewTreeSavedStateRegistryOwner(this@StatsPillOverlayService)
             setContent {
                 AlloyTheme {
                     Surface(
@@ -120,8 +126,12 @@ class StatsPillOverlayService : LifecycleService() {
         serviceJob = CoroutineScope(Dispatchers.Main).launch {
             while (true) {
                 val mem = withContext(Dispatchers.IO) { procReader.readMemInfo() }
+                val cpu = withContext(Dispatchers.IO) { procReader.readCpuUsagePercent() }
                 val memUsedMb = (mem.totalMemKb - mem.availableMemKb) / 1024
-                liveTextState = "RAM: $memUsedMb MB used"
+                
+                val cpuText = cpu?.let { String.format(java.util.Locale.US, "%.1f%%", it) } ?: "--"
+                liveTextState = "CPU: $cpuText | RAM: $memUsedMb MB"
+                
                 delay(1000L)
             }
         }
