@@ -25,10 +25,15 @@ dependencies {
     implementation(project(":core:proc"))
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.service)
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)
     implementation(libs.compose.material.icons.extended)
+
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.material3)
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 

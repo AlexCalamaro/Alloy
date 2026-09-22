@@ -1,13 +1,26 @@
 package com.squidink.alloy.modules.statspill
 
-import android.app.Service
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.IBinder
 import android.provider.Settings
 import android.view.Gravity
 import android.view.WindowManager
-import android.widget.TextView
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.squidink.alloy.core.design.AlloyTheme
 import com.squidink.alloy.core.proc.ProcReader
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -19,16 +32,18 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
- * SYSTEM_ALERT_WINDOW floating overlay pill displaying live vitals at 1Hz.
+ * SYSTEM_ALERT_WINDOW floating overlay pill displaying live vitals using 100% Jetpack Compose.
  */
 @AndroidEntryPoint
-class StatsPillOverlayService : Service() {
+class StatsPillOverlayService : LifecycleService() {
 
     @Inject lateinit var procReader: ProcReader
 
     private var windowManager: WindowManager? = null
-    private var overlayView: TextView? = null
+    private var overlayComposeView: ComposeView? = null
     private var serviceJob: Job? = null
+
+    private var liveTextState by mutableStateOf("RAM: ... MB")
 
     override fun onCreate() {
         super.onCreate()
@@ -37,16 +52,28 @@ class StatsPillOverlayService : Service() {
             return
         }
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-        setupOverlayView()
+        setupComposeOverlayView()
         startTelemetryLoop()
     }
 
-    private fun setupOverlayView() {
-        overlayView = TextView(this).apply {
-            text = "RAM: ... MB"
-            setBackgroundColor(0xCC000000.toInt())
-            setTextColor(0xFFFFFFFF.toInt())
-            setPadding(24, 12, 24, 12)
+    private fun setupComposeOverlayView() {
+        overlayComposeView = ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                AlloyTheme {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Text(
+                            text = liveTextState,
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+            }
         }
 
         val params = WindowManager.LayoutParams(
@@ -61,7 +88,7 @@ class StatsPillOverlayService : Service() {
             y = 32
         }
 
-        windowManager?.addView(overlayView, params)
+        windowManager?.addView(overlayComposeView, params)
     }
 
     private fun startTelemetryLoop() {
@@ -69,7 +96,7 @@ class StatsPillOverlayService : Service() {
             while (true) {
                 val mem = withContext(Dispatchers.IO) { procReader.readMemInfo() }
                 val memUsedMb = (mem.totalMemKb - mem.availableMemKb) / 1024
-                overlayView?.text = "RAM: ${memUsedMb} MB used"
+                liveTextState = "RAM: $memUsedMb MB used"
                 delay(1000L)
             }
         }
@@ -78,8 +105,6 @@ class StatsPillOverlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         serviceJob?.cancel()
-        overlayView?.let { windowManager?.removeView(it) }
+        overlayComposeView?.let { windowManager?.removeView(it) }
     }
-
-    override fun onBind(intent: Intent?): IBinder? = null
 }

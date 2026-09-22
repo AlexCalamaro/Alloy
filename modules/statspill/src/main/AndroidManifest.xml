@@ -12,7 +12,7 @@
             android:foregroundServiceType="specialUse" />
 
         <receiver
-            android:name=".StatsWidgetProvider"
+            android:name=".StatsWidgetReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
