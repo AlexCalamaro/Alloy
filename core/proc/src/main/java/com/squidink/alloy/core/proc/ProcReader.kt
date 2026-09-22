@@ -49,8 +49,9 @@ open class ProcReader @Inject constructor() {
     }
 
     /**
-     * Reads /proc/stat and calculates CPU delta percentage since last call.
+     * Reads /proc/stat and calculates CPU delta percentage since last call (thread-safe).
      */
+    @Synchronized
     open fun readCpuUsagePercent(): Float? {
         return try {
             val file = File("/proc/stat")

@@ -1,11 +1,14 @@
 package com.squidink.alloy.modules.clip
 
+import androidx.lifecycle.viewModelScope
 import com.squidink.alloy.core.common.BaseViewModel
 import com.squidink.alloy.core.common.UiAction
 import com.squidink.alloy.core.common.UiEffect
 import com.squidink.alloy.core.common.UiState
+import com.squidink.alloy.modules.clip.db.ClipDao
 import com.squidink.alloy.modules.clip.db.ClipEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ClipUiState(
@@ -32,7 +35,9 @@ sealed interface ClipUiEffect : UiEffect {
 }
 
 @HiltViewModel
-class ClipViewModel @Inject constructor() : BaseViewModel<ClipUiState, ClipUiAction, ClipUiEffect>(
+class ClipViewModel @Inject constructor(
+    private val clipDao: ClipDao? = null
+) : BaseViewModel<ClipUiState, ClipUiAction, ClipUiEffect>(
     ClipUiState(
         clips = listOf(
             ClipEntity("1", "https://github.com/squidink/alloy", sourceApp = "Chrome"),
@@ -40,6 +45,18 @@ class ClipViewModel @Inject constructor() : BaseViewModel<ClipUiState, ClipUiAct
         )
     )
 ) {
+
+    init {
+        clipDao?.let { dao ->
+            viewModelScope.launch {
+                dao.getAllClips().collect { items ->
+                    if (items.isNotEmpty()) {
+                        updateState { currentState -> currentState.copy(clips = items) }
+                    }
+                }
+            }
+        }
+    }
 
     override fun onAction(action: ClipUiAction) {
         when (action) {
@@ -65,6 +82,9 @@ class ClipViewModel @Inject constructor() : BaseViewModel<ClipUiState, ClipUiAct
                     sourceApp = action.app
                 )
                 updateState { it.copy(clips = listOf(newClip) + it.clips) }
+                viewModelScope.launch {
+                    clipDao?.insertClip(newClip)
+                }
             }
         }
     }

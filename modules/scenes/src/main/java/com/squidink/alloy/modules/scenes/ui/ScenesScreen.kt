@@ -18,7 +18,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.squidink.alloy.core.design.desktopHover
 import com.squidink.alloy.modules.scenes.ScenesUiAction
@@ -30,7 +29,6 @@ fun ScenesScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
 
     Column(
         modifier = modifier
@@ -60,7 +58,7 @@ fun ScenesScreen(
                             Text("${scene.steps.size} launch steps", style = MaterialTheme.typography.bodySmall)
                         }
                         Button(
-                            onClick = { viewModel.onAction(ScenesUiAction.FireScene(context, scene.id)) }
+                            onClick = { viewModel.onAction(ScenesUiAction.FireScene(scene.id)) }
                         ) {
                             Text("Fire Scene")
                         }

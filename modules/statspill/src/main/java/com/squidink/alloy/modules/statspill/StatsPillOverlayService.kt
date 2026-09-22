@@ -1,8 +1,11 @@
 package com.squidink.alloy.modules.statspill
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
-import android.os.IBinder
+import android.os.Build
 import android.provider.Settings
 import android.view.Gravity
 import android.view.WindowManager
@@ -17,9 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
-import androidx.lifecycle.setViewTreeLifecycleOwner
-import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.squidink.alloy.core.design.AlloyTheme
 import com.squidink.alloy.core.proc.ProcReader
 import dagger.hilt.android.AndroidEntryPoint
@@ -51,9 +53,32 @@ class StatsPillOverlayService : LifecycleService() {
             stopSelf()
             return
         }
+        startForegroundPillNotification()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         setupComposeOverlayView()
         startTelemetryLoop()
+    }
+
+    private fun startForegroundPillNotification() {
+        val channelId = "stats_overlay_channel"
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "Alloy Live Vitals Overlay", NotificationManager.IMPORTANCE_LOW)
+            manager.createNotificationChannel(channel)
+        }
+
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setContentTitle("Alloy Live Vitals")
+            .setContentText("Live Desktop Overlay Active")
+            .setSmallIcon(android.R.drawable.stat_notify_sync)
+            .setOngoing(true)
+            .build()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(NOTIFICATION_ID, notification)
+        }
     }
 
     private fun setupComposeOverlayView() {
@@ -106,5 +131,9 @@ class StatsPillOverlayService : LifecycleService() {
         super.onDestroy()
         serviceJob?.cancel()
         overlayComposeView?.let { windowManager?.removeView(it) }
+    }
+
+    companion object {
+        private const val NOTIFICATION_ID = 1001
     }
 }

@@ -5,6 +5,8 @@ import com.squidink.alloy.core.common.BaseViewModel
 import com.squidink.alloy.core.common.UiAction
 import com.squidink.alloy.core.common.UiEffect
 import com.squidink.alloy.core.common.UiState
+import com.squidink.alloy.modules.scratch.db.ScratchDao
+import com.squidink.alloy.modules.scratch.db.ScratchEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -28,16 +30,40 @@ sealed interface ScratchUiEffect : UiEffect {
 }
 
 @HiltViewModel
-class ScratchViewModel @Inject constructor() : BaseViewModel<ScratchUiState, ScratchUiAction, ScratchUiEffect>(
+class ScratchViewModel @Inject constructor(
+    private val scratchDao: ScratchDao? = null
+) : BaseViewModel<ScratchUiState, ScratchUiAction, ScratchUiEffect>(
     ScratchUiState(noteContent = "# Quick Notes\n- Deploy Alloy to desktop emulator\n- Validate MVI viewmodel contracts")
 ) {
 
     private var timerJob: Job? = null
 
+    init {
+        scratchDao?.let { dao ->
+            viewModelScope.launch {
+                dao.getAllNotes().collect { notes ->
+                    val firstNote = notes.firstOrNull()
+                    if (firstNote != null) {
+                        updateState { it.copy(noteContent = firstNote.content) }
+                    }
+                }
+            }
+        }
+    }
+
     override fun onAction(action: ScratchUiAction) {
         when (action) {
             is ScratchUiAction.UpdateContent -> {
                 updateState { it.copy(noteContent = action.content) }
+                viewModelScope.launch {
+                    scratchDao?.insertNote(
+                        ScratchEntity(
+                            id = "default_scratch_note",
+                            content = action.content,
+                            updatedAt = System.currentTimeMillis()
+                        )
+                    )
+                }
             }
             ScratchUiAction.ToggleTimer -> {
                 if (uiState.value.isTimerRunning) stopTimer() else startTimer()

@@ -1,5 +1,6 @@
 package com.squidink.alloy.modules.scenes
 
+import android.content.ContextWrapper
 import com.squidink.alloy.modules.scenes.model.PlacementHint
 import com.squidink.alloy.modules.scenes.model.Scene
 import com.squidink.alloy.modules.scenes.model.SceneStep
@@ -45,7 +46,7 @@ class ScenesViewModelTest {
 
     @Test
     fun `add and delete scene updates state`() = runTest {
-        val viewModel = ScenesViewModel(launcher)
+        val viewModel = ScenesViewModel(launcher, ContextWrapper(null))
         val initialCount = viewModel.uiState.value.scenes.size
 
         val newScene = Scene("test_2", "Design Stack", steps = listOf(SceneStep("1", "com.example.app")))

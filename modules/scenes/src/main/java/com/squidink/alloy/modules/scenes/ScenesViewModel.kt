@@ -9,6 +9,7 @@ import com.squidink.alloy.modules.scenes.model.PlacementHint
 import com.squidink.alloy.modules.scenes.model.Scene
 import com.squidink.alloy.modules.scenes.model.SceneStep
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 data class ScenesUiState(
@@ -17,7 +18,7 @@ data class ScenesUiState(
 ) : UiState
 
 sealed interface ScenesUiAction : UiAction {
-    data class FireScene(val context: Context, val sceneId: String) : ScenesUiAction
+    data class FireScene(val sceneId: String) : ScenesUiAction
     data class AddScene(val scene: Scene) : ScenesUiAction
     data class DeleteScene(val sceneId: String) : ScenesUiAction
 }
@@ -28,7 +29,8 @@ sealed interface ScenesUiEffect : UiEffect {
 
 @HiltViewModel
 class ScenesViewModel @Inject constructor(
-    private val sceneLauncher: SceneLauncher
+    private val sceneLauncher: SceneLauncher,
+    @ApplicationContext private val context: Context
 ) : BaseViewModel<ScenesUiState, ScenesUiAction, ScenesUiEffect>(
     ScenesUiState(scenes = defaultScenes())
 ) {
@@ -38,7 +40,7 @@ class ScenesViewModel @Inject constructor(
             is ScenesUiAction.FireScene -> {
                 val scene = uiState.value.scenes.find { it.id == action.sceneId }
                 if (scene != null) {
-                    val success = sceneLauncher.launchScene(action.context, scene)
+                    val success = sceneLauncher.launchScene(context, scene)
                     val msg = if (success) "Fired scene: ${scene.name}" else "Failed to fire scene: ${scene.name}"
                     sendEffect(ScenesUiEffect.ShowToast(msg))
                 }
