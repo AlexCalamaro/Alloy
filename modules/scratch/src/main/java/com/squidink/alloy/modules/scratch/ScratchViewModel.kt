@@ -31,7 +31,7 @@ sealed interface ScratchUiEffect : UiEffect {
 
 @HiltViewModel
 class ScratchViewModel @Inject constructor(
-    private val scratchDao: ScratchDao? = null
+    private val scratchDao: ScratchDao
 ) : BaseViewModel<ScratchUiState, ScratchUiAction, ScratchUiEffect>(
     ScratchUiState(noteContent = "# Quick Notes\n- Deploy Alloy to desktop emulator\n- Validate MVI viewmodel contracts")
 ) {
@@ -39,13 +39,11 @@ class ScratchViewModel @Inject constructor(
     private var timerJob: Job? = null
 
     init {
-        scratchDao?.let { dao ->
-            viewModelScope.launch {
-                dao.getAllNotes().collect { notes ->
-                    val firstNote = notes.firstOrNull()
-                    if (firstNote != null) {
-                        updateState { it.copy(noteContent = firstNote.content) }
-                    }
+        viewModelScope.launch {
+            scratchDao.getAllNotes().collect { notes ->
+                val firstNote = notes.firstOrNull()
+                if (firstNote != null) {
+                    updateState { it.copy(noteContent = firstNote.content) }
                 }
             }
         }
@@ -56,7 +54,7 @@ class ScratchViewModel @Inject constructor(
             is ScratchUiAction.UpdateContent -> {
                 updateState { it.copy(noteContent = action.content) }
                 viewModelScope.launch {
-                    scratchDao?.insertNote(
+                    scratchDao.insertNote(
                         ScratchEntity(
                             id = "default_scratch_note",
                             content = action.content,

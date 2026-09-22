@@ -36,7 +36,7 @@ sealed interface ClipUiEffect : UiEffect {
 
 @HiltViewModel
 class ClipViewModel @Inject constructor(
-    private val clipDao: ClipDao? = null
+    private val clipDao: ClipDao
 ) : BaseViewModel<ClipUiState, ClipUiAction, ClipUiEffect>(
     ClipUiState(
         clips = listOf(
@@ -47,12 +47,10 @@ class ClipViewModel @Inject constructor(
 ) {
 
     init {
-        clipDao?.let { dao ->
-            viewModelScope.launch {
-                dao.getAllClips().collect { items ->
-                    if (items.isNotEmpty()) {
-                        updateState { currentState -> currentState.copy(clips = items) }
-                    }
+        viewModelScope.launch {
+            clipDao.getAllClips().collect { items ->
+                if (items.isNotEmpty()) {
+                    updateState { currentState -> currentState.copy(clips = items) }
                 }
             }
         }
@@ -83,7 +81,7 @@ class ClipViewModel @Inject constructor(
                 )
                 updateState { it.copy(clips = listOf(newClip) + it.clips) }
                 viewModelScope.launch {
-                    clipDao?.insertClip(newClip)
+                    clipDao.insertClip(newClip)
                 }
             }
         }
