@@ -5,9 +5,7 @@ plugins {
 
 android {
     namespace = "com.squidink.alloy.core.datastore"
-    compileSdk {
-        version = release(37)
-    }
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 37

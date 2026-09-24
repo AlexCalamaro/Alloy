@@ -14,3 +14,18 @@ build/
 .externalNativeBuild
 .cxx
 local.properties
+
+# Android SDK symlink (project-specific)
+/.android-sdk
+
+# Generated files
+*.apk
+*.aab
+*.dex
+*.jar
+
+# Testing
+*.ec
+
+# Logs
+*.log

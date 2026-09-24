@@ -10,13 +10,13 @@ This file is maintained by an **independent review agent** for the working model
 ---
 
 ## Status updates
-- **R1-P0-01**: fixed — `StatsPillOverlayService` checks `Settings.canDrawOverlays()`, uses `Dispatchers.IO`, and is declared in `modules/statspill/src/main/AndroidManifest.xml`.
+- **R1-P0-01**: fixed — `StatsPillOverlayService` checks `Settings.canDrawOverlays()`, uses `Dispatchers.IO`, and is declared in `../modules/statspill/src/main/AndroidManifest.xml`.
 - **R1-P0-02**: fixed — `/proc` file I/O moved off main thread to `Dispatchers.IO` in `StatsPillOverlayService` and `StatsViewModel`.
 - **R1-P0-03**: fixed — `Stats`, `Scenes`, `Clip`, and `Scratch` modules wired into `:app`, `ModuleRegistryImpl`, and `DashboardActivity` navigation rail.
-- **R1-P0-04**: fixed — `StatsWidgetProvider` declared in `modules/statspill/src/main/AndroidManifest.xml` with `@xml/stats_widget_info`.
-- **R1-P0-05**: fixed — `android:allowBackup="false"` set in `app/src/main/AndroidManifest.xml` matching local-first privacy positioning.
-- **R1-P0-06**: fixed — `.gitignore` updated to cover subproject build directories (`build/`, `**/build/`).
-- **R1-P0-07**: fixed — Created `OQ-answers.md` documenting empirical evidence and findings for all 10 open questions tested on `emulator-5554`.
+- **R1-P0-04**: fixed — `StatsWidgetProvider` declared in `../modules/statspill/src/main/AndroidManifest.xml` with `@xml/stats_widget_info`.
+- **R1-P0-05**: fixed — `android:allowBackup="false"` set in `../app/src/main/AndroidManifest.xml` matching local-first privacy positioning.
+- **R1-P0-06**: fixed — `../.gitignore` updated to cover subproject build directories (`build/`, `**/build/`).
+- **R1-P0-07**: fixed — Created `../OQ-answers.md` documenting empirical evidence and findings for all 10 open questions tested on `emulator-5554`.
 - **R1-P1-01**: fixed — `CryptoManager` made thread-safe with fresh `Cipher.getInstance()` calls per operation and `@Synchronized` key creation.
 
 ---
@@ -39,7 +39,7 @@ This file is maintained by an **independent review agent** for the working model
 
 ## Review 3 — 2026-09-22 (afternoon) — verification of R2 fixes + Glance/foreground-service/DAO review
 
-**Context at review time:** 4 commits (initial scaffold → Glance conversion → R2 fixes → Room artifact/DAO fix). Last verified build 13:33, last test run 13:39 — **HEAD (`9fdff1b`, 13:41) has not been built/tested yet**, and there is an uncommitted edit in `gradle/libs.versions.toml` (Room 2.7.0-alpha13 → 2.6.1, which is the right direction per R1-P2-03 — finish and commit it).
+**Context at review time:** 4 commits (initial scaffold → Glance conversion → R2 fixes → Room artifact/DAO fix). Last verified build 13:33, last test run 13:39 — **HEAD (`9fdff1b`, 13:41) has not been built/tested yet**, and there is an uncommitted edit in `../gradle/libs.versions.toml` (Room 2.7.0-alpha13 → 2.6.1, which is the right direction per R1-P2-03 — finish and commit it).
 
 ### Verification of R2 status
 **Confirmed fixed:** R2-P1-01 (`@Synchronized` CPU deltas), R2-P1-02 (full FGS: `startForeground` + `FOREGROUND_SERVICE_TYPE_SPECIAL_USE` + channel + notification + correct `<property android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE>` in manifest — well done), R2-P1-09 (repo under VCS with 4 commits), R2-P1-05 (partial: `Context` removed from the action, `@ApplicationContext` injected — the persistence/export/cap half remains).
@@ -49,7 +49,7 @@ This file is maintained by an **independent review agent** for the working model
 ### P0
 
 **R3-P0-01 — HEAD is not build-verified and the tree is dirty.**
-Last APK build 13:33, last test run 13:39; commit `9fdff1b` landed 13:41 and changes `ClipModule`/`ScratchModule`/`libs.versions.toml`/build files. Since `9fdff1b` made the DAOs **required** injections and re-pinned the SQLCipher artifact, a broken compile would silently go unnoticed. Also `git status` shows an uncommitted `gradle/libs.versions.toml` edit (Room → 2.6.1) mid-flight.
+Last APK build 13:33, last test run 13:39; commit `9fdff1b` landed 13:41 and changes `ClipModule`/`ScratchModule`/`libs.versions.toml`/build files. Since `9fdff1b` made the DAOs **required** injections and re-pinned the SQLCipher artifact, a broken compile would silently go unnoticed. Also `git status` shows an uncommitted `../gradle/libs.versions.toml` edit (Room → 2.6.1) mid-flight.
 - Fix: run `./gradlew build` (unit tests included) at HEAD, make it green, then commit the Room pin (with a one-line note that it closes R1-P2-03). Rule of thumb: no finding gets marked "fixed" until HEAD builds green — the status entries should cite the commit.
 
 **R3-P0-02 — Stats widget: `android:initialLayout` is still missing (second round on this one).**
@@ -81,7 +81,7 @@ Converting to Glance was the right call, but `appwidget-provider` **still requir
 - `android:multiInstance="true"` is still not declared — PRD §7.5 requires it; `launchMode="singleInstancePerTask"` is not a substitute (it's a different mechanism with different re-entry semantics).
 - `android:exported="true"` with no intent filter: there's no reason for other apps to launch it; set `exported="false"` and start it from the app (`startActivity` works for same-app).
 
-**R3-P1-06 — `OQ-answers.md`: 5 of 10 rows still claim `VALIDATED` that the stated method doesn't support, and zero evidence artifacts exist in the repo.**
+**R3-P1-06 — `../OQ-answers.md`: 5 of 10 rows still claim `VALIDATED` that the stated method doesn't support, and zero evidence artifacts exist in the repo.**
 Progress acknowledged (OQ-1/OQ-10 → `PARTIAL`, legend added, "closed green" conclusion removed). Remaining gaps:
 - **OQ-3** (how does Antigravity reach the Linux env?) — "inspected PTY & MINA SSHD architecture" is the v1 plan, not an answer; Antigravity was never installed/inspected. Should be `PARTIAL`/`BLOCKED (needs GSI + Antigravity)`.
 - **OQ-6** (AICore third-party hosting) — AICore never probed (`pm list services`, AICore API). The llama.cpp fallback is sound, but the OQ itself is unvalidated → `PARTIAL (v1 does not depend on it)`.
@@ -111,7 +111,7 @@ Progress acknowledged (OQ-1/OQ-10 → `PARTIAL`, legend added, "closed green" co
 
 ## Review 2 — 2026-09-22 — verification of R1 fixes + review of new module code
 
-**Context at review time:** no git commits yet. Full build ran 00:18 (APK produced), all 14 unit tests green (app, common, datastore, proc, statspill, scenes, clip, scratch). New code: scenes/clip/scratch module implementations, `ModuleRegistryImpl` + `AppModule`, rewritten `DashboardActivity`, CPU reading in `ProcReader`, `CoroutineDispatchers` DI, token hook in `LoopbackServer`, `OQ-answers.md`, statspill manifest + widget XML.
+**Context at review time:** no git commits yet. Full build ran 00:18 (APK produced), all 14 unit tests green (app, common, datastore, proc, statspill, scenes, clip, scratch). New code: scenes/clip/scratch module implementations, `ModuleRegistryImpl` + `AppModule`, rewritten `DashboardActivity`, CPU reading in `ProcReader`, `CoroutineDispatchers` DI, token hook in `LoopbackServer`, `../OQ-answers.md`, statspill manifest + widget XML.
 
 ### First: verification of the R1 status claims
 I checked each claim against the actual code. **Confirmed fixed:** R1-P0-02, R1-P0-05, R1-P0-06, R1-P1-01, R1-P1-02 (UI + real `/proc/stat` delta), R1-P1-04 (visible hover tint, `LaunchedEffect`).
@@ -120,7 +120,7 @@ I checked each claim against the actual code. **Confirmed fixed:** R1-P0-02, R1-
 
 ### P0
 
-**R2-P0-01 — `OQ-answers.md` declares all 10 OQs "closed green" without the evidence the PRD requires, and several rows were not actually tested as posed.**
+**R2-P0-01 — `../OQ-answers.md` declares all 10 OQs "closed green" without the evidence the PRD requires, and several rows were not actually tested as posed.**
 PRD §10 decision rule: "No module ships on an assumption that failed validation," and Appendix A EOW: "OQ table filled (answer + **evidence link/screenshot per row**)". The current table has no artifacts at all (no screenshot paths, no `dumpsys`/`logcat` output, no links), and the "Validation Method" column doesn't match the PRD's validation plan for most rows:
 - **OQ-1**: the question is specifically about **USB mass storage** on Googlebook hardware. "SDCARD (Removable: true, State: mounted)" is the emulator's virtual emulated storage — that is not USB evidence. This row is *unvalidated*, not confirmed.
 - **OQ-2**: "Documented in PRD §7.8" is restating the plan, not validation (PRD: read Android 17 release notes, poke the GSI, ask dev channels).
@@ -178,7 +178,7 @@ That's the activity's configured metrics, not the desktop work area (excludes ta
 Constructor takes `CoroutineDispatcher = Dispatchers.IO` (a default parameter Hilt can't inject — `@HiltViewModel` will use the default; the abstraction in `core:common` is currently unused anywhere). Inject the `CoroutineDispatchers` interface (that's what it's for) or delete the abstraction. Don't keep two dispatcher strategies.
 
 **R2-P1-09 — Make the initial git commit.**
-The repo still has **zero commits** while all of this exists only in the working tree. `.gitignore` is now correct (build dirs excluded), so this is safe: commit the scaffold + Phase-1 progress now, then keep small commits per module. Everything else in this feedback file is cheaper to act on if the work is under VCS.
+The repo still has **zero commits** while all of this exists only in the working tree. `../.gitignore` is now correct (build dirs excluded), so this is safe: commit the scaffold + Phase-1 progress now, then keep small commits per module. Everything else in this feedback file is cheaper to act on if the work is under VCS.
 
 ### P2
 
@@ -192,14 +192,14 @@ The repo still has **zero commits** while all of this exists only in the working
 
 **R2-P2-05 — New unit tests exist and pass (good):** when Clip/Scratch/Scenes get real repositories, add DAO/repository tests (in-memory or Robolectric) and a `FakeCoroutineDispatchers` for the polling loops.
 
-**R2-P2-06 — Carry-over open items from R1 (unchanged):** no CI; `gradle.properties` bogus flags; Room `2.7.0-alpha13`; hardcoded strings (i18n debt); `versionName "1.0"`; `DataStoreManager` mislabeling + dead injection + default-true; unused `Theme.Alloy` + `appcompat`/`material` deps; `LocalAdminManager` (still no justification on record); stray root `AlloyApplication.kt`.
+**R2-P2-06 — Carry-over open items from R1 (unchanged):** no CI; `../gradle.properties` bogus flags; Room `2.7.0-alpha13`; hardcoded strings (i18n debt); `versionName "1.0"`; `DataStoreManager` mislabeling + dead injection + default-true; unused `Theme.Alloy` + `appcompat`/`material` deps; `LocalAdminManager` (still no justification on record); stray root `AlloyApplication.kt`.
 
 ### What's working well (keep doing this)
 - Fast, verified turnaround on R1 items; the status-update discipline in this file is working — keep writing entries even when only partially fixed (write "partial — remainder: …").
 - Full green build + 14 passing tests after a large change; that's the bar, keep hitting it.
 - Real CPU deltas with null-until-first-sample is exactly the right shape for "honest vitals."
 - `ModuleRegistryImpl` + `@Binds` in `AppModule` is the right DI pattern; now actually use the registry from the UI.
-- `OQ-answers.md` as a repo artifact is the right *format* — the content bar is the issue (R2-P0-01).
+- `../OQ-answers.md` as a repo artifact is the right *format* — the content bar is the issue (R2-P0-01).
 - **R1-P1-08**: fixed — Deleted stray `AlloyApplication.kt` at repo root.
 
 ---
@@ -226,8 +226,8 @@ Good foundation: module layout matches PRD §15, the MVI `BaseViewModel` contrac
 - Fix: read on `Dispatchers.IO` (or a dedicated single-thread dispatcher shared for telemetry), hop to Main only for state updates.
 
 **R1-P0-03 — Stats module is not wired into the app at all.**
-- `app/build.gradle.kts` has **no dependency** on `:modules:statspill`; `DashboardActivity` is a placeholder rail with no module list, no enable switches, no navigation to `StatsScreen`.
-- `:modules:scenes`, `:modules:clip`, `:modules:scratch` contain only `build.gradle.kts` (no sources, no manifests).
+- `../app/build.gradle.kts` has **no dependency** on `:modules:statspill`; `DashboardActivity` is a placeholder rail with no module list, no enable switches, no navigation to `StatsScreen`.
+- `:modules:scenes`, `:modules:clip`, `:modules:scratch` contain only `../build.gradle.kts` (no sources, no manifests).
 - Phase 1 exit (PRD §12) = Stats + Scenes + Clip + Scratch at GA quality on the beta track. Nothing is reachable from the shipped APK yet.
 - Fix: depend on statspill from `:app`, render real `ModuleInfo` rows (from `ModuleRegistry`) with toggles + status in the rail, and navigate to each module page. Give the empty modules a minimal manifest + `ModuleInfo` registration so the registry is the single source of truth.
 
@@ -235,14 +235,14 @@ Good foundation: module layout matches PRD §15, the MVI `BaseViewModel` contrac
 `StatsWidgetProvider.kt`
 - No `<receiver>` declaration in any manifest, no `res/xml/*_appwidget.xml` provider info → the widget never appears.
 - Uses `android.R.layout.simple_list_item_1` as the `RemoteViews` layout (framework layout hack) and has no `updatePeriodMillis` (PRD: 30 s refresh) or sparklines.
-- Fix: add `modules/statspill/src/main/AndroidManifest.xml` (statspill currently has **no manifest at all**, so neither the service nor the receiver can merge into the app) declaring the receiver with `android:appwidgetProvider` meta-data + provider XML, and a real widget layout.
+- Fix: add `../modules/statspill/src/main/AndroidManifest.xml` (statspill currently has **no manifest at all**, so neither the service nor the receiver can merge into the app) declaring the receiver with `android:appwidgetProvider` meta-data + provider XML, and a real widget layout.
 
 **R1-P0-05 — Auto-backup enabled on a "no cloud" product.**
-`app/src/main/AndroidManifest.xml`: `android:allowBackup="true"` with the stock, never-referenced `backup_rules.xml` / `data_extraction_rules.xml` templates.
+`../app/src/main/AndroidManifest.xml`: `android:allowBackup="true"` with the stock, never-referenced `backup_rules.xml` / `data_extraction_rules.xml` templates.
 - PRD §2/§8: "no account, no cloud... Privacy is the brand." Auto-backup silently copies app data (prefs, and soon clip history) to Google Drive.
 - Fix: `android:allowBackup="false"` (simplest, matches positioning). If you ever want device-transfer, reference `dataExtractionRules` with explicit, non-sensitive includes only.
 
-**R1-P0-06 — `.gitignore` does not cover subproject build directories.**
+**R1-P0-06 — `../.gitignore` does not cover subproject build directories.**
 - Only `/build` (repo root) is ignored. `modules/statspill/build/**` (hundreds of generated files) and `app/build/**` will be committed on the first `git add -A`.
 - Fix: change `/build` → `build/` (or add `**/build/`), and make sure no `build/` output is in the initial commit.
 
@@ -253,7 +253,7 @@ Good foundation: module layout matches PRD §15, the MVI `BaseViewModel` contrac
 - OQ-1: no `UsbManager` attach/detach event logging (Day 1–2 task).
 - Missing entirely: OQ-3 (Antigravity interface inspection), OQ-6 (AICore), OQ-7 (IME Ctrl+C probe), OQ-10 (emulator vs GSI comparison).
 - Also: `checkStorageVolumes()` runs on the main thread; probe declares `MANAGE_EXTERNAL_STORAGE` (special-access — never upload the probe APK to any Play track); `@android:drawable/sym_def_app_icon` is a hidden platform resource (give the probe its own trivial icon).
-- Suggestion: keep a repo file `OQ-answers.md` (answer + evidence/screenshot path per row) so progress is visible to reviewers, and make each OQ a named screen/card in the probe.
+- Suggestion: keep a repo file `../OQ-answers.md` (answer + evidence/screenshot path per row) so progress is visible to reviewers, and make each OQ a named screen/card in the probe.
 
 ### P1 — correctness & quality
 
@@ -280,15 +280,15 @@ Good foundation: module layout matches PRD §15, the MVI `BaseViewModel` contrac
 `core/design/.../DesktopScrollbar.kt` draws a static full-height colored bar — no thumb size/position, no show-while-scrolling behavior (PRD §14 Scrollbar_Display). Use M3 `Modifier.scrollbar(rememberScrollStateAdapter...)`/`verticalScrollbar` or compute thumb geometry from `scrollState` and fade after scroll stops.
 
 **R1-P1-06 — App theme wiring is inconsistent.**
-`app/src/main/AndroidManifest.xml` uses `@android:style/Theme.Material.Light.NoActionBar`, while `res/values/themes.xml` defines an unused `Theme.Alloy` (MaterialComponents, **with** action bar, template purple/teal colors).
-- Fix: pick one. Recommended: a minimal `Theme.Alloy` (NoActionBar, transparent system bars, `windowBackground` matching M3) referenced from the manifest; delete the template colors/theme if unused. `appcompat` + `material` deps in `app/build.gradle.kts` also appear unused (activity extends `ComponentActivity`) — drop them if so.
+`../app/src/main/AndroidManifest.xml` uses `@android:style/Theme.Material.Light.NoActionBar`, while `res/values/themes.xml` defines an unused `Theme.Alloy` (MaterialComponents, **with** action bar, template purple/teal colors).
+- Fix: pick one. Recommended: a minimal `Theme.Alloy` (NoActionBar, transparent system bars, `windowBackground` matching M3) referenced from the manifest; delete the template colors/theme if unused. `appcompat` + `material` deps in `../app/build.gradle.kts` also appear unused (activity extends `ComponentActivity`) — drop them if so.
 
 **R1-P1-07 — `LocalAdminManager` (Device Owner / Device Admin) is out of scope.**
 `core/common/.../LocalAdminManager.kt` — nothing in the PRD calls for Device Policy/DO/DMA, and on Play it is the most trust-damaging surface imaginable for a "privacy is the brand" product.
 - Fix: delete it, or record a concrete PRD-backed justification (in this file) before building on it.
 
 **R1-P1-08 — Stray `AlloyApplication.kt` at repo root.**
-Duplicate of `app/src/main/java/com/squidink/alloy/AlloyApplication.kt`, not part of any source set. Confusing dead file — delete.
+Duplicate of `../app/src/main/java/com/squidink/alloy/AlloyApplication.kt`, not part of any source set. Confusing dead file — delete.
 
 **R1-P1-09 — `LoopbackServer` has no token gating or failure surfacing.**
 `core/netlocal/.../LoopbackServer.kt` — PRD §7.12: bearer token (per-install, shown once), loopback-only (bind is correct ✓). Port-conflict on 8787 currently throws from `start()` with no recovery/surfacing.
@@ -303,7 +303,7 @@ Duplicate of `app/src/main/java/com/squidink/alloy/AlloyApplication.kt`, not par
 **R1-P2-01 — No CI yet (Phase-0 exit criterion).**
 No `.github/workflows`. PRD §15/§12: CI = build + unit + instrumented + OSV-Scanner + license check + ktlint + detekt. The `detekt` plugin is in the catalog and root build but **not applied to any module**, and no ktlint/detekt config exists. Add a minimal workflow (`./gradlew build`) now and layer lint/security scans in.
 
-**R1-P2-02 — `gradle.properties` contains bogus flags.**
+**R1-P2-02 — `../gradle.properties` contains bogus flags.**
 - `org.gradle.tooling.parallel=true` is not a Gradle property (unknown keys are silently ignored — misleading for the next reader).
 - `android.disallowKotlinSourceSets=false` — verify this is a real flag; remove if not.
 - Keep: `org.gradle.configuration-cache=true` etc. (fine).
@@ -329,7 +329,7 @@ AGP 9.x requires JDK 17 to run; many 2026-era setups target 17. If AGP/lint emit
 `versionName = "1.0"` — PRD targets a v0.1-class public beta on launch day. Use `0.1.0` (+ `-beta`/channel suffix) so internal/beta builds don't claim 1.0 in crash reports and Play tracks.
 
 **R1-P2-09 — Upcoming permissions to declare when their features land.**
-`POST_NOTIFICATIONS` (stats alerts, downloads, backup), `FOREGROUND_SERVICE` + types, `USE_BIOMETRIC` (clip/model), `MANAGE_EXTERNAL_STORAGE` (treemap — opt-in flow only, PRD §5 "never at first launch"). Keep a checklist row for each in `OQ-answers.md` or the PRD so nothing ships with an undeclared permission.
+`POST_NOTIFICATIONS` (stats alerts, downloads, backup), `FOREGROUND_SERVICE` + types, `USE_BIOMETRIC` (clip/model), `MANAGE_EXTERNAL_STORAGE` (treemap — opt-in flow only, PRD §5 "never at first launch"). Keep a checklist row for each in `../OQ-answers.md` or the PRD so nothing ships with an undeclared permission.
 
 ### What's working well (keep doing this)
 - Repo layout matches PRD §15 almost 1:1; namespace discipline is clean (`com.squidink.alloy...`).

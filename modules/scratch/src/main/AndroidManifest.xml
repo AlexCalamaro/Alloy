@@ -4,9 +4,11 @@
     <application>
         <activity
             android:name=".ScratchActivity"
-            android:exported="true"
+            android:exported="false"
             android:label="Pinned Scratchpad"
-            android:launchMode="singleInstancePerTask"
+            android:launchMode="standard"
+            android:documentLaunchMode="always"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:theme="@android:style/Theme.Material.Light.NoActionBar" />
     </application>
 

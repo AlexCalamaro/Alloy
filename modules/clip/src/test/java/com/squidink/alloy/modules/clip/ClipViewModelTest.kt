@@ -17,16 +17,31 @@ import org.junit.Before
 import org.junit.Test
 
 class FakeClipDao : ClipDao {
-    override fun getAllClips(): Flow<List<ClipEntity>> = flowOf(emptyList())
-    override fun searchClips(query: String): Flow<List<ClipEntity>> = flowOf(emptyList())
+    private val testClips =
+        listOf(
+            ClipEntity("1", "https://github.com/squidink/alloy", sourceApp = "Chrome", isPinned = true),
+            ClipEntity("2", "val apiKey = \"secret_12345\"", sourceApp = "DeskTerm", isPinned = false),
+        )
+
+    override fun getAllClips(): Flow<List<ClipEntity>> = flowOf(testClips)
+
+    override fun searchClips(query: String): Flow<List<ClipEntity>> = flowOf(testClips)
+
     override suspend fun insertClip(clip: ClipEntity) {}
+
+    override suspend fun updateClip(
+        id: String,
+        textContent: String,
+        isPinned: Boolean,
+    ) {}
+
     override suspend fun deleteClip(id: String) {}
+
     override suspend fun clearUnpinnedClips() {}
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ClipViewModelTest {
-
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @Before
@@ -47,27 +62,31 @@ class ClipViewModelTest {
     }
 
     @Test
-    fun `add clip and search filter updates state`() = runTest {
-        val viewModel = ClipViewModel(FakeClipDao())
-        val initialCount = viewModel.uiState.value.clips.size
+    fun `add clip and search filter updates state`() =
+        runTest {
+            val viewModel = ClipViewModel(FakeClipDao(), enableCleanupTask = false)
+            val initialCount = viewModel.uiState.value.clips.size
 
-        viewModel.onAction(ClipUiAction.AddClip("UniqueSearchableText"))
-        assertEquals(initialCount + 1, viewModel.uiState.value.clips.size)
+            viewModel.onAction(ClipUiAction.AddClip("UniqueSearchableText"))
+            assertEquals(initialCount + 1, viewModel.uiState.value.clips.size)
 
-        viewModel.onAction(ClipUiAction.UpdateSearchQuery("Unique"))
-        assertEquals("Unique", viewModel.uiState.value.searchQuery)
-    }
+            viewModel.onAction(ClipUiAction.UpdateSearchQuery("Unique"))
+            assertEquals("Unique", viewModel.uiState.value.searchQuery)
+        }
 
     @Test
-    fun `apply transformation emits CopyToClipboard effect`() = runTest {
-        val viewModel = ClipViewModel(FakeClipDao())
-        val firstClip = viewModel.uiState.value.clips.first()
-        viewModel.onAction(ClipUiAction.SelectClip(firstClip))
+    fun `apply transformation emits CopyToClipboard effect`() =
+        runTest {
+            val viewModel = ClipViewModel(FakeClipDao(), enableCleanupTask = false)
+            val firstClip =
+                viewModel.uiState.value.clips
+                    .first()
+            viewModel.onAction(ClipUiAction.SelectClip(firstClip))
 
-        viewModel.effect.test {
-            viewModel.onAction(ClipUiAction.ApplyTransformation(TransformationType.UPPERCASE))
-            val effect = awaitItem() as ClipUiEffect.CopyToClipboard
-            assertEquals(firstClip.textContent.uppercase(), effect.text)
+            viewModel.effect.test {
+                viewModel.onAction(ClipUiAction.ApplyTransformation(TransformationType.UPPER_CASE))
+                val effect = awaitItem() as ClipUiEffect.CopyToClipboard
+                assertEquals(firstClip.textContent.uppercase(), effect.text)
+            }
         }
-    }
 }

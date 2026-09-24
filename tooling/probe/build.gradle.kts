@@ -7,9 +7,7 @@ plugins {
 
 android {
     namespace = "com.squidink.alloy.tooling.probe"
-    compileSdk {
-        version = release(37)
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.squidink.alloy.tooling.probe"
