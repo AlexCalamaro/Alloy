@@ -1,0 +1,126 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "local/qwen3.5",
+  "providers": {
+    "local": {
+      "name": "AI Box",
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": {
+        "baseURL": "http://gx10.access.net:8080/coding/v1"
+      },
+      "models": {
+        "unsloth/Qwen3.5-122B-A10B-NVFP4": {
+          "name": "Qwen3.5-122B-A10B-NVFP4",
+          "modelID": "unsloth/Qwen3.5-122B-A10B-NVFP4",
+          "limit": {
+            "context": 131072,
+            "output": 4096
+          }
+        }
+      }
+    }
+  },
+  "websearch": false,
+  "mcp": {
+    "searxng": {
+      "type": "local",
+      "command": ["npm", "exec", "searxng-mcp-server"],
+      "args": ["-y"],
+      "enabled": true,
+      "timeout": 10000,
+      "environment": {
+        "SEARXNG_URL": "http://gx10.access.net:8888"
+      }
+    }
+  },
+  "ignore": [
+    "**/build/**",
+    "**/.gradle/**",
+    "**/*.apk",
+    "**/*.aab",
+    "**/*.keystore",
+    "**/*.jks",
+    "**/captures/**",
+    "**/.idea/**"
+  ],
+
+  "permissions": [
+    { "action": "read", "resource": "**/local.properties", "effect": "deny" },
+    { "action": "read", "resource": "**/*.jks", "effect": "deny" },
+    { "action": "read", "resource": "**/*.keystore", "effect": "deny" },
+    { "action": "read", "resource": ".env*", "effect": "deny" },
+    { "action": "read", "resource": "*", "effect": "allow" },
+
+    { "action": "shell", "resource": "./gradlew test*", "effect": "allow" },
+    { "action": "shell", "resource": "./gradlew lint*", "effect": "allow" },
+    { "action": "shell", "resource": "./gradlew ktlintCheck", "effect": "allow" },
+    { "action": "shell", "resource": "./gradlew assemble*", "effect": "allow" },
+    { "action": "shell", "resource": "./gradlew clean*", "effect": "allow" },
+
+    { "action": "shell", "resource": "git *", "effect": "allow" },
+
+    { "action": "shell", "resource": "adb devices", "effect": "allow" },
+    { "action": "shell", "resource": "adb shell am instrument*", "effect": "allow" },
+    { "action": "shell", "resource": "adb push *", "effect": "ask" },
+    { "action": "shell", "resource": "adb install *", "effect": "allow" },
+
+    { "action": "shell", "resource": "sudo *", "effect": "deny" },
+    { "action": "shell", "resource": "*", "effect": "ask" }
+  ],
+
+  "formatter": {
+    "ktlint": {
+      "command": ["ktlint", "-F", "$FILE"]
+    }
+  },
+  "agents": {
+    "planner": {
+      "name": "Architecture & State Manager",
+      "description": "Breaks down specs and tracks progress to prevent context loss.",
+      "mode": "subagent",
+      "temperature": 0.1,
+      "instructions": [
+        "Read the provided product specification.",
+        "Create and continuously maintain a WORK_PLAN.md file in the root directory.",
+        "Check off tasks as they are completed by the coder.",
+        "If the coder gets stuck in a loop, analyze WORK_PLAN.md and pivot the strategy.",
+        "When encountering an unknown library version, a missing dependency, or an undocumented error, use the 'searxng' tool to search the web for the latest documentation or solutions. Pass categories like 'it' or 'repos' to filter for technical results."
+      ]
+    },
+    "coder": {
+      "name": "Android Feature Dev",
+      "description": "Writes production Kotlin and Jetpack Compose code with tests",
+      "mode": "primary",
+      "temperature": 0.2,
+      "instructions": [
+        "Before writing code, read WORK_PLAN.md.",
+        "Focus exclusively on idiomatic Kotlin and declarative Jetpack Compose.",
+        "Follow UDF (Unidirectional Data Flow) and Clean Architecture.",
+        "Always write unit tests for ViewModels, UseCases, and Repositories.",
+        "After tests pass, update WORK_PLAN.md and run git commit -am 'checkpoint'."
+      ]
+    },
+    "reviewer": {
+      "name": "Android Code Reviewer",
+      "description": "Audits PRs and diffs for Compose recomposition bugs, memory leaks, and coroutine anti-patterns",
+      "mode": "subagent",
+      "temperature": 0.1,
+      "instructions": [
+        "Audit diffs specifically for: unstable Compose parameters causing recomposition loops, missing keys in LazyColumn, GlobalScope or unconfined CoroutineScope usage, and context leaks.",
+        "Do not write or rewrite full files unless explicitly requested. Provide concise, targeted review comments with line references."
+      ]
+    },
+    "debugger": {
+      "name": "Gradle & Logcat Troubleshooter",
+      "description": "Analyzes stacktraces, Gradle sync issues, and Logcat crashes",
+      "mode": "subagent",
+      "temperature": 0.0,
+      "instructions": [
+        "Analyze stacktraces and build logs concisely.",
+        "Check for dependency version collisions, missing Proguard/R8 rules, or Android lifecycle errors.",
+        "Propose minimal, targeted fixes to build files or code.",
+        "When encountering an unknown library version, a missing dependency, or an undocumented error, use the 'searxng' tool to search the web for the latest documentation or solutions. Pass categories like 'it' or 'repos' to filter for technical results."
+      ]
+    }
+  }
+}
