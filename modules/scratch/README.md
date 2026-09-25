@@ -33,6 +33,12 @@ The Scratch module provides a persistent, always-available workspace for quick n
   - Start/pause/reset controls
   - Integrated in header for quick access
 
+- **Detail Pane Integration**
+  - `ScratchFeatureDetail` provides settings panel
+  - Auto-save settings display
+  - Text formatting information
+  - Integrated with three-pane layout
+
 ## Architecture
 
 ```
@@ -50,6 +56,7 @@ scratch/
 │   │       │   ├── ScratchDatabase.kt       # Room database
 │   │       │   ├── ScratchDao.kt            # Data access object
 │   │       │   └── ScratchEntity.kt         # Room entity
+│   │       ├── ScratchFeatureDetail.kt      # Detail pane settings
 │   │       ├── ScratchViewModel.kt          # MVI ViewModel
 │   │       └── ui/
 │   │           └── ScratchScreen.kt         # Jetpack Compose UI
@@ -127,6 +134,7 @@ implementation(project(":core:common"))
 implementation(project(":core:design"))
 implementation(project(":core:datastore"))
 implementation(project(":core:domain"))
+implementation(project(":core:layout"))
 
 // Room for persistence
 implementation(libs.room.runtime)
@@ -136,6 +144,9 @@ ksp(libs.room.compiler)
 // Hilt for DI
 implementation(libs.hilt.android)
 ksp(libs.hilt.compiler)
+
+// Navigation Compose for hiltViewModel
+implementation(libs.androidx.hilt.navigation.compose)
 ```
 
 ## Usage
@@ -184,6 +195,25 @@ viewModel.onAction(ScratchUiAction.ResetStopwatch)
 // Record lap
 viewModel.onAction(ScratchUiAction.AddLap)
 ```
+
+### Detail Pane Settings
+
+The `ScratchFeatureDetail` class implements `FeatureDetail` to provide
+settings content in the three-pane layout's detail pane:
+
+```kotlin
+class ScratchFeatureDetail : FeatureDetail {
+    override val showsDetailPane: Boolean = true
+    
+    @Composable
+    override fun DetailContent() {
+        // Display scratchpad settings info
+    }
+}
+```
+
+When the Scratch feature is selected, the detail pane automatically shows
+the `ScratchFeatureDetail` content.
 
 ## Testing
 

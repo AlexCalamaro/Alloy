@@ -22,12 +22,14 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:design"))
+    implementation(project(":core:layout"))
 
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)
     implementation(libs.compose.material.icons.extended)
+    implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 

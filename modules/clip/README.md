@@ -39,6 +39,12 @@ The Clip module provides a powerful clipboard management system with real-time c
   - Clipboard operations include permission checks for consistency
   - Toast notifications via SnackbarHost for user feedback
 
+- **Detail Pane Integration**
+  - `ClipFeatureDetail` provides settings panel
+  - History size configuration display
+  - Pinned clips information
+  - Integrated with three-pane layout
+
 ## Architecture
 
 ```
@@ -56,6 +62,7 @@ clip/
 │   │       │   ├── ClipDatabase.kt        # Room database
 │   │       │   ├── ClipDao.kt             # Data access object
 │   │       │   └── ClipEntity.kt          # Room entity
+│   │       ├── ClipFeatureDetail.kt       # Detail pane settings
 │   │       ├── ClipViewModel.kt           # MVI ViewModel
 │   │       ├── ClipTransformations.kt     # Text transformation utilities
 │   │       └── ui/
@@ -103,6 +110,7 @@ implementation(project(":core:common"))
 implementation(project(":core:design"))
 implementation(project(":core:datastore"))
 implementation(project(":core:domain"))
+implementation(project(":core:layout"))
 implementation(project(":core:permissions"))
 
 // Room for persistence
@@ -113,6 +121,9 @@ ksp(libs.room.compiler)
 // Hilt for DI
 implementation(libs.hilt.android)
 ksp(libs.hilt.compiler)
+
+// Navigation Compose for hiltViewModel
+implementation(libs.androidx.hilt.navigation.compose)
 ```
 
 ## Usage
@@ -142,6 +153,25 @@ fun ClipWorkbench() {
 // Apply transformation to selected clip
 viewModel.onAction(ClipUiAction.ApplyTransformation(TransformationType.JSON_PRETTY))
 ```
+
+### Detail Pane Settings
+
+The `ClipFeatureDetail` class implements `FeatureDetail` to provide
+settings content in the three-pane layout's detail pane:
+
+```kotlin
+class ClipFeatureDetail : FeatureDetail {
+    override val showsDetailPane: Boolean = true
+    
+    @Composable
+    override fun DetailContent() {
+        // Display clipboard settings info
+    }
+}
+```
+
+When the Clip feature is selected, the detail pane automatically shows
+the `ClipFeatureDetail` content.
 
 ## Testing
 

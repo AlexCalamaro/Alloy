@@ -37,6 +37,12 @@ The StatsPill module provides real-time system telemetry monitoring including CP
   - Manual refresh capability
   - Toggle live overlay activation
 
+- **Detail Pane Integration**
+  - `StatsPillFeatureDetail` provides settings panel
+  - Live overlay toggle in detail pane
+  - Polling frequency configuration
+  - Integrated with three-pane layout
+
 ## Architecture
 
 ```
@@ -52,6 +58,7 @@ statspill/
 │   │       │   └── StatsRepositoryImpl.kt     # Repository implementation
 │   │       ├── StatsGlanceWidget.kt           # Android Glance widget
 │   │       ├── StatsPillOverlayService.kt     # Overlay service
+│   │       ├── StatsPillFeatureDetail.kt      # Detail pane settings
 │   │       ├── StatsViewModel.kt              # MVI ViewModel
 │   │       └── ui/
 │   │           └── StatsScreen.kt             # Jetpack Compose UI
@@ -133,8 +140,10 @@ data class StatsUiState(
 ```kotlin
 implementation(project(":core:common"))
 implementation(project(":core:design"))
+implementation(project(":core:layout"))
 implementation(project(":core:proc"))
 implementation(project(":core:domain"))
+implementation(project(":core:permissions"))
 
 // Lifecycle service
 implementation(libs.androidx.lifecycle.service)
@@ -146,6 +155,9 @@ implementation(libs.androidx.glance.material3)
 // Hilt for DI
 implementation(libs.hilt.android)
 ksp(libs.hilt.compiler)
+
+// Navigation Compose for hiltViewModel
+implementation(libs.androidx.hilt.navigation.compose)
 ```
 
 ## Usage
@@ -199,6 +211,25 @@ if (Settings.canDrawOverlays(context)) {
     // Show permission request or toast
 }
 ```
+
+### Detail Pane Settings
+
+The `StatsPillFeatureDetail` class implements `FeatureDetail` to provide
+settings content in the three-pane layout's detail pane:
+
+```kotlin
+class StatsPillFeatureDetail : FeatureDetail {
+    override val showsDetailPane: Boolean = true
+    
+    @Composable
+    override fun DetailContent() {
+        // Display overlay and polling settings
+    }
+}
+```
+
+When the StatsPill feature is selected, the detail pane automatically shows
+the `StatsPillFeatureDetail` content.
 
 ## Testing
 

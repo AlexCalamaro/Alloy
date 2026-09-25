@@ -337,3 +337,39 @@ core/layout/
 
 **Next Steps:** Phase 3 - Feature integration and detail content provision
 
+
+---
+
+#### 11. Feature Detail Integration (Phase 3) ✅
+**Files Created:**
+- `modules/statspill/src/main/java/.../StatsPillFeatureDetail.kt` - StatsPill settings detail
+- `modules/clip/src/main/java/.../ClipFeatureDetail.kt` - Clip settings detail
+- `modules/scratch/src/main/java/.../ScratchFeatureDetail.kt` - Scratch settings detail
+- `modules/scenes/src/main/java/.../ScenesFeatureDetail.kt` - Scenes settings detail
+
+**Files Modified:**
+- `app/build.gradle.kts` - No changes (already had core:layout)
+- `modules/statspill/build.gradle.kts` - Added core:layout, hilt.navigation.compose
+- `modules/clip/build.gradle.kts` - Added core:layout, hilt.navigation.compose
+- `modules/scratch/build.gradle.kts` - Added core:layout, hilt.navigation.compose
+- `modules/scenes/build.gradle.kts` - Added core:layout, hilt.navigation.compose
+- `app/src/main/java/.../DashboardActivity.kt` - Wired up feature-specific detail content
+
+**Features Implemented:**
+- **Feature-Specific Detail Content**: Each feature now provides its own settings panel
+  - StatsPill: Live overlay toggle, polling frequency settings
+  - Clip: History size, pinned clips info
+  - Scratch: Auto-save settings, text formatting info
+  - Scenes: Template management, auto-launch settings
+- **Dynamic Detail Pane**: Detail pane content changes based on current feature
+- **FeatureDetail Interface Integration**: All features implement the interface
+
+**Build Status:** ✅ Successful
+- Full app builds successfully
+- Tests running...
+
+**Next Steps:** 
+- Complete Phase 3 with compact screen navigation improvements
+- Add hamburger menu for navigation on compact screens
+- Add back button behavior for detail pane on compact screens
+

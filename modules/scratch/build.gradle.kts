@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":core:design"))
     implementation(project(":core:datastore"))
     implementation(project(":core:domain"))
+    implementation(project(":core:layout"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
@@ -31,6 +32,7 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)
     implementation(libs.compose.material.icons.extended)
+    implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)

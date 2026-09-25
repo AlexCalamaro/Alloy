@@ -22,6 +22,7 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:design"))
+    implementation(project(":core:layout"))
     implementation(project(":core:proc"))
     implementation(project(":core:domain"))
     implementation(project(":core:permissions"))
@@ -32,9 +33,9 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)
     implementation(libs.compose.material.icons.extended)
-
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
+    implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

@@ -87,7 +87,7 @@
         "When encountering an unknown library version, a missing dependency, or an undocumented error, use the 'searxng' tool to search the web for the latest documentation or solutions. Pass categories like 'it' or 'repos' to filter for technical results."
       ]
     },
-    "coder": {
+    "droidcoder": {
       "name": "Android Feature Dev",
       "description": "Writes production Kotlin and Jetpack Compose code with tests",
       "mode": "primary",

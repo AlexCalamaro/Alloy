@@ -5,10 +5,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -23,12 +31,17 @@ import com.squidink.alloy.core.layout.WindowSizeClass
 import com.squidink.alloy.core.layout.deriveWindowSizeClass
 import com.squidink.alloy.core.navigation.AlloyNavGraph
 import com.squidink.alloy.core.navigation.Screens
+import com.squidink.alloy.core.navigation.getScreenTitle
+import com.squidink.alloy.modules.clip.ClipFeatureDetail
 import com.squidink.alloy.modules.clip.ClipViewModel
 import com.squidink.alloy.modules.clip.ui.ClipScreen
+import com.squidink.alloy.modules.scenes.ScenesFeatureDetail
 import com.squidink.alloy.modules.scenes.ScenesViewModel
 import com.squidink.alloy.modules.scenes.ui.ScenesScreen
+import com.squidink.alloy.modules.scratch.ScratchFeatureDetail
 import com.squidink.alloy.modules.scratch.ScratchViewModel
 import com.squidink.alloy.modules.scratch.ui.ScratchScreen
+import com.squidink.alloy.modules.statspill.StatsPillFeatureDetail
 import com.squidink.alloy.modules.statspill.StatsViewModel
 import com.squidink.alloy.modules.statspill.ui.StatsScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -66,7 +79,10 @@ class DashboardActivity : ComponentActivity() {
  *
  * Uses ThreePaneScaffold for adaptive layout across screen sizes.
  * Supports Material You (dynamic color) theming.
+ * Integrates feature-specific detail content based on current feature.
+ * Includes TopAppBar with hamburger menu for compact screens.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(dynamicColorEnabled: Boolean = true) {
     val navController: NavHostController = rememberNavController()
@@ -74,53 +90,88 @@ fun DashboardScreen(dynamicColorEnabled: Boolean = true) {
     val windowSizeClass: WindowSizeClass = deriveWindowSizeClass()
     val layoutState by layoutController.layoutState.collectAsState()
 
+    // Get feature-specific detail content based on current feature
+    val currentFeatureDetail: FeatureDetail? = when (layoutState.currentFeature) {
+        Screens.StatsPill.route -> StatsPillFeatureDetail()
+        Screens.Clip.route -> ClipFeatureDetail()
+        Screens.Scratch.route -> ScratchFeatureDetail()
+        Screens.Scenes.route -> ScenesFeatureDetail()
+        else -> null
+    }
+
+    // Scroll behavior for TopAppBar
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
     AlloyTheme(dynamicColor = dynamicColorEnabled) {
-        ThreePaneScaffold(
-            windowSizeClass = windowSizeClass,
-            layoutController = layoutController,
-            navigationContent = {
-                NavigationPane(
-                    layoutController = layoutController,
-                    screens = listOf(Screens.StatsPill, Screens.Clip, Screens.Scratch, Screens.Scenes),
-                    onScreenSelected = { route ->
-                        navController.navigate(route)
-                    }
-                )
-            },
-            contentContent = {
-                AlloyNavGraph(
-                    navController = navController,
-                    onStatsPill = {
-                        val viewModel: StatsViewModel = hiltViewModel()
-                        StatsScreen(viewModel = viewModel)
+        Box(modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)) {
+            // TopAppBar for compact screens
+            if (windowSizeClass == WindowSizeClass.COMPACT) {
+                CenterAlignedTopAppBar(
+                    title = { 
+                        androidx.compose.material3.Text(
+                            text = "Alloy Suite",
+                            style = androidx.compose.material3.MaterialTheme.typography.titleLarge
+                        )
                     },
-                    onClip = {
-                        val viewModel: ClipViewModel = hiltViewModel()
-                        ClipScreen(viewModel = viewModel)
-                    },
-                    onScratch = {
-                        val viewModel: ScratchViewModel = hiltViewModel()
-                        ScratchScreen(viewModel = viewModel)
-                    },
-                    onScenes = {
-                        val viewModel: ScenesViewModel = hiltViewModel()
-                        ScenesScreen(viewModel = viewModel)
-                    }
-                )
-            },
-            detailContent = {
-                // TODO: Feature-specific detail content will be provided by features
-                // For now, show empty detail pane
-                DetailPane(
-                    layoutController = layoutController,
-                    title = "Settings",
-                    detailContent = {
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            // Placeholder for feature settings
+                    navigationIcon = {
+                        IconButton(onClick = { layoutController.openNavigation() }) {
+                            Icon(
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "Open navigation"
+                            )
                         }
-                    }
+                    },
+                    scrollBehavior = scrollBehavior
                 )
             }
-        )
+
+            ThreePaneScaffold(
+                windowSizeClass = windowSizeClass,
+                layoutController = layoutController,
+                navigationContent = {
+                    NavigationPane(
+                        layoutController = layoutController,
+                        screens = listOf(Screens.StatsPill, Screens.Clip, Screens.Scratch, Screens.Scenes),
+                        onScreenSelected = { route ->
+                            navController.navigate(route)
+                        }
+                    )
+                },
+                contentContent = {
+                    AlloyNavGraph(
+                        navController = navController,
+                        onStatsPill = {
+                            val viewModel: StatsViewModel = hiltViewModel()
+                            StatsScreen(viewModel = viewModel)
+                        },
+                        onClip = {
+                            val viewModel: ClipViewModel = hiltViewModel()
+                            ClipScreen(viewModel = viewModel)
+                        },
+                        onScratch = {
+                            val viewModel: ScratchViewModel = hiltViewModel()
+                            ScratchScreen(viewModel = viewModel)
+                        },
+                        onScenes = {
+                            val viewModel: ScenesViewModel = hiltViewModel()
+                            ScenesScreen(viewModel = viewModel)
+                        }
+                    )
+                },
+                detailContent = if (currentFeatureDetail?.showsDetailPane == true) {
+                    {
+                        DetailPane(
+                            layoutController = layoutController,
+                            title = layoutState.currentFeature.getScreenTitle() + " Settings",
+                            detailContent = {
+                                currentFeatureDetail.DetailContent()
+                            }
+                        )
+                    }
+                } else {
+                    null
+                }
+            )
+        }
     }
 }

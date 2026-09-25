@@ -31,6 +31,12 @@ The Scenes module enables users to define and launch predefined workspace config
   - Pre-configured "Coding Stack" scene
   - Easy extension with custom scenes
 
+- **Detail Pane Integration**
+  - `ScenesFeatureDetail` provides settings panel
+  - Scene templates information display
+  - Auto-launch settings display
+  - Integrated with three-pane layout
+
 ## Architecture
 
 ```
@@ -41,6 +47,7 @@ scenes/
 │   │   ├── AndroidManifest.xml
 │   │   └── java/com/squidink/alloy/modules/scenes/
 │   │       ├── SceneLauncher.kt           # Core launcher logic
+│   │       ├── ScenesFeatureDetail.kt     # Detail pane settings
 │   │       ├── ScenesViewModel.kt         # MVI ViewModel
 │   │       ├── model/
 │   │       │   ├── Scene.kt               # Scene data model
@@ -110,10 +117,14 @@ data class Scene(
 ```kotlin
 implementation(project(":core:common"))
 implementation(project(":core:design"))
+implementation(project(":core:layout"))
 
 // Hilt for DI
 implementation(libs.hilt.android)
 ksp(libs.hilt.compiler)
+
+// Navigation Compose for hiltViewModel
+implementation(libs.androidx.hilt.navigation.compose)
 ```
 
 ## Usage
@@ -156,6 +167,25 @@ fun ScenesManager() {
     ScenesScreen(viewModel = viewModel)
 }
 ```
+
+### Detail Pane Settings
+
+The `ScenesFeatureDetail` class implements `FeatureDetail` to provide
+settings content in the three-pane layout's detail pane:
+
+```kotlin
+class ScenesFeatureDetail : FeatureDetail {
+    override val showsDetailPane: Boolean = true
+    
+    @Composable
+    override fun DetailContent() {
+        // Display scene settings info
+    }
+}
+```
+
+When the Scenes feature is selected, the detail pane automatically shows
+the `ScenesFeatureDetail` content.
 
 ## Testing
 
