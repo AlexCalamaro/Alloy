@@ -13,13 +13,13 @@ import androidx.core.content.ContextCompat
  * Central manager for handling app permissions.
  * Provides unified permission checking, requesting, and state management.
  */
-class PermissionsManager {
+open class PermissionsManager {
     
     /**
      * Check if a permission is granted.
      * For SYSTEM_ALERT_WINDOW, uses special check.
      */
-    fun isPermissionGranted(context: Context, permission: AppPermission): Boolean {
+    open fun isPermissionGranted(context: Context, permission: AppPermission): Boolean {
         return when (permission) {
             is AppPermission.SystemOverlay -> {
                 Settings.canDrawOverlays(context)
@@ -36,7 +36,7 @@ class PermissionsManager {
     /**
      * Check if we should show rationale for the permission.
      */
-    fun shouldShowRationale(activity: Activity, permission: AppPermission): Boolean {
+    open fun shouldShowRationale(activity: Activity, permission: AppPermission): Boolean {
         return when (permission) {
             is AppPermission.SystemOverlay -> {
                 // SYSTEM_ALERT_WINDOW doesn't have shouldShowRequestPermissionRationale
@@ -51,7 +51,7 @@ class PermissionsManager {
     /**
      * Get the current permission state.
      */
-    fun getPermissionState(context: Context, activity: Activity, permission: AppPermission): PermissionUiState {
+    open fun getPermissionState(context: Context, activity: Activity, permission: AppPermission): PermissionUiState {
         val isGranted = isPermissionGranted(context, permission)
         val canShowRationale = shouldShowRationale(activity, permission)
         
