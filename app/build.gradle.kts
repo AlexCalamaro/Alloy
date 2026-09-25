@@ -46,6 +46,7 @@ dependencies {
     implementation(project(":core:design"))
     implementation(project(":core:datastore"))
     implementation(project(":core:domain"))
+    implementation(project(":core:layout"))
     implementation(project(":core:navigation"))
     implementation(project(":core:proc"))
     implementation(project(":core:netlocal"))
