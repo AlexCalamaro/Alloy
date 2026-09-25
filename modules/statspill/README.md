@@ -24,9 +24,11 @@ The StatsPill module provides real-time system telemetry monitoring including CP
 
 - **Live Overlay Pill**
   - `SYSTEM_ALERT_WINDOW` floating overlay
-  - Compact CPU/RAM display
+  - Compact CPU/RAM/network display
   - Always-on-top visibility
   - Non-interactive pill design
+  - Permission check before activation
+  - Foreground service for reliability
 
 - **Dashboard UI**
   - Detailed telemetry cards
@@ -95,9 +97,11 @@ data class BatteryInfo(
 data class StatsUiState(
     val memInfo: MemInfo = MemInfo(),
     val cpuUsagePercent: Float? = null,
+    val netStats: NetStats = NetStats(),
     val batteryInfo: BatteryInfo = BatteryInfo(),
     val isLiveOverlayActive: Boolean = false,
     val isPolling: Boolean = false,
+    val overlayServiceIntent: Intent? = null,
 )
 ```
 
@@ -106,20 +110,22 @@ data class StatsUiState(
 - `StatsViewModel`: MVI pattern with:
   - 1Hz polling loop via coroutines
   - Battery broadcast receiver registration
-  - Live overlay toggle management
+  - Live overlay toggle management with permission check
+  - Toast notifications for permission warnings
 
 - `StatsScreen`: Dashboard UI with:
   - CPU utilization card
   - RAM usage card
+  - Network speed card
   - Battery status card
-  - Live overlay toggle
+  - Live overlay toggle with snackbar feedback
   - Manual refresh button
 
 - `StatsPillOverlayService`: `LifecycleService` for:
   - `SYSTEM_ALERT_WINDOW` overlay management
   - Compose-based pill rendering
   - Foreground notification for service persistence
-  - Real-time telemetry updates
+  - Real-time CPU/RAM/network telemetry updates
 
 ## Dependencies
 
@@ -168,11 +174,28 @@ viewModel.onAction(StatsUiAction.RefreshNow)
 
 ### Starting the Overlay Service
 
+The ViewModel handles overlay service control with permission checking:
+
 ```kotlin
-// Check overlay permission
+// Enable live overlay (ViewModel handles permission check)
+viewModel.onAction(StatsUiAction.ToggleLiveOverlay(true))
+
+// Disable live overlay
+viewModel.onAction(StatsUiAction.ToggleLiveOverlay(false))
+
+// If permission is denied, a toast will be shown
+// User can then grant permission in system settings
+```
+
+Manual service control (alternative approach):
+
+```kotlin
+// Check overlay permission first
 if (Settings.canDrawOverlays(context)) {
     val intent = Intent(context, StatsPillOverlayService::class.java)
     context.startForegroundService(intent)
+} else {
+    // Show permission request or toast
 }
 ```
 

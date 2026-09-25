@@ -56,7 +56,7 @@
     <string name="stats_battery_level" formatted="false">Level: %d%% (%d/%d)</string>
     <string name="stats_battery_charging">⚡ Charging</string>
     <string name="stats_overlay_mode">Live Overlay Pill Mode</string>
-    <string name="stats_overlay_desc">Float live CPU/RAM/battery vitals over all desktop windows</string>
+    <string name="stats_overlay_desc">Float live CPU/RAM/network vitals over all desktop windows</string>
     <string name="stats_refresh">Refresh Now</string>
     <string name="stats_overlay_active">Live Desktop Overlay Active</string>
     

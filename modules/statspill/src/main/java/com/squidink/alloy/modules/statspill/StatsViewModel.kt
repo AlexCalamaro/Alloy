@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
+import android.provider.Settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.squidink.alloy.core.common.BaseViewModel
@@ -59,6 +60,7 @@ data class StatsUiState(
     val batteryInfo: BatteryInfo = BatteryInfo(),
     val isLiveOverlayActive: Boolean = false,
     val isPolling: Boolean = false,
+    val overlayServiceIntent: Intent? = null,
 ) : UiState
 
 sealed interface StatsUiAction : UiAction {
@@ -87,6 +89,7 @@ class StatsViewModel
     ) : BaseViewModel<StatsUiState, StatsUiAction, StatsUiEffect>(StatsUiState()) {
         private var pollingJob: Job? = null
         private var batteryReceiver: android.content.BroadcastReceiver? = null
+        private var serviceJob: Job? = null
 
         init {
             startPolling()
@@ -140,7 +143,11 @@ class StatsViewModel
                 }
 
                 is StatsUiAction.ToggleLiveOverlay -> {
-                    updateState { it.copy(isLiveOverlayActive = action.enable) }
+                    if (action.enable) {
+                        startOverlayService()
+                    } else {
+                        stopOverlayService()
+                    }
                 }
 
                 StatsUiAction.RefreshNow -> {
@@ -167,6 +174,25 @@ class StatsViewModel
             updateState { it.copy(isPolling = false) }
         }
 
+        private fun startOverlayService() {
+            // Check overlay permission
+            if (!Settings.canDrawOverlays(context)) {
+                sendEffect(StatsUiEffect.ShowToast("Overlay permission required. Please grant in Settings."))
+                updateState { it.copy(isLiveOverlayActive = false) }
+                return
+            }
+
+            val intent = Intent(context, StatsPillOverlayService::class.java)
+            context.startForegroundService(intent)
+            updateState { it.copy(isLiveOverlayActive = true, overlayServiceIntent = intent) }
+        }
+
+        private fun stopOverlayService() {
+            val intent = uiState.value.overlayServiceIntent ?: Intent(context, StatsPillOverlayService::class.java)
+            context.stopService(intent)
+            updateState { it.copy(isLiveOverlayActive = false, overlayServiceIntent = null) }
+        }
+
         private suspend fun pollVitals() {
             val stats = statsRepository.pollSystemStats()
             val netStats = procReader.readNetworkStats()
@@ -187,6 +213,8 @@ class StatsViewModel
         override fun onCleared() {
             super.onCleared()
             stopPolling()
+            serviceJob?.cancel()
+            serviceJob = null
             try {
                 batteryReceiver?.let { context.unregisterReceiver(it) }
             } catch (e: Exception) {
