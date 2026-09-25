@@ -1,0 +1,152 @@
+# Clip Module
+
+Clipboard workbench for managing, transforming, and organizing clipboard history.
+
+## Overview
+
+The Clip module provides a powerful clipboard management system with real-time clip history, text transformations, and persistent storage. It serves as a productivity tool for developers who frequently copy and manipulate text data.
+
+## Capabilities
+
+### Core Features
+
+- **Clipboard History Management**
+  - Persistent storage of clipboard entries using Room database
+  - Automatic clip capture from system clipboard
+  - Timestamp tracking for clip entries
+
+- **Text Transformations**
+  - Case conversions (UPPER, lower)
+  - Whitespace trimming
+  - Line sorting (ascending/descending)
+  - Line deduplication
+  - JSON formatting (pretty/minify)
+  - Base64 encoding/decoding
+  - URL encoding/decoding
+
+- **Clip Organization**
+  - Pin important clips for quick access
+  - Filter by pinned clips only
+  - Search clips by content or source app
+  - Delete unwanted clips
+
+- **Source Tracking**
+  - Track which application each clip originated from
+  - Display source app metadata with each clip
+
+## Architecture
+
+```
+clip/
+├── build.gradle.kts
+├── src/
+│   ├── main/
+│   │   ├── AndroidManifest.xml
+│   │   └── java/com/squidink/alloy/modules/clip/
+│   │       ├── di/
+│   │       │   └── ClipModule.kt          # Hilt DI module
+│   │       ├── data/
+│   │       │   └── ClipRepositoryImpl.kt  # Repository implementation
+│   │       ├── db/
+│   │       │   ├── ClipDatabase.kt        # Room database
+│   │       │   ├── ClipDao.kt             # Data access object
+│   │       │   └── ClipEntity.kt          # Room entity
+│   │       ├── ClipViewModel.kt           # MVI ViewModel
+│   │       ├── ClipTransformations.kt     # Text transformation utilities
+│   │       └── ui/
+│   │           └── ClipScreen.kt          # Jetpack Compose UI
+│   └── test/
+│       └── java/com/squidink/alloy/modules/clip/
+│           └── ClipViewModelTest.kt
+└── README.md
+```
+
+### Layer Breakdown
+
+#### Domain Layer (via core:domain)
+- `IClipRepository`: Interface defining clip operations
+- `Clip`: Domain model for clipboard entries
+
+#### Data Layer
+- `ClipRepositoryImpl`: Repository implementation handling:
+  - Database operations via Room DAO
+  - Thread dispatching using coroutines
+  - Mapping between domain models and Room entities
+
+- `ClipDatabase`: Room database with encrypted storage support
+- `ClipDao`: Async data access with Flow support
+
+#### Presentation Layer
+- `ClipViewModel`: MVI pattern implementation with:
+  - `ClipUiState`: Reactive UI state
+  - `ClipUiAction`: User interactions
+  - `ClipUiEffect`: One-time effects (toasts, clipboard ops)
+
+- `ClipScreen`: Composable UI with:
+  - Dual-pane layout (clips list + transformations)
+  - Real-time search and filtering
+  - Pin/unpin functionality
+
+## Dependencies
+
+```kotlin
+implementation(project(":core:common"))
+implementation(project(":core:design"))
+implementation(project(":core:datastore"))
+implementation(project(":core:domain"))
+
+// Room for persistence
+implementation(libs.room.runtime)
+implementation(libs.room.ktx)
+ksp(libs.room.compiler)
+
+// Hilt for DI
+implementation(libs.hilt.android)
+ksp(libs.hilt.compiler)
+```
+
+## Usage
+
+### Accessing the Clip Screen
+
+```kotlin
+// Navigate to clip workbench
+navController.navigate("clip")
+```
+
+### Using the ViewModel
+
+```kotlin
+@Composable
+fun ClipWorkbench() {
+    val viewModel: ClipViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsState()
+    
+    ClipScreen(viewModel = viewModel)
+}
+```
+
+### Applying Transformations
+
+```kotlin
+// Apply transformation to selected clip
+viewModel.onAction(ClipUiAction.ApplyTransformation(TransformationType.JSON_PRETTY))
+```
+
+## Testing
+
+```bash
+# Run unit tests
+./gradlew :modules:clip:test
+
+# Run with coverage
+./gradlew :modules:clip:testDebugUnitTest
+```
+
+## Future Enhancements
+
+- [ ] Multi-clip selection and batch operations
+- [ ] Clip categories and tags
+- [ ] Export/import clip history
+- [ ] Custom transformation scripts
+- [ ] Clipboard monitoring service integration

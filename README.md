@@ -125,21 +125,30 @@ Alloy targets the "Optimized for Desktop" Play Store badge with:
 - **Widget:** 4×1 or 2×2 with CPU/RAM/battery/net sparklines
 - **Live Mode:** Floating overlay (requires `SYSTEM_ALERT_WINDOW`)
 - **Alerts:** Thermal, RAM, charge notifications (opt-in)
+- 📖 [Full Documentation](modules/statspill/README.md)
 
 ### Scenes
 - **Hotkeys:** `Ctrl+Alt+1…9` to launch scenes
 - **Placement:** Uses `setLaunchBounds()` for window positioning
 - **Import/Export:** Scene configurations as JSON
+- 📖 [Full Documentation](modules/scenes/README.md)
 
 ### Clip
 - **History:** Text (≤1MB) + images (≤16MP), 30-day/500-item cap
 - **OCR:** Image text extraction via ML Kit
 - **Transformations:** Case, trim, sort, dedupe, regex, JSON, base64
+- 📖 [Full Documentation](modules/clip/README.md)
 
 ### Scratch
 - **Multi-Instance:** Multiple independent windows
 - **Panes:** Text notes, checklists, stopwatch/timer
 - **Keyboard:** `Ctrl+Enter` new item, `Ctrl+T` toggle timer
+- 📖 [Full Documentation](modules/scratch/README.md)
+
+### Settings
+- **Framework:** MVI-based settings management (placeholder)
+- **Planned:** Theme, preferences, system configuration
+- 📖 [Full Documentation](modules/settings/README.md)
 
 ## 🛠️ Development
 
@@ -209,8 +218,22 @@ Alloy targets the "Optimized for Desktop" Play Store badge with:
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
 4. Run tests: `./gradlew testDebugUnitTest`
-5. Commit with clear messages
-6. Push and open a Pull Request
+5. **Update documentation:** If you modified a module's source code, update its `README.md` in the module directory
+6. Commit with clear messages
+7. Push and open a Pull Request
+
+### Module Documentation Requirements
+
+When making meaningful changes to a module, update its README to include:
+- **New capabilities or features** added
+- **Architecture changes** (new layers, components, or patterns)
+- **API or interface modifications** (public methods, data models)
+- **Usage examples** for new functionality
+
+A pre-commit hook validates that module READMEs are updated when source files change. To bypass (for documentation-only commits or emergency fixes):
+```bash
+git commit --no-verify
+```
 
 ## 📄 License
 
