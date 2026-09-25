@@ -8,12 +8,12 @@ This document tracks user-requested and competitive-analysis-derived feature enh
 
 ### High Priority (Feasible & High Impact)
 
-| Feature | Description | Source |
-|---------|-------------|--------|
-| **Tags & Folders** | Organize clips with user-defined tags and folders for better categorization | PopSci, Android Police |
-| **Biometric Safe Box** | Secure sensitive clips (verification codes, notes) with biometric lock | Android Police |
-| **Search Across History** | Full-text search to find clips from months ago | Android Police, MakeUseOf |
-| **Edit Before Paste** | Modify clip content before pasting into target app | PopSci |
+| Feature | Description | Source | Status |
+|---------|-------------|--------|--------|
+| **Tags & Folders** | Organize clips with user-defined tags and folders for better categorization | PopSci, Android Police | |
+| **Biometric Safe Box** | Secure sensitive clips (verification codes, notes) with biometric lock | Android Police | |
+| **Search Across History** | Full-text search to find clips from months ago | Android Police, MakeUseOf | |
+| **Edit Before Paste** | Modify clip content before pasting into target app | PopSci | ✅ Done |
 
 ### Medium Priority (Feasible, Moderate Impact)
 
@@ -39,11 +39,11 @@ This document tracks user-requested and competitive-analysis-derived feature enh
 
 ### High Priority (Feasible & High Impact)
 
-| Feature | Description | Source |
-|---------|-------------|--------|
-| **Keyboard Shortcuts** | `Ctrl+Alt+1…9` to launch scenes quickly | Alloy README, PowerToys |
-| **Scene Templates** | Pre-built templates for common workflows (coding, research, streaming) | Competitive analysis |
-| **Import/Export JSON** | Share scene configurations between devices | Alloy README |
+| Feature | Description | Source | Status |
+|---------|-------------|--------|--------|
+| **Keyboard Shortcuts** | `Ctrl+Alt+1…9` to launch scenes quickly | Alloy README, PowerToys | |
+| **Scene Templates** | Pre-built templates for common workflows (coding, research, streaming) | Competitive analysis | ✅ Done |
+| **Import/Export JSON** | Share scene configurations between devices | Alloy README | |
 
 ### Medium Priority (Feasible, Moderate Impact)
 
@@ -67,12 +67,12 @@ This document tracks user-requested and competitive-analysis-derived feature enh
 
 ### High Priority (Feasible & High Impact)
 
-| Feature | Description | Source |
-|---------|-------------|--------|
-| **Customizable Overlay Position** | Drag to reposition floating pill | XDA Forums, Reddit |
-| **Network Speed Monitor** | Display upload/download speeds | Pocket-lint, Samsung Members |
-| **Alert Thresholds** | Notifications for high CPU, RAM, or temperature | Alloy README |
-| **Sparkline Graphs** | Visual history in widgets (CPU/RAM trends) | Alloy README |
+| Feature | Description | Source | Status |
+|---------|-------------|--------|--------|
+| ~~**Customizable Overlay Position**~~ | Drag to reposition floating pill | XDA Forums, Reddit | |
+| **Network Speed Monitor** | Display upload/download speeds | Pocket-lint, Samsung Members | ✅ Done |
+| **Alert Thresholds** | Notifications for high CPU, RAM, or temperature | Alloy README | |
+| **Sparkline Graphs** | Visual history in widgets (CPU/RAM trends) | Alloy README | |
 
 ### Medium Priority (Feasible, Moderate Impact)
 
@@ -141,6 +141,37 @@ This document tracks user-requested and competitive-analysis-derived feature enh
 | **Keyboard Shortcut Configuration** | Customize module launch keys | PowerToys |
 | **Privacy Controls** | Opt-out of specific data collection | Competitive analysis |
 | **Storage Management** | Clear clipboard/scratch data with one tap | Competitive analysis |
+
+---
+
+## 📰 RSS Feed Module (Planning Phase)
+
+### High Priority (Feasible & High Impact)
+
+| Feature | Description | Source | Status |
+|---------|-------------|--------|--------|
+| **Feed Aggregation** | Subscribe to and aggregate multiple RSS feeds | Competitive analysis | |
+| **Offline Caching** | Download articles for offline reading | Industry standard | |
+| **Unified Reader View** | Clean reading interface with markdown support | Industry standard | |
+| **Smart Notifications** | Notify on new articles from priority feeds | Alloy pattern | |
+
+### Medium Priority (Feasible, Moderate Impact)
+
+| Feature | Description | Source |
+|---------|-------------|--------|
+| **OPML Import/Export** | Import/export subscriptions from other RSS readers | Industry standard |
+| **Feed Categorization** | Organize feeds into custom folders | Industry standard |
+| **Full-Text Fetching** | Auto-fetch full articles from summaries | Feedly pattern |
+| **Search & Filter** | Search across all articles and filter by feed | Industry standard |
+
+### Nice-to-Have (Lower Priority)
+
+| Feature | Description | Source |
+|---------|-------------|--------|
+| **Integration with Scenes** | "News Reading" scene preset | Alloy ecosystem |
+| **Text-to-Speech** | Listen to articles | Industry standard |
+| **Share to Other Apps** | Send articles to Clip or Scratch | Alloy ecosystem |
+| **Dark/Light Theme** | Match system theme | Industry standard |
 
 ---
 

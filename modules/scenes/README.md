@@ -193,8 +193,8 @@ DisplayBounds(width / 2, 0, width, height / 2)
 See [FEATURE_ENHANCEMENTS.md](../../FEATURE_ENHANCEMENTS.md#scenes-module-workspace-launcher) for the complete roadmap.
 
 ### High Priority
-- [ ] **Keyboard shortcuts** (`Ctrl+Alt+1…9`) for quick scene launch
-- [ ] **Scene templates** for common workflows
+- [x] **Keyboard shortcuts** (`Ctrl+Alt+1…9`) for quick scene launch
+- [x] **Scene templates** for common workflows (5 new templates added)
 - [ ] **Import/export JSON** for sharing configurations
 
 ### Medium Priority

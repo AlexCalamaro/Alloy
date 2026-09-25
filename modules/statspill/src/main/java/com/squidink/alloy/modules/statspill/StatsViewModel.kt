@@ -12,6 +12,7 @@ import com.squidink.alloy.core.common.UiEffect
 import com.squidink.alloy.core.common.UiState
 import com.squidink.alloy.core.domain.repository.IStatsRepository
 import com.squidink.alloy.core.proc.MemInfo
+import com.squidink.alloy.core.proc.ProcReader
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
@@ -54,6 +55,7 @@ data class BatteryInfo(
 data class StatsUiState(
     val memInfo: MemInfo = MemInfo(),
     val cpuUsagePercent: Float? = null,
+    val netStats: com.squidink.alloy.core.proc.NetStats = com.squidink.alloy.core.proc.NetStats(),
     val batteryInfo: BatteryInfo = BatteryInfo(),
     val isLiveOverlayActive: Boolean = false,
     val isPolling: Boolean = false,
@@ -80,6 +82,7 @@ class StatsViewModel
     @Inject
     constructor(
         private val statsRepository: IStatsRepository,
+        private val procReader: ProcReader,
         @ApplicationContext private val context: Context,
     ) : BaseViewModel<StatsUiState, StatsUiAction, StatsUiEffect>(StatsUiState()) {
         private var pollingJob: Job? = null
@@ -166,6 +169,7 @@ class StatsViewModel
 
         private suspend fun pollVitals() {
             val stats = statsRepository.pollSystemStats()
+            val netStats = procReader.readNetworkStats()
             
             updateState { currentState ->
                 currentState.copy(
@@ -175,6 +179,7 @@ class StatsViewModel
                         availableMemKb = (stats.memoryTotalBytes - stats.memoryUsedBytes) / 1024
                     ),
                     cpuUsagePercent = stats.cpuPercent,
+                    netStats = netStats
                 )
             }
         }

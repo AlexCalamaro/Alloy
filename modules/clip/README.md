@@ -151,7 +151,7 @@ See [FEATURE_ENHANCEMENTS.md](../../FEATURE_ENHANCEMENTS.md#clip-module-clipboar
 - [ ] **Tags & folders** for clip organization
 - [ ] **Biometric safe box** for sensitive clips
 - [ ] **Full-text search** across history
-- [ ] **Edit clips** before pasting
+- [x] **Edit clips** before pasting (dialog-based editor added)
 
 ### Medium Priority
 - [ ] **Combine multiple clips** before pasting

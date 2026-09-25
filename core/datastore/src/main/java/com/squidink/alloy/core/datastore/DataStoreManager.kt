@@ -38,6 +38,27 @@ class DataStoreManager @Inject constructor(
         }
     }
 
+    /**
+     * Get the dynamic color (Material You) preference.
+     * Defaults to true if not set.
+     */
+    fun getDynamicColor(): Flow<Boolean> {
+        val key = booleanPreferencesKey("dynamic_color_enabled")
+        return context.dataStore.data.map { preferences ->
+            preferences[key] ?: true
+        }
+    }
+
+    /**
+     * Set the dynamic color (Material You) preference.
+     */
+    suspend fun setDynamicColor(enabled: Boolean) {
+        val key = booleanPreferencesKey("dynamic_color_enabled")
+        context.dataStore.edit { preferences ->
+            preferences[key] = enabled
+        }
+    }
+
     fun getStringFlow(key: String): Flow<String?> {
         val preferencesKey = stringPreferencesKey(key)
         return context.dataStore.data.map { preferences ->

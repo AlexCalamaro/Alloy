@@ -15,7 +15,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Pin
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Pin
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
@@ -26,7 +28,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.res.stringResource
+import com.squidink.alloy.core.design.R
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,31 +49,34 @@ fun ClipScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showEditDialog by remember { mutableStateOf(false) }
+    var editingClipId by remember { mutableStateOf<String?>(null) }
+    var editingContent by remember { mutableStateOf("") }
 
     Row(modifier = modifier.fillMaxSize().padding(16.dp)) {
         // Clips List Pane
         Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
-            Text("Clipboard Workbench", style = MaterialTheme.typography.headlineSmall)
+            Text(stringResource(R.string.clip_title), style = MaterialTheme.typography.headlineSmall)
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = uiState.searchQuery,
                 onValueChange = { viewModel.onAction(ClipUiAction.UpdateSearchQuery(it)) },
-                label = { Text("Search Clipboard...") },
+                label = { Text(stringResource(R.string.clip_search_hint)) },
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
             )
 
             // Pinned filter
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
-                Text("Show:", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.clip_show_label), style = MaterialTheme.typography.bodyMedium)
                 Spacer(modifier = Modifier.width(8.dp))
                 FilterChip(
                     selected = uiState.showPinnedOnly,
                     onClick = { viewModel.onAction(ClipUiAction.TogglePinnedOnly(!uiState.showPinnedOnly)) },
-                    label = { Text("Pinned Only") },
+                    label = { Text(stringResource(R.string.clip_pinned_only)) },
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("${uiState.clips.size} clips", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.clip_count, uiState.clips.size), style = MaterialTheme.typography.bodySmall)
             }
 
             LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -95,7 +105,7 @@ fun ClipScreen(
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(clip.textContent, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
-                                Text("Source: ${clip.sourceApp}", style = MaterialTheme.typography.bodySmall)
+                                Text(stringResource(R.string.clip_source, clip.sourceApp), style = MaterialTheme.typography.bodySmall)
                                 Text(
                                     formatTimestamp(clip.updatedAt),
                                     style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
@@ -134,30 +144,44 @@ fun ClipScreen(
 
         // Preview & Transformation Pane
         Column(modifier = Modifier.weight(1f)) {
-            Text("Selected Clip & Transformations", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.clip_selected_title), style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(12.dp))
 
             val selected = uiState.selectedClip
             if (selected != null) {
                 Card(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text(selected.textContent, style = MaterialTheme.typography.bodyMedium)
+                        Text(selected.textContent, style = MaterialTheme.typography.bodyMedium, maxLines = 5)
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             if (selected.isPinned) {
                                 Icon(
                                     imageVector = Icons.Filled.Pin,
-                                    contentDescription = "Pinned",
+                                    contentDescription = stringResource(R.string.clip_pin),
                                     tint = Color(0xFFFFA726),
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                             }
-                            Text("Source: ${selected.sourceApp}", style = MaterialTheme.typography.bodySmall)
+                            Text(stringResource(R.string.clip_source, selected.sourceApp), style = MaterialTheme.typography.bodySmall)
+                            Spacer(modifier = Modifier.width(16.dp))
+                            // Edit button
+                            IconButton(
+                                onClick = {
+                                    editingClipId = selected.id
+                                    editingContent = selected.textContent
+                                    showEditDialog = true
+                                },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Edit,
+                                    contentDescription = stringResource(R.string.common_edit),
+                                )
+                            }
                         }
                     }
                 }
 
-                Text("Quick Transformations:", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.clip_transformations_title), style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // First row
@@ -166,19 +190,19 @@ fun ClipScreen(
                         onClick = { viewModel.onAction(ClipUiAction.ApplyTransformation(TransformationType.UPPER_CASE)) },
                         modifier = Modifier.padding(end = 8.dp),
                     ) {
-                        Text("UPPER")
+                        Text(stringResource(R.string.clip_upper))
                     }
                     Button(
                         onClick = { viewModel.onAction(ClipUiAction.ApplyTransformation(TransformationType.LOWER_CASE)) },
                         modifier = Modifier.padding(end = 8.dp),
                     ) {
-                        Text("lower")
+                        Text(stringResource(R.string.clip_lower))
                     }
                     Button(
                         onClick = { viewModel.onAction(ClipUiAction.ApplyTransformation(TransformationType.TRIM)) },
                         modifier = Modifier.padding(end = 8.dp),
                     ) {
-                        Text("Trim")
+                        Text(stringResource(R.string.clip_trim))
                     }
                 }
 
@@ -190,19 +214,19 @@ fun ClipScreen(
                         onClick = { viewModel.onAction(ClipUiAction.ApplyTransformation(TransformationType.SORT_LINES_ASC)) },
                         modifier = Modifier.padding(end = 8.dp),
                     ) {
-                        Text("Sort ↑")
+                        Text(stringResource(R.string.clip_sort))
                     }
                     Button(
                         onClick = { viewModel.onAction(ClipUiAction.ApplyTransformation(TransformationType.DEDUPE_LINES)) },
                         modifier = Modifier.padding(end = 8.dp),
                     ) {
-                        Text("Dedupe")
+                        Text(stringResource(R.string.clip_dedupe))
                     }
                     Button(
                         onClick = { viewModel.onAction(ClipUiAction.ApplyTransformation(TransformationType.JSON_PRETTY)) },
                         modifier = Modifier.padding(end = 8.dp),
                     ) {
-                        Text("JSON")
+                        Text(stringResource(R.string.clip_json))
                     }
                 }
 
@@ -214,30 +238,70 @@ fun ClipScreen(
                         onClick = { viewModel.onAction(ClipUiAction.ApplyTransformation(TransformationType.BASE64_ENCODE)) },
                         modifier = Modifier.padding(end = 8.dp),
                     ) {
-                        Text("B64+")
+                        Text(stringResource(R.string.clip_b64_plus))
                     }
                     Button(
                         onClick = { viewModel.onAction(ClipUiAction.ApplyTransformation(TransformationType.BASE64_DECODE)) },
                         modifier = Modifier.padding(end = 8.dp),
                     ) {
-                        Text("B64-")
+                        Text(stringResource(R.string.clip_b64_minus))
                     }
                     Button(
                         onClick = { viewModel.onAction(ClipUiAction.ApplyTransformation(TransformationType.URL_ENCODE)) },
                         modifier = Modifier.padding(end = 8.dp),
                     ) {
-                        Text("URL+")
+                        Text(stringResource(R.string.clip_url_plus))
                     }
                     Button(
                         onClick = { viewModel.onAction(ClipUiAction.ApplyTransformation(TransformationType.URL_DECODE)) },
                     ) {
-                        Text("URL-")
+                        Text(stringResource(R.string.clip_url_minus))
                     }
                 }
             } else {
-                Text("Select a clip to view details and apply transformations", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.clip_no_selection), style = MaterialTheme.typography.bodyMedium)
             }
         }
+    }
+
+    // Edit Clip Dialog
+    if (showEditDialog && editingClipId != null) {
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            title = { Text(stringResource(R.string.clip_edit_title)) },
+            text = {
+                OutlinedTextField(
+                    value = editingContent,
+                    onValueChange = { editingContent = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.clip_edit_label)) },
+                    maxLines = 10,
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        editingClipId?.let { id ->
+                            viewModel.onAction(ClipUiAction.UpdateClipContent(id, editingContent))
+                        }
+                        showEditDialog = false
+                        editingClipId = null
+                        editingContent = ""
+                    }
+                ) {
+                    Text(stringResource(R.string.clip_edit_save))
+                }
+            },
+            dismissButton = {
+                Button(onClick = {
+                    showEditDialog = false
+                    editingClipId = null
+                    editingContent = ""
+                }) {
+                    Text(stringResource(R.string.clip_edit_cancel))
+                }
+            }
+        )
     }
 }
 

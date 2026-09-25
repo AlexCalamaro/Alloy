@@ -127,10 +127,14 @@ class StatsPillOverlayService : LifecycleService(), SavedStateRegistryOwner {
             while (true) {
                 val mem = withContext(Dispatchers.IO) { procReader.readMemInfo() }
                 val cpu = withContext(Dispatchers.IO) { procReader.readCpuUsagePercent() }
+                val net = withContext(Dispatchers.IO) { procReader.readNetworkStats() }
+                
                 val memUsedMb = (mem.totalMemKb - mem.availableMemKb) / 1024
                 
                 val cpuText = cpu?.let { String.format(java.util.Locale.US, "%.1f%%", it) } ?: "--"
-                liveTextState = "CPU: $cpuText | RAM: $memUsedMb MB"
+                val rxText = String.format(java.util.Locale.US, "%.0f KB/s", net.rxKbps)
+                val txText = String.format(java.util.Locale.US, "%.0f KB/s", net.txKbps)
+                liveTextState = "CPU: $cpuText | RAM: $memUsedMb MB | ↓$rxText ↑$txText"
                 
                 delay(1000L)
             }

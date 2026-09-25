@@ -18,7 +18,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.squidink.alloy.core.design.R
 import com.squidink.alloy.core.design.desktopHover
 import com.squidink.alloy.modules.scenes.ScenesUiAction
 import com.squidink.alloy.modules.scenes.ScenesViewModel
@@ -35,7 +37,7 @@ fun ScenesScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text("Workspace Scenes Manager", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.scenes_title), style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -55,12 +57,12 @@ fun ScenesScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(scene.name, style = MaterialTheme.typography.titleMedium)
                             Text(scene.description, style = MaterialTheme.typography.bodyMedium)
-                            Text("${scene.steps.size} launch steps", style = MaterialTheme.typography.bodySmall)
+                            Text(stringResource(R.string.scenes_steps, scene.steps.size), style = MaterialTheme.typography.bodySmall)
                         }
                         Button(
                             onClick = { viewModel.onAction(ScenesUiAction.FireScene(scene.id)) }
                         ) {
-                            Text("Fire Scene")
+                            Text(stringResource(R.string.scenes_fire))
                         }
                     }
                 }

@@ -245,8 +245,8 @@ val params = WindowManager.LayoutParams(
 See [FEATURE_ENHANCEMENTS.md](../../FEATURE_ENHANCEMENTS.md#statspill-module-system-telemetry) for the complete roadmap.
 
 ### High Priority
+- [x] **Network speed monitor** (upload/download)
 - [ ] **Customizable overlay position** (drag to reposition)
-- [ ] **Network speed monitor** (upload/download)
 - [ ] **Alert thresholds** for high CPU/RAM/temperature
 - [ ] **Sparkline graphs** in widgets for trends
 

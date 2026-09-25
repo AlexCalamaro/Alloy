@@ -47,6 +47,11 @@ sealed interface ClipUiAction : UiAction {
     data class TogglePinnedOnly(
         val showOnlyPinned: Boolean,
     ) : ClipUiAction
+
+    data class UpdateClipContent(
+        val clipId: String,
+        val newContent: String,
+    ) : ClipUiAction
 }
 
 enum class TransformationType {
@@ -164,6 +169,17 @@ class ClipViewModel
                 is ClipUiAction.TogglePinnedOnly -> {
                     updateState { it.copy(showPinnedOnly = action.showOnlyPinned) }
                     filterClipsBySearch(uiState.value.searchQuery)
+                }
+
+                is ClipUiAction.UpdateClipContent -> {
+                    viewModelScope.launch {
+                        val clip = uiState.value.clips.find { it.id == action.clipId }
+                        clip?.let {
+                            val updatedClip = it.copy(textContent = action.newContent, updatedAt = System.currentTimeMillis())
+                            clipRepository.updateClip(updatedClip)
+                            sendEffect(ClipUiEffect.ShowToast("Clip updated"))
+                        }
+                    }
                 }
             }
         }

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App General -->
+    <string name="app_name">Alloy</string>
+    
+    <!-- Clip Module -->
+    <string name="clip_title">Clipboard Workbench</string>
+    <string name="clip_search_hint">Search Clipboard...</string>
+    <string name="clip_show_label">Show:</string>
+    <string name="clip_pinned_only">Pinned Only</string>
+    <string name="clip_count">%d clips</string>
+    <string name="clip_source">Source: %s</string>
+    <string name="clip_selected_title">Selected Clip &amp; Transformations</string>
+    <string name="clip_no_selection">Select a clip to view details and apply transformations</string>
+    <string name="clip_transformations_title">Quick Transformations:</string>
+    <string name="clip_upper">UPPER</string>
+    <string name="clip_lower">lower</string>
+    <string name="clip_trim">Trim</string>
+    <string name="clip_sort">Sort ↑</string>
+    <string name="clip_dedupe">Dedupe</string>
+    <string name="clip_json">JSON</string>
+    <string name="clip_b64_plus">B64+</string>
+    <string name="clip_b64_minus">B64-</string>
+    <string name="clip_url_plus">URL+</string>
+    <string name="clip_url_minus">URL-</string>
+    <string name="clip_edit_title">Edit Clip</string>
+    <string name="clip_edit_label">Clip content</string>
+    <string name="clip_edit_save">Save</string>
+    <string name="clip_edit_cancel">Cancel</string>
+    <string name="clip_edit_toast">Clip updated</string>
+    <string name="clip_delete_confirm">Delete this clip?</string>
+    <string name="clip_delete_yes">Delete</string>
+    <string name="clip_delete_no">Cancel</string>
+    <string name="clip_pin">Pin</string>
+    <string name="clip_unpin">Unpin</string>
+    <string name="clip_delete">Delete</string>
+    <string name="clip_copy">Copy</string>
+    
+    <!-- Scenes Module -->
+    <string name="scenes_title">Workspace Scenes Manager</string>
+    <string name="scenes_fire">Fire Scene</string>
+    <string name="scenes_steps">%d launch steps</string>
+    
+    <!-- StatsPill Module -->
+    <string name="stats_title">System Telemetry Vitals</string>
+    <string name="stats_cpu_title">CPU Utilization</string>
+    <string name="stats_cpu_usage">CPU Usage: %s</string>
+    <string name="stats_ram_title">RAM Usage</string>
+    <string name="stats_ram_total">Total Memory: %d MB</string>
+    <string name="stats_ram_used">Used Memory: %d MB</string>
+    <string name="stats_ram_avail">Available Memory: %d MB</string>
+    <string name="stats_network_title">Network Activity</string>
+    <string name="stats_download">↓ Download: %s</string>
+    <string name="stats_upload">↑ Upload: %s</string>
+    <string name="stats_battery_title">Battery Status</string>
+    <string name="stats_battery_level" formatted="false">Level: %d%% (%d/%d)</string>
+    <string name="stats_battery_charging">⚡ Charging</string>
+    <string name="stats_overlay_mode">Live Overlay Pill Mode</string>
+    <string name="stats_overlay_desc">Float live CPU/RAM/battery vitals over all desktop windows</string>
+    <string name="stats_refresh">Refresh Now</string>
+    <string name="stats_overlay_active">Live Desktop Overlay Active</string>
+    
+    <!-- Scratch Module -->
+    <string name="scratch_title">Pinned Scratchpad</string>
+    <string name="scratch_text_tab">Text</string>
+    <string name="scratch_checklist_tab">Checklist</string>
+    <string name="scratch_stopwatch_tab">Stopwatch</string>
+    <string name="scratch_notes_label">Scratch Notes (.md)</string>
+    <string name="scratch_checklist_hint">New checklist item...</string>
+    <string name="scratch_checklist_empty">No checklist items. Add one above!</string>
+    <string name="scratch_add">Add</string>
+    <string name="scratch_timer_start">Start</string>
+    <string name="scratch_timer_pause">Pause</string>
+    <string name="scratch_timer_stop">Stop</string>
+    <string name="scratch_timer_reset">Reset</string>
+    <string name="scratch_timer_lap">Lap</string>
+    <string name="scratch_laps">Laps</string>
+    <string name="scratch_laps_empty">No laps recorded. Press \'Lap\' while running!</string>
+    <string name="scratch_reset">Reset</string>
+    <string name="scratch_clear">Clear</string>
+    
+    <!-- Settings Module -->
+    <string name="settings_title">Settings</string>
+    
+    <!-- Common -->
+    <string name="common_cancel">Cancel</string>
+    <string name="common_save">Save</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_confirm">Confirm</string>
+    <string name="common_ok">OK</string>
+    <string name="common_close">Close</string>
+    <string name="common_back">Back</string>
+    <string name="common_edit">Edit</string>
+    <string name="common_add">Add</string>
+    <string name="common_remove">Remove</string>
+    
+    <!-- Time Formats -->
+    <string name="time_format_mm_ss" formatted="false">%d:%02d</string>
+    <string name="time_format_hh_mm_ss" formatted="false">%d:%02d:%02d</string>
+</resources>

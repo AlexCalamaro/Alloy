@@ -59,9 +59,46 @@ class ScenesViewModel @Inject constructor(
             Scene(
                 id = "coding_stack",
                 name = "Coding Stack",
-                description = "Launch IDE and terminal side-by-side",
+                description = "IDE and terminal side-by-side for development",
                 steps = listOf(
-                    SceneStep("1", "com.squidink.alloy", placement = PlacementHint.LEFT)
+                    SceneStep("1", "com.squidink.alloy", placement = PlacementHint.LEFT),
+                    SceneStep("2", "com.termux", placement = PlacementHint.RIGHT)
+                )
+            ),
+            Scene(
+                id = "research_workspace",
+                name = "Research Workspace",
+                description = "Browser + notes for research and documentation",
+                steps = listOf(
+                    SceneStep("1", "com.android.chrome", activityName = "com.android.chrome.browser.main.MainActivity", placement = PlacementHint.LEFT),
+                    SceneStep("2", "com.squidink.alloy.modules.scratch.ScratchActivity", placement = PlacementHint.RIGHT)
+                )
+            ),
+            Scene(
+                id = "video_call_setup",
+                name = "Video Call Setup",
+                description = "Video app + chat + notes for meetings",
+                steps = listOf(
+                    SceneStep("1", "us.zoom.videomeetings", placement = PlacementHint.CENTER),
+                    SceneStep("2", "com.google.android.gm", placement = PlacementHint.RIGHT)
+                )
+            ),
+            Scene(
+                id = "media_consumption",
+                name = "Media Consumption",
+                description = "Video player + music for entertainment",
+                steps = listOf(
+                    SceneStep("1", "com.google.android.youtube", placement = PlacementHint.LEFT),
+                    SceneStep("2", "com.spotify.music", placement = PlacementHint.RIGHT)
+                )
+            ),
+            Scene(
+                id = "file_management",
+                name = "File Management",
+                description = "File manager + text editor for file work",
+                steps = listOf(
+                    SceneStep("1", "com.android.documentsui", placement = PlacementHint.LEFT),
+                    SceneStep("2", "com.squidink.alloy.modules.scratch.ScratchActivity", placement = PlacementHint.RIGHT)
                 )
             )
         )

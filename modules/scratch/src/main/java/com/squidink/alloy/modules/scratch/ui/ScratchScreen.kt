@@ -39,8 +39,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.squidink.alloy.core.design.R
 import com.squidink.alloy.core.design.desktopHover
 import com.squidink.alloy.modules.scratch.ScratchPane
 import com.squidink.alloy.modules.scratch.ScratchUiAction
@@ -64,7 +66,7 @@ fun ScratchScreen(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Pinned Scratchpad", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.scratch_title), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
 
             Card(modifier = Modifier.padding(start = 8.dp).desktopHover()) {
                 Row(
@@ -79,7 +81,7 @@ fun ScratchScreen(
                         modifier = Modifier.padding(end = 8.dp),
                     )
                     Button(onClick = { viewModel.onAction(ScratchUiAction.ToggleTimer) }) {
-                        Text(if (uiState.isTimerRunning) "Pause" else "Start")
+                        Text(if (uiState.isTimerRunning) stringResource(R.string.scratch_timer_pause) else stringResource(R.string.scratch_timer_start))
                     }
                     IconButton(onClick = { viewModel.onAction(ScratchUiAction.ResetTimer) }) {
                         Text("↺", style = MaterialTheme.typography.bodyMedium)
@@ -98,17 +100,17 @@ fun ScratchScreen(
             Tab(
                 selected = uiState.activePane == ScratchPane.TEXT,
                 onClick = { viewModel.onAction(ScratchUiAction.SetPane(ScratchPane.TEXT)) },
-                text = { Text("Text") },
+                text = { Text(stringResource(R.string.scratch_text_tab)) },
             )
             Tab(
                 selected = uiState.activePane == ScratchPane.CHECKLIST,
                 onClick = { viewModel.onAction(ScratchUiAction.SetPane(ScratchPane.CHECKLIST)) },
-                text = { Text("Checklist") },
+                text = { Text(stringResource(R.string.scratch_checklist_tab)) },
             )
             Tab(
                 selected = uiState.activePane == ScratchPane.STOPWATCH,
                 onClick = { viewModel.onAction(ScratchUiAction.SetPane(ScratchPane.STOPWATCH)) },
-                text = { Text("Stopwatch") },
+                text = { Text(stringResource(R.string.scratch_stopwatch_tab)) },
             )
         }
 
@@ -158,7 +160,7 @@ private fun TextEditorPane(
             value = content,
             onValueChange = onContentChange,
             modifier = Modifier.fillMaxSize(),
-            label = { Text("Scratch Notes (.md)") },
+            label = { Text(stringResource(R.string.scratch_notes_label)) },
             maxLines = Int.MAX_VALUE,
         )
     }
@@ -181,7 +183,7 @@ private fun ChecklistPane(
                 value = newItemText,
                 onValueChange = { newItemText = it },
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("New checklist item...") },
+                placeholder = { Text(stringResource(R.string.scratch_checklist_hint)) },
                 singleLine = true,
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -193,7 +195,7 @@ private fun ChecklistPane(
                     }
                 },
             ) {
-                Text("Add")
+                Text(stringResource(R.string.scratch_add))
             }
         }
 
@@ -227,7 +229,7 @@ private fun ChecklistPane(
                     IconButton(onClick = { onDeleteItem(item.id) }) {
                         Icon(
                             imageVector = Icons.Outlined.Delete,
-                            contentDescription = "Delete",
+                            contentDescription = stringResource(R.string.common_delete),
                         )
                     }
                 }
@@ -236,7 +238,7 @@ private fun ChecklistPane(
             if (items.isEmpty()) {
                 item {
                     Text(
-                        "No checklist items. Add one above!",
+                        stringResource(R.string.scratch_checklist_empty),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(16.dp),
                         color = Color.Gray,
@@ -279,20 +281,20 @@ private fun StopwatchPane(
 
         Row {
             Button(onClick = if (isRunning) onStop else onStart, modifier = Modifier.padding(end = 8.dp)) {
-                Text(if (isRunning) "Stop" else "Start")
+                Text(if (isRunning) stringResource(R.string.scratch_timer_stop) else stringResource(R.string.scratch_timer_start))
             }
             Button(onClick = onLap, enabled = isRunning, modifier = Modifier.padding(end = 8.dp)) {
-                Text("Lap")
+                Text(stringResource(R.string.scratch_timer_lap))
             }
             Button(onClick = onReset) {
-                Text("Reset")
+                Text(stringResource(R.string.scratch_timer_reset))
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         if (laps.isNotEmpty()) {
-            Text("Laps", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.scratch_laps), style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
 
             LazyColumn(
@@ -333,7 +335,7 @@ private fun StopwatchPane(
             }
         } else {
             Text(
-                "No laps recorded. Press 'Lap' while running!",
+                stringResource(R.string.scratch_laps_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray,
                 modifier = Modifier.padding(16.dp),

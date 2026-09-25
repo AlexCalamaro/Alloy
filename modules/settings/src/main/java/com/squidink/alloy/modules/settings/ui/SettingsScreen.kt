@@ -11,7 +11,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.squidink.alloy.core.design.R
 import com.squidink.alloy.modules.settings.SettingsUiAction
 import com.squidink.alloy.modules.settings.SettingsUiState
 import com.squidink.alloy.modules.settings.SettingsViewModel
@@ -49,7 +51,7 @@ internal fun SettingsScreenContent(
                 .padding(16.dp)
         ) {
             Text(
-                text = "Settings",
+                text = stringResource(R.string.settings_title),
                 style = MaterialTheme.typography.headlineMedium
             )
             
