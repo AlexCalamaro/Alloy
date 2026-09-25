@@ -28,6 +28,7 @@ The StatsPill module provides real-time system telemetry monitoring including CP
   - Always-on-top visibility
   - Non-interactive pill design
   - Permission check before activation
+  - Permission dialog with rationale
   - Foreground service for reliability
 
 - **Dashboard UI**

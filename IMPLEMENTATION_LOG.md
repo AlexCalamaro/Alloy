@@ -189,6 +189,30 @@
 
 ---
 
+#### 7. StatsPill Module - Permission Dialog Integration ✅
+**Files:** 
+- `modules/statspill/src/main/java/com/squidink/alloy/modules/statspill/StatsViewModel.kt`
+- `modules/statspill/src/main/java/com/squidink/alloy/modules/statspill/ui/StatsScreen.kt`
+
+**Changes:**
+- Added `OpenOverlayPermissionSettings` effect to `StatsUiEffect` sealed interface
+- Added `OpenOverlayPermissionSettings` and `DismissPermissionDialog` actions to `StatsUiAction`
+- Updated `startOverlayService()` to send `OpenOverlayPermissionSettings` effect when overlay permission is not granted
+- Added `PermissionRationaleDialog` to `StatsScreen` for displaying permission request UI
+- Implemented `LaunchedEffect` to handle `OpenOverlayPermissionSettings` effect and show dialog
+- Added `openAppSettings()` call in ViewModel when user clicks grant/settings button
+- Dialog provides clear rationale for why overlay permission is needed
+
+**User Flow:**
+1. User toggles "Live Mode Floating Overlay" switch
+2. If overlay permission not granted, dialog appears explaining the permission
+3. User can click "Grant" or "Settings" to open overlay permission settings page
+4. User can dismiss dialog if they don't want to grant permission
+
+**Status:** Complete - Build successful, permission dialog now shows when overlay feature is enabled without permission
+
+---
+
 ### Future Feature Notes
 
 1. **New Module** - RSS Feed Reader (planning phase)

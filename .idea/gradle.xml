@@ -17,6 +17,7 @@
             <option value="$PROJECT_DIR$/core/domain" />
             <option value="$PROJECT_DIR$/core/navigation" />
             <option value="$PROJECT_DIR$/core/netlocal" />
+            <option value="$PROJECT_DIR$/core/permissions" />
             <option value="$PROJECT_DIR$/core/proc" />
             <option value="$PROJECT_DIR$/modules" />
             <option value="$PROJECT_DIR$/modules/clip" />

@@ -72,12 +72,18 @@ sealed interface StatsUiAction : UiAction {
     ) : StatsUiAction
 
     data object RefreshNow : StatsUiAction
+    
+    data object OpenOverlayPermissionSettings : StatsUiAction
+    
+    data object DismissPermissionDialog : StatsUiAction
 }
 
 sealed interface StatsUiEffect : UiEffect {
     data class ShowToast(
         val message: String,
     ) : StatsUiEffect
+    
+    data object OpenOverlayPermissionSettings : StatsUiEffect
 }
 
 @HiltViewModel
@@ -155,6 +161,14 @@ class StatsViewModel
                 StatsUiAction.RefreshNow -> {
                     viewModelScope.launch { pollVitals() }
                 }
+                
+                StatsUiAction.OpenOverlayPermissionSettings -> {
+                    permissionsManager.openAppSettings(context)
+                }
+                
+                StatsUiAction.DismissPermissionDialog -> {
+                    // Just dismiss, no action needed
+                }
             }
         }
 
@@ -179,7 +193,7 @@ class StatsViewModel
         private fun startOverlayService() {
             // Check overlay permission using PermissionsManager
             if (!permissionsManager.isPermissionGranted(context, AppPermission.SystemOverlay)) {
-                sendEffect(StatsUiEffect.ShowToast("Overlay permission required. Please grant in Settings."))
+                sendEffect(StatsUiEffect.OpenOverlayPermissionSettings)
                 updateState { it.copy(isLiveOverlayActive = false) }
                 return
             }

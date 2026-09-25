@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +30,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.squidink.alloy.core.design.R
 import com.squidink.alloy.core.design.desktopHover
+import com.squidink.alloy.core.permissions.AppPermission
+import com.squidink.alloy.core.permissions.ui.PermissionRationaleDialog
 import com.squidink.alloy.modules.statspill.StatsUiAction
 import com.squidink.alloy.modules.statspill.StatsUiEffect
 import com.squidink.alloy.modules.statspill.StatsViewModel
@@ -42,12 +45,18 @@ fun StatsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val effects by viewModel.effect.collectAsState(initial = null)
     val snackbarHostState = remember { SnackbarHostState() }
+    val showPermissionDialog = remember { mutableStateOf(false) }
 
-    // Handle effects (toasts)
+    // Handle effects (toasts and permission requests)
     LaunchedEffect(effects) {
         effects?.let { effect ->
-            if (effect is StatsUiEffect.ShowToast) {
-                snackbarHostState.showSnackbar(effect.message)
+            when (effect) {
+                is StatsUiEffect.ShowToast -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+                is StatsUiEffect.OpenOverlayPermissionSettings -> {
+                    showPermissionDialog.value = true
+                }
             }
         }
     }
@@ -182,5 +191,25 @@ fun StatsScreen(
                 Text(stringResource(R.string.stats_refresh))
             }
         }
+    }
+
+    // Permission Rationale Dialog for Overlay Permission
+    if (showPermissionDialog.value) {
+        PermissionRationaleDialog(
+            permission = AppPermission.SystemOverlay,
+            onGrantClick = {
+                // Open overlay permission settings
+                viewModel.onAction(StatsUiAction.OpenOverlayPermissionSettings)
+                showPermissionDialog.value = false
+            },
+            onSettingsClick = {
+                // Also open settings (same action for overlay permission)
+                viewModel.onAction(StatsUiAction.OpenOverlayPermissionSettings)
+                showPermissionDialog.value = false
+            },
+            onDismiss = {
+                showPermissionDialog.value = false
+            }
+        )
     }
 }
