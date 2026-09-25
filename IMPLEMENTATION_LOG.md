@@ -262,3 +262,41 @@
 - No breaking changes to existing APIs
 - All new code uses dependency injection where appropriate
 - Network stats reading is non-blocking and handles errors gracefully
+
+---
+
+#### 9. Core Layout Module - Three-Pane Responsive Infrastructure ✅
+**Files Created:**
+- `core/layout/build.gradle.kts` - Module configuration
+- `core/layout/src/main/java/.../WindowSizeClass.kt` - Screen tier detection (COMPACT/MEDIUM/EXPANDED)
+- `core/layout/src/main/java/.../LayoutState.kt` - State data classes and events
+- `core/layout/src/main/java/.../LayoutStateRepository.kt` - DataStore persistence layer
+- `core/layout/src/main/java/.../LayoutAnimations.kt` - Animation specifications
+- `core/layout/src/main/java/.../LayoutController.kt` - ViewModel for state management
+- `core/layout/src/main/java/.../di/LayoutModule.kt` - Hilt DI module
+- `core/layout/src/test/java/.../WindowSizeClassTest.kt` - Unit tests
+- `core/layout/src/test/java/.../LayoutStateRepositoryTest.kt` - Unit tests
+
+**Files Modified:**
+- `settings.gradle.kts` - Added core:layout module
+
+**Features:**
+- **Window Size Detection**: Automatically detects screen width and classifies as COMPACT (<600dp), MEDIUM (600-840dp), or EXPANDED (>840dp)
+- **State Persistence**: Layout state (pane visibility, current feature) persisted using DataStore
+- **Event System**: Type-safe layout events (OpenNavigation, CloseDetail, SelectFeature, etc.)
+- **Animation Specs**: Centralized animation constants for easy tweaking
+- **MVI Pattern**: LayoutController follows MVI pattern with state flow
+
+**Architecture:**
+```
+core/layout/
+├── WindowSizeClass.kt      # Screen tier detection
+├── LayoutState.kt          # State & events
+├── LayoutStateRepository.kt # Persistence
+├── LayoutAnimations.kt     # Animation specs
+├── LayoutController.kt     # State management
+└── di/LayoutModule.kt      # DI
+```
+
+**Status:** Complete - Phase 1 foundation ready. Next: ThreePaneScaffold and UI components.
+
