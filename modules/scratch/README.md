@@ -221,10 +221,22 @@ val split = lapSeconds - prevLap
 
 ## Future Enhancements
 
-- [ ] Rich text formatting support
-- [ ] Multiple scratchpad tabs
-- [ ] Search within notes
-- [ ] Export to file
-- [ ] Sync across devices
-- [ ] Template snippets
-- [ ] Timer presets
+See [FEATURE_ENHANCEMENTS.md](../../FEATURE_ENHANCEMENTS.md#scratch-module-pinned-scratchpad) for the complete roadmap.
+
+### High Priority
+- [ ] **Full-screen widget** for home screen whiteboard
+- [ ] **Markdown preview** alongside editor
+- [ ] **Multiple scratchpads** (independent note surfaces)
+- [ ] **Password protection** for private notes
+
+### Medium Priority
+- [ ] **Infinite canvas** with pan/zoom
+- [ ] **Horizontal/vertical layout** support
+- [ ] **Quick clear button**
+- [ ] **Drag & drop images** into notes
+
+### Nice-to-Have
+- [ ] Freehand drawing tools
+- [ ] Export to .md/.txt files
+- [ ] Cross-device sync
+- [ ] Note templates (meeting, daily log)

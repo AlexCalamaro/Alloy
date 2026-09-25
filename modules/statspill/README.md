@@ -242,10 +242,21 @@ val params = WindowManager.LayoutParams(
 
 ## Future Enhancements
 
-- [ ] Customizable refresh interval
-- [ ] Historical telemetry charts
-- [ ] Alert thresholds for high CPU/memory
-- [ ] Custom overlay position/drag
-- [ ] Additional metrics (disk I/O, network)
-- [ ] Widget configuration UI
-- [ ] Dark/light theme support for overlay
+See [FEATURE_ENHANCEMENTS.md](../../FEATURE_ENHANCEMENTS.md#statspill-module-system-telemetry) for the complete roadmap.
+
+### High Priority
+- [ ] **Customizable overlay position** (drag to reposition)
+- [ ] **Network speed monitor** (upload/download)
+- [ ] **Alert thresholds** for high CPU/RAM/temperature
+- [ ] **Sparkline graphs** in widgets for trends
+
+### Medium Priority
+- [ ] **GPU monitoring** alongside CPU
+- [ ] **Storage monitoring** for available space
+- [ ] **Custom refresh interval** (1s, 5s, 30s)
+- [ ] **Dark/light theme** for overlay
+
+### Nice-to-Have
+- [ ] Custom widget sizes (1×1, 2×2, 4×1)
+- [ ] FPS counter for gaming
+- [ ] Historical usage charts

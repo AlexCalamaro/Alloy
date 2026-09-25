@@ -198,6 +198,9 @@ Alloy targets the "Optimized for Desktop" Play Store badge with:
 - [x] Scratch with multi-instance
 - [ ] "Optimized for Desktop" self-assessment ≥90%
 
+### Feature Enhancements
+For detailed user-requested enhancements and competitive analysis, see [FEATURE_ENHANCEMENTS.md](FEATURE_ENHANCEMENTS.md).
+
 ### Phase 2 — Power Core
 - [ ] Downloads manager with chunked transfer
 - [ ] Treemap disk visualization

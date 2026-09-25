@@ -145,8 +145,22 @@ viewModel.onAction(ClipUiAction.ApplyTransformation(TransformationType.JSON_PRET
 
 ## Future Enhancements
 
-- [ ] Multi-clip selection and batch operations
-- [ ] Clip categories and tags
-- [ ] Export/import clip history
-- [ ] Custom transformation scripts
-- [ ] Clipboard monitoring service integration
+See [FEATURE_ENHANCEMENTS.md](../../FEATURE_ENHANCEMENTS.md#clip-module-clipboard-workbench) for the complete roadmap.
+
+### High Priority
+- [ ] **Tags & folders** for clip organization
+- [ ] **Biometric safe box** for sensitive clips
+- [ ] **Full-text search** across history
+- [ ] **Edit clips** before pasting
+
+### Medium Priority
+- [ ] **Combine multiple clips** before pasting
+- [ ] **QR code generation** from URL clips
+- [ ] **Text expansion snippets** for reusable content
+- [ ] **Custom cleanup rules** for auto-deletion
+- [ ] **Image clipboard support**
+
+### Nice-to-Have
+- [ ] Dynamic values (date/time/random)
+- [ ] Web interface for access
+- [ ] Custom scripting commands

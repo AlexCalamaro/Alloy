@@ -177,9 +177,19 @@ override fun getTheme(): Flow<String> {
 
 ## Future Enhancements
 
-- [ ] Full settings UI implementation
-- [ ] DataStore-based persistence
-- [ ] Preference categories (General, Privacy, Advanced)
-- [ ] Reset to defaults functionality
-- [ ] Settings search
-- [ ] Export/import settings
+See [FEATURE_ENHANCEMENTS.md](../../FEATURE_ENHANCEMENTS.md#settings-module) for the complete roadmap.
+
+### High Priority
+- [ ] **Theme selection** (Light/Dark/System)
+- [ ] **Module toggles** to enable/disable features
+- [ ] **Data export** for clipboard/scratch data
+
+### Medium Priority
+- [ ] **Keyboard shortcut configuration**
+- [ ] **Privacy controls** for data collection
+- [ ] **Storage management** with one-tap cleanup
+
+### Nice-to-Have
+- [ ] Settings import from backup
+- [ ] Cloud sync for preferences
+- [ ] Accessibility enhancements
