@@ -3,6 +3,7 @@ package com.squidink.alloy.core.datastore
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import java.security.KeyStore
+import java.security.SecureRandom
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -75,6 +76,13 @@ class CryptoManager @Inject constructor() {
         val spec = GCMParameterSpec(128, encryptedData.iv)
         cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(), spec)
         return cipher.doFinal(encryptedData.ciphertext)
+    }
+
+    fun generateSecureRandomBytes(size: Int): ByteArray {
+        val random = SecureRandom()
+        val bytes = ByteArray(size)
+        random.nextBytes(bytes)
+        return bytes
     }
 
     companion object {

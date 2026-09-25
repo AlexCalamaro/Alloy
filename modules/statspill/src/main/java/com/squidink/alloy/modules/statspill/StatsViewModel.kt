@@ -10,16 +10,13 @@ import com.squidink.alloy.core.common.BaseViewModel
 import com.squidink.alloy.core.common.UiAction
 import com.squidink.alloy.core.common.UiEffect
 import com.squidink.alloy.core.common.UiState
-import com.squidink.alloy.core.common.di.IoDispatcher
+import com.squidink.alloy.core.domain.repository.IStatsRepository
 import com.squidink.alloy.core.proc.MemInfo
-import com.squidink.alloy.core.proc.ProcReader
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 data class BatteryInfo(
@@ -82,9 +79,8 @@ sealed interface StatsUiEffect : UiEffect {
 class StatsViewModel
     @Inject
     constructor(
-        private val procReader: ProcReader,
+        private val statsRepository: IStatsRepository,
         @ApplicationContext private val context: Context,
-        @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) : BaseViewModel<StatsUiState, StatsUiAction, StatsUiEffect>(StatsUiState()) {
         private var pollingJob: Job? = null
         private var batteryReceiver: android.content.BroadcastReceiver? = null
@@ -169,13 +165,16 @@ class StatsViewModel
         }
 
         private suspend fun pollVitals() {
-            val mem = withContext(ioDispatcher) { procReader.readMemInfo() }
-            val cpu = withContext(ioDispatcher) { procReader.readCpuUsagePercent() }
-
+            val stats = statsRepository.pollSystemStats()
+            
             updateState { currentState ->
                 currentState.copy(
-                    memInfo = mem,
-                    cpuUsagePercent = cpu,
+                    memInfo = MemInfo(
+                        totalMemKb = stats.memoryTotalBytes / 1024,
+                        freeMemKb = (stats.memoryTotalBytes - stats.memoryUsedBytes) / 1024,
+                        availableMemKb = (stats.memoryTotalBytes - stats.memoryUsedBytes) / 1024
+                    ),
+                    cpuUsagePercent = stats.cpuPercent,
                 )
             }
         }

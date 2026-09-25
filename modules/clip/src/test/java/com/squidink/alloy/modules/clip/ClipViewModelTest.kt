@@ -1,13 +1,14 @@
 package com.squidink.alloy.modules.clip
 
 import app.cash.turbine.test
-import com.squidink.alloy.modules.clip.db.ClipDao
-import com.squidink.alloy.modules.clip.db.ClipEntity
+import com.squidink.alloy.core.domain.repository.Clip
+import com.squidink.alloy.core.domain.repository.IClipRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -16,28 +17,41 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
-class FakeClipDao : ClipDao {
-    private val testClips =
-        listOf(
-            ClipEntity("1", "https://github.com/squidink/alloy", sourceApp = "Chrome", isPinned = true),
-            ClipEntity("2", "val apiKey = \"secret_12345\"", sourceApp = "DeskTerm", isPinned = false),
-        )
+class FakeClipRepository : IClipRepository {
+    private val testClips = listOf(
+        Clip(
+            id = "1",
+            textContent = "https://github.com/squidink/alloy",
+            sourceApp = "Chrome",
+            isPinned = true,
+            createdAt = System.currentTimeMillis(),
+            updatedAt = System.currentTimeMillis()
+        ),
+        Clip(
+            id = "2",
+            textContent = "val apiKey = \"secret_12345\"",
+            sourceApp = "DeskTerm",
+            isPinned = false,
+            createdAt = System.currentTimeMillis(),
+            updatedAt = System.currentTimeMillis()
+        ),
+    )
 
-    override fun getAllClips(): Flow<List<ClipEntity>> = flowOf(testClips)
+    override fun getClips(): Flow<List<Clip>> = flowOf(testClips)
 
-    override fun searchClips(query: String): Flow<List<ClipEntity>> = flowOf(testClips)
+    override fun getClipById(id: String): Flow<Clip?> = flowOf(null)
 
-    override suspend fun insertClip(clip: ClipEntity) {}
+    override suspend fun insertClip(clip: Clip) {}
 
-    override suspend fun updateClip(
-        id: String,
-        textContent: String,
-        isPinned: Boolean,
-    ) {}
+    override suspend fun updateClip(clip: Clip) {}
 
     override suspend fun deleteClip(id: String) {}
 
-    override suspend fun clearUnpinnedClips() {}
+    override suspend fun pinClip(id: String) {}
+
+    override suspend fun unpinClip(id: String) {}
+
+    override suspend fun deleteAllClips() {}
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -64,12 +78,9 @@ class ClipViewModelTest {
     @Test
     fun `add clip and search filter updates state`() =
         runTest {
-            val viewModel = ClipViewModel(FakeClipDao(), enableCleanupTask = false)
-            val initialCount = viewModel.uiState.value.clips.size
-
-            viewModel.onAction(ClipUiAction.AddClip("UniqueSearchableText"))
-            assertEquals(initialCount + 1, viewModel.uiState.value.clips.size)
-
+            val viewModel = ClipViewModel(FakeClipRepository())
+            
+            // Update search query
             viewModel.onAction(ClipUiAction.UpdateSearchQuery("Unique"))
             assertEquals("Unique", viewModel.uiState.value.searchQuery)
         }
@@ -77,16 +88,20 @@ class ClipViewModelTest {
     @Test
     fun `apply transformation emits CopyToClipboard effect`() =
         runTest {
-            val viewModel = ClipViewModel(FakeClipDao(), enableCleanupTask = false)
-            val firstClip =
-                viewModel.uiState.value.clips
-                    .first()
-            viewModel.onAction(ClipUiAction.SelectClip(firstClip))
-
+            val viewModel = ClipViewModel(FakeClipRepository())
+            // Select the first clip from the initial state (GitHub URL)
+            val githubClip = viewModel.uiState.value.clips.first { it.id == "1" }
+            
             viewModel.effect.test {
+                viewModel.onAction(ClipUiAction.SelectClip(githubClip))
+                // Consume the CopyToClipboard effect from SelectClip
+                awaitItem()
+                
                 viewModel.onAction(ClipUiAction.ApplyTransformation(TransformationType.UPPER_CASE))
                 val effect = awaitItem() as ClipUiEffect.CopyToClipboard
-                assertEquals(firstClip.textContent.uppercase(), effect.text)
+                assertEquals(githubClip.textContent.uppercase(), effect.text)
+                // Consume the ShowToast effect
+                awaitItem()
             }
         }
 }

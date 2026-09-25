@@ -11,6 +11,9 @@ interface ClipDao {
     @Query("SELECT * FROM clip_entries ORDER BY isPinned DESC, timestamp DESC")
     fun getAllClips(): Flow<List<ClipEntity>>
 
+    @Query("SELECT * FROM clip_entries WHERE id = :id")
+    fun getClipById(id: String): Flow<ClipEntity?>
+
     @Query("SELECT * FROM clip_entries WHERE textContent LIKE '%' || :query || '%' ORDER BY isPinned DESC, timestamp DESC")
     fun searchClips(query: String): Flow<List<ClipEntity>>
 
@@ -26,6 +29,9 @@ interface ClipDao {
 
     @Query("DELETE FROM clip_entries WHERE id = :id")
     suspend fun deleteClip(id: String)
+
+    @Query("DELETE FROM clip_entries")
+    suspend fun deleteAllClips()
 
     @Query("DELETE FROM clip_entries WHERE isPinned = 0")
     suspend fun clearUnpinnedClips()

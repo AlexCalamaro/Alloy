@@ -22,16 +22,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.squidink.alloy.core.design.AlloyTheme
 import com.squidink.alloy.core.design.desktopHover
+import com.squidink.alloy.core.navigation.AlloyNavGraph
+import com.squidink.alloy.core.navigation.Screens
+import com.squidink.alloy.core.navigation.getScreenTitle
 import com.squidink.alloy.modules.clip.ClipViewModel
 import com.squidink.alloy.modules.clip.ui.ClipScreen
 import com.squidink.alloy.modules.scenes.ScenesViewModel
@@ -42,13 +44,11 @@ import com.squidink.alloy.modules.statspill.StatsViewModel
 import com.squidink.alloy.modules.statspill.ui.StatsScreen
 import dagger.hilt.android.AndroidEntryPoint
 
-enum class ModuleTab(val id: String, val title: String) {
-    STATS("statspill", "Stats Telemetry"),
-    SCENES("scenes", "Workspace Scenes"),
-    CLIP("clip", "Clipboard Workbench"),
-    SCRATCH("scratch", "Pinned Scratchpad")
-}
-
+/**
+ * Main dashboard activity that hosts the navigation graph.
+ *
+ * Uses Navigation Compose for type-safe navigation between modules.
+ */
 @AndroidEntryPoint
 class DashboardActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,9 +66,14 @@ class DashboardActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Main dashboard screen with navigation rail and content area.
+ *
+ * Uses Navigation Compose for screen navigation.
+ */
 @Composable
 fun DashboardScreen() {
-    var activeTab by remember { mutableStateOf(ModuleTab.STATS) }
+    val navController: NavHostController = rememberNavController()
 
     Scaffold { paddingValues ->
         Row(
@@ -76,7 +81,7 @@ fun DashboardScreen() {
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Module Rail
+            // Navigation Rail
             Card(
                 modifier = Modifier
                     .width(300.dp)
@@ -94,55 +99,71 @@ fun DashboardScreen() {
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    LazyColumn {
-                        items(ModuleTab.entries) { tab ->
-                            val isSelected = tab == activeTab
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 8.dp)
-                                    .clickable { activeTab = tab }
-                                    .desktopHover(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
-                                )
-                            ) {
-                                Text(
-                                    text = tab.title,
-                                    modifier = Modifier.padding(12.dp),
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                            }
-                        }
-                    }
+                    NavigationRail(navController = navController)
                 }
             }
 
-            // Main Module Content Area
+            // Main Content Area with Navigation Graph
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                when (activeTab) {
-                    ModuleTab.STATS -> {
+                AlloyNavGraph(
+                    navController = navController,
+                    onStatsPill = {
                         val viewModel: StatsViewModel = hiltViewModel()
                         StatsScreen(viewModel = viewModel)
-                    }
-                    ModuleTab.SCENES -> {
+                    },
+                    onClip = {
+                        val viewModel: ClipViewModel = hiltViewModel()
+                        ClipScreen(viewModel = viewModel)
+                    },
+                    onScratch = {
+                        val viewModel: ScratchViewModel = hiltViewModel()
+                        ScratchScreen(viewModel = viewModel)
+                    },
+                    onScenes = {
                         val viewModel: ScenesViewModel = hiltViewModel()
                         ScenesScreen(viewModel = viewModel)
                     }
-                    ModuleTab.CLIP -> {
-                        val viewModel: ClipViewModel = hiltViewModel()
-                        ClipScreen(viewModel = viewModel)
-                    }
-                    ModuleTab.SCRATCH -> {
-                        val viewModel: ScratchViewModel = hiltViewModel()
-                        ScratchScreen(viewModel = viewModel)
-                    }
-                }
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Navigation rail with module tabs.
+ *
+ * @param navController The navigation controller for screen navigation
+ */
+@Composable
+fun NavigationRail(navController: NavHostController) {
+    val currentRoute by navController.currentBackStackEntryFlow
+        .collectAsState(initial = navController.currentBackStackEntry)
+    
+    val route = currentRoute?.destination?.route ?: Screens.StatsPill.route
+
+    LazyColumn {
+        items(listOf(Screens.StatsPill, Screens.Clip, Screens.Scratch, Screens.Scenes)) { screen ->
+            val isSelected = route == screen.route
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+                    .clickable { navController.navigate(screen.route) }
+                    .desktopHover(),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Text(
+                    text = screen.route.getScreenTitle(),
+                    modifier = Modifier.padding(12.dp),
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
         }
     }

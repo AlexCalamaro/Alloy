@@ -97,7 +97,7 @@ fun ClipScreen(
                                 Text(clip.textContent, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
                                 Text("Source: ${clip.sourceApp}", style = MaterialTheme.typography.bodySmall)
                                 Text(
-                                    formatTimestamp(clip.timestamp),
+                                    formatTimestamp(clip.updatedAt),
                                     style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
                                 )
                             }

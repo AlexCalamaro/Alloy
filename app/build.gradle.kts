@@ -45,6 +45,8 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:design"))
     implementation(project(":core:datastore"))
+    implementation(project(":core:domain"))
+    implementation(project(":core:navigation"))
     implementation(project(":core:proc"))
     implementation(project(":core:netlocal"))
 
@@ -69,6 +71,7 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.navigation.compose)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

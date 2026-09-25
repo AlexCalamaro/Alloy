@@ -14,12 +14,15 @@
             <option value="$PROJECT_DIR$/core/common" />
             <option value="$PROJECT_DIR$/core/datastore" />
             <option value="$PROJECT_DIR$/core/design" />
+            <option value="$PROJECT_DIR$/core/domain" />
+            <option value="$PROJECT_DIR$/core/navigation" />
             <option value="$PROJECT_DIR$/core/netlocal" />
             <option value="$PROJECT_DIR$/core/proc" />
             <option value="$PROJECT_DIR$/modules" />
             <option value="$PROJECT_DIR$/modules/clip" />
             <option value="$PROJECT_DIR$/modules/scenes" />
             <option value="$PROJECT_DIR$/modules/scratch" />
+            <option value="$PROJECT_DIR$/modules/settings" />
             <option value="$PROJECT_DIR$/modules/statspill" />
             <option value="$PROJECT_DIR$/tooling" />
             <option value="$PROJECT_DIR$/tooling/probe" />

@@ -5,18 +5,16 @@ import com.squidink.alloy.core.common.BaseViewModel
 import com.squidink.alloy.core.common.UiAction
 import com.squidink.alloy.core.common.UiEffect
 import com.squidink.alloy.core.common.UiState
-import com.squidink.alloy.modules.clip.db.ClipDao
-import com.squidink.alloy.modules.clip.db.ClipEntity
+import com.squidink.alloy.core.domain.repository.Clip
+import com.squidink.alloy.core.domain.repository.IClipRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
 data class ClipUiState(
     val searchQuery: String = "",
-    val clips: List<ClipEntity> = emptyList(),
-    val selectedClip: ClipEntity? = null,
+    val clips: List<Clip> = emptyList(),
+    val selectedClip: Clip? = null,
     val showPinnedOnly: Boolean = false,
 ) : UiState
 
@@ -26,7 +24,7 @@ sealed interface ClipUiAction : UiAction {
     ) : ClipUiAction
 
     data class SelectClip(
-        val clip: ClipEntity?,
+        val clip: Clip?,
     ) : ClipUiAction
 
     data class ApplyTransformation(
@@ -80,36 +78,30 @@ sealed interface ClipUiEffect : UiEffect {
 class ClipViewModel
     @Inject
     constructor(
-        private val clipDao: ClipDao,
-        private val enableCleanupTask: Boolean = true,
+        private val clipRepository: IClipRepository,
     ) : BaseViewModel<ClipUiState, ClipUiAction, ClipUiEffect>(
             ClipUiState(
-                clips =
-                    listOf(
-                        ClipEntity("1", "https://github.com/squidink/alloy", sourceApp = "Chrome", isPinned = true),
-                        ClipEntity("2", "val apiKey = \"secret_12345\"", sourceApp = "DeskTerm", isPinned = false),
-                    ),
+                clips = emptyList(), // Removed hardcoded test data
             ),
         ) {
         init {
+            // Observe clips from repository (domain layer)
             viewModelScope.launch {
-                clipDao.getAllClips().collect { items ->
+                clipRepository.getClips().collect { clips ->
                     updateState { currentState ->
                         val filtered =
                             if (currentState.showPinnedOnly) {
-                                items.filter { it.isPinned }
+                                clips.filter { it.isPinned }
                             } else {
-                                items
+                                clips
                             }
                         currentState.copy(clips = filtered)
                     }
                 }
             }
 
-            // Start cleanup task (disabled in tests)
-            if (enableCleanupTask) {
-                startCleanupTask()
-            }
+            // Cleanup task disabled for now
+            // Can be enabled later with proper configuration
         }
 
         override fun onAction(action: ClipUiAction) {
@@ -137,16 +129,15 @@ class ClipViewModel
                 is ClipUiAction.AddClip -> {
                     viewModelScope.launch {
                         val newClip =
-                            ClipEntity(
-                                id =
-                                    java.util.UUID
-                                        .randomUUID()
-                                        .toString(),
+                            Clip(
+                                id = java.util.UUID.randomUUID().toString(),
                                 textContent = action.text,
                                 sourceApp = action.sourceApp,
                                 isPinned = false,
+                                createdAt = System.currentTimeMillis(),
+                                updatedAt = System.currentTimeMillis(),
                             )
-                        clipDao.insertClip(newClip)
+                        clipRepository.insertClip(newClip) // Use repository
                         sendEffect(ClipUiEffect.ShowToast("Clip added"))
                     }
                 }
@@ -155,7 +146,9 @@ class ClipViewModel
                     viewModelScope.launch {
                         val clip = uiState.value.clips.find { it.id == action.clipId }
                         clip?.let {
-                            clipDao.updateClip(it.id, it.textContent, !it.isPinned)
+                            // Update via repository
+                            val updatedClip = it.copy(isPinned = !it.isPinned)
+                            clipRepository.updateClip(updatedClip)
                             sendEffect(ClipUiEffect.ShowToast(if (!it.isPinned) "Pinned" else "Unpinned"))
                         }
                     }
@@ -163,7 +156,7 @@ class ClipViewModel
 
                 is ClipUiAction.DeleteClip -> {
                     viewModelScope.launch {
-                        clipDao.deleteClip(action.clipId)
+                        clipRepository.deleteClip(action.clipId) // Use repository
                         sendEffect(ClipUiEffect.ShowToast("Clip deleted"))
                     }
                 }
@@ -205,20 +198,5 @@ class ClipViewModel
                     }
                 }
             updateState { it.copy(clips = filtered) }
-        }
-
-        private fun startCleanupTask() {
-            viewModelScope.launch {
-                // Cleanup old unpinned clips every hour
-                while (true) {
-                    kotlinx.coroutines.delay(3600000) // 1 hour
-                    cleanupOldClips()
-                }
-            }
-        }
-
-        private suspend fun cleanupOldClips() {
-            // Simple cleanup: delete old unpinned clips
-            // This can be enhanced later
         }
     }

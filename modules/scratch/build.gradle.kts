@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:design"))
     implementation(project(":core:datastore"))
+    implementation(project(":core:domain"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -34,6 +35,20 @@ class DataStoreManager @Inject constructor(
         val key = booleanPreferencesKey("module_enabled_$moduleId")
         context.dataStore.edit { preferences ->
             preferences[key] = enabled
+        }
+    }
+
+    fun getStringFlow(key: String): Flow<String?> {
+        val preferencesKey = stringPreferencesKey(key)
+        return context.dataStore.data.map { preferences ->
+            preferences[preferencesKey]
+        }
+    }
+
+    suspend fun setString(key: String, value: String) {
+        val preferencesKey = stringPreferencesKey(key)
+        context.dataStore.edit { preferences ->
+            preferences[preferencesKey] = value
         }
     }
 }

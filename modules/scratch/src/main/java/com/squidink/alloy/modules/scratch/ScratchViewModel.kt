@@ -5,8 +5,7 @@ import com.squidink.alloy.core.common.BaseViewModel
 import com.squidink.alloy.core.common.UiAction
 import com.squidink.alloy.core.common.UiEffect
 import com.squidink.alloy.core.common.UiState
-import com.squidink.alloy.modules.scratch.db.ScratchDao
-import com.squidink.alloy.modules.scratch.db.ScratchEntity
+import com.squidink.alloy.core.domain.repository.IScratchRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -88,7 +87,7 @@ enum class ScratchPane {
 class ScratchViewModel
     @Inject
     constructor(
-        private val scratchDao: ScratchDao,
+        private val scratchRepository: IScratchRepository,
     ) : BaseViewModel<ScratchUiState, ScratchUiAction, ScratchUiEffect>(
             ScratchViewModel.createInitialState(),
         ) {
@@ -113,8 +112,8 @@ class ScratchViewModel
 
         init {
             viewModelScope.launch {
-                scratchDao.getAllNotes().collect { notes ->
-                    val firstNote = notes.firstOrNull()
+                scratchRepository.getScratchpads().collect { scratchpads ->
+                    val firstNote = scratchpads.firstOrNull()
                     if (firstNote != null) {
                         updateState { it.copy(noteContent = firstNote.content) }
                     }
@@ -195,13 +194,14 @@ class ScratchViewModel
         private fun savePendingContent() {
             if (pendingContent.isNotEmpty()) {
                 viewModelScope.launch {
-                    scratchDao.insertNote(
-                        ScratchEntity(
-                            id = "default_scratch_note",
-                            content = pendingContent,
-                            updatedAt = System.currentTimeMillis(),
-                        ),
+                    val scratchpad = com.squidink.alloy.core.domain.repository.Scratch(
+                        id = "default_scratch_note",
+                        content = pendingContent,
+                        label = "Default Note",
+                        createdAt = System.currentTimeMillis(),
+                        updatedAt = System.currentTimeMillis()
                     )
+                    scratchRepository.insertScratchpad(scratchpad)
                 }
                 pendingContent = ""
             }

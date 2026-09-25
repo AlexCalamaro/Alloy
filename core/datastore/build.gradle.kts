@@ -23,6 +23,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    implementation(libs.sqlcipher.android)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 }
