@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.flowOf
 
 /**
  * Fake implementation of IStatsRepository for testing.
+ * Provides mock data for system statistics operations.
  */
 open class FakeStatsRepository : IStatsRepository {
     override fun observeSystemStats(): Flow<SystemStats> = flowOf(

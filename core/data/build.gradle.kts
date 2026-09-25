@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.squidink.alloy.modules.statspill"
+    namespace = "com.squidink.alloy.core.data"
     compileSdk = 37
 
     defaultConfig {
@@ -19,33 +19,38 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    buildFeatures {
+        compose = true
+    }
 }
 
 dependencies {
+    // Core modules
     implementation(project(":core:common"))
-    implementation(project(":core:data"))
-    implementation(project(":core:design"))
-    implementation(project(":core:layout"))
-    implementation(project(":core:proc"))
     implementation(project(":core:domain"))
-    implementation(project(":core:permissions"))
     implementation(project(":core:datastore"))
+    implementation(project(":core:proc"))
 
+    // AndroidX
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.service)
-    implementation(platform(libs.compose.bom))
-    implementation(libs.compose.ui)
-    implementation(libs.compose.material3)
-    implementation(libs.compose.material.icons.extended)
-    implementation(libs.androidx.glance.appwidget)
-    implementation(libs.androidx.glance.material3)
-    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.datastore.preferences)
 
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.core)
+
+    // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
+    // Compose
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.material3)
+
+    // Testing
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
-    testImplementation("io.mockk:mockk:1.13.9")
 }

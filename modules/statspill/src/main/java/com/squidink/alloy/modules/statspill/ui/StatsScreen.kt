@@ -49,7 +49,6 @@ fun StatsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val effects by viewModel.effect.collectAsState(initial = null)
-    val settings by viewModel.settings.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val showPermissionDialog = remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
@@ -89,7 +88,7 @@ fun StatsScreen(
             // Stats Grid with color-coded backgrounds
             StatsGrid(
                 stats = resourceStats,
-                settings = settings,
+                settings = uiState,
                 modifier = Modifier.weight(1f)
             )
 
@@ -159,8 +158,8 @@ fun StatsScreen(
             title = "Stats Settings"
         ) {
             SettingsPanel(
-                settings = settings,
-                onSettingsChange = viewModel::updateSettings
+                settings = uiState,
+                onSettingsChange = viewModel::onAction
             )
         }
     }

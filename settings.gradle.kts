@@ -27,6 +27,7 @@ rootProject.name = "Alloy"
 
 include(":app")
 include(":core:common")
+include(":core:data")
 include(":core:design")
 include(":core:datastore")
 include(":core:domain")

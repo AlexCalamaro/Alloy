@@ -34,13 +34,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.squidink.alloy.core.design.desktopHover
 import com.squidink.alloy.modules.statspill.CornerPosition
-import com.squidink.alloy.modules.statspill.StatsSettings
+import com.squidink.alloy.modules.statspill.StatsUiAction
+import com.squidink.alloy.modules.statspill.StatsUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsPanel(
-    settings: StatsSettings,
-    onSettingsChange: (StatsSettings) -> Unit,
+    settings: StatsUiState,
+    onSettingsChange: (StatsUiAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -85,7 +86,7 @@ fun SettingsPanel(
                 }
                 Switch(
                     checked = settings.showPill,
-                    onCheckedChange = { onSettingsChange(settings.copy(showPill = it)) }
+                    onCheckedChange = { onSettingsChange(StatsUiAction.UpdateShowPill(it)) }
                 )
             }
         }
@@ -136,7 +137,7 @@ fun SettingsPanel(
                             DropdownMenuItem(
                                 text = { Text(option) },
                                 onClick = {
-                                    onSettingsChange(settings.copy(usePercentages = option == "Percentages"))
+                                    onSettingsChange(StatsUiAction.UpdateUsePercentages(option == "Percentages"))
                                     expandedFormat = false
                                 }
                             )
@@ -194,7 +195,7 @@ fun SettingsPanel(
                                 onClick = {
                                     val position = CornerPosition.entries.find { it.displayName == option }
                                         ?: CornerPosition.TOP_RIGHT
-                                    onSettingsChange(settings.copy(cornerPosition = position))
+                                    onSettingsChange(StatsUiAction.UpdateCornerPosition(position))
                                     expandedCorner = false
                                 }
                             )

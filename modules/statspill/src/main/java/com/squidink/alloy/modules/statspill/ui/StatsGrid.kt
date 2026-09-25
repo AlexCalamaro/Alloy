@@ -18,12 +18,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
+
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.squidink.alloy.core.design.desktopHover
-import com.squidink.alloy.modules.statspill.StatsSettings
-import com.squidink.alloy.modules.statspill.StatsViewModel
+import com.squidink.alloy.modules.statspill.StatsUiState
 import java.util.Locale
 
 /**
@@ -47,14 +46,14 @@ enum class ResourceType {
 @Composable
 fun StatsGrid(
     stats: ResourceStats,
-    settings: StatsSettings,
+    settings: StatsUiState,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(modifier = modifier.fillMaxSize()) {
         // CPU Card
         item {
             val cpuPercent = stats.cpuUsagePercent ?: 0f
-            val backgroundColor = calculateUsageColor(cpuPercent)
+            val backgroundColor = calculatePercentageColor(cpuPercent)
             
             Card(
                 modifier = Modifier
@@ -107,7 +106,7 @@ fun StatsGrid(
             val availMemKb = stats.memInfo.availableMemKb
             val usedMemKb = totalMemKb - availMemKb
             val ramPercent = if (totalMemKb > 0) usedMemKb.toFloat() / totalMemKb else 0f
-            val backgroundColor = calculateUsageColor(ramPercent)
+            val backgroundColor = calculatePercentageColor(ramPercent)
             
             Card(
                 modifier = Modifier
@@ -181,36 +180,6 @@ fun StatsGrid(
                     }
                 }
             }
-        }
-    }
-}
-
-/**
- * Calculate color based on usage percentage.
- * Returns a smooth gradient from green (0%) → yellow (50%) → red (100%).
- */
-@Composable
-fun calculateUsageColor(percent: Float): Color {
-    val clampedPercent = percent.coerceIn(0f, 1f)
-    
-    return when {
-        clampedPercent <= 0.5f -> {
-            // Green to Yellow (0-50%)
-            val t = clampedPercent * 2
-            Color(
-                red = 0f + (1f - 0f) * t,
-                green = 1f,
-                blue = 0f
-            )
-        }
-        else -> {
-            // Yellow to Red (50-100%)
-            val t = (clampedPercent - 0.5f) * 2
-            Color(
-                red = 1f,
-                green = 1f - t,
-                blue = 0f
-            )
         }
     }
 }

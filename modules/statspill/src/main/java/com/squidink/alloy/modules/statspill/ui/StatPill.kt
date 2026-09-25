@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.squidink.alloy.modules.statspill.CornerPosition
-import com.squidink.alloy.modules.statspill.StatsSettings
+import com.squidink.alloy.modules.statspill.StatsUiState
 import java.util.Locale
 
 /**
@@ -28,20 +28,20 @@ import java.util.Locale
 @Composable
 fun StatPill(
     stats: ResourceStats,
-    settings: StatsSettings,
+    settings: StatsUiState,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     if (!settings.showPill) return
     
     val cpuPercent = stats.cpuUsagePercent ?: 0f
-    val cpuColor = calculateUsageColor(cpuPercent)
+    val cpuColor = calculatePercentageColor(cpuPercent)
     
     val totalMemKb = stats.memInfo.totalMemKb
     val availMemKb = stats.memInfo.availableMemKb
     val usedMemKb = totalMemKb - availMemKb
     val ramPercent = if (totalMemKb > 0) usedMemKb.toFloat() / totalMemKb else 0f
-    val ramColor = calculateUsageColor(ramPercent)
+    val ramColor = calculatePercentageColor(ramPercent)
     
     val networkColor = MaterialTheme.colorScheme.onSurface
     
