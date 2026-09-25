@@ -1,5 +1,10 @@
 package com.squidink.alloy.core.layout
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -78,6 +83,7 @@ fun ThreePaneScaffold(
 
 /**
  * Compact layout: Shows one pane at a time with overlay navigation.
+ * Uses animated visibility for smooth transitions.
  */
 @Composable
 private fun CompactLayout(
@@ -91,8 +97,12 @@ private fun CompactLayout(
         // Always show content as the base layer
         contentContent()
         
-        // Navigation overlay when open
-        if (layoutState.navigationPaneOpen) {
+        // Navigation overlay when open with slide animation
+        AnimatedVisibility(
+            visible = layoutState.navigationPaneOpen,
+            enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
+            exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -120,31 +130,37 @@ private fun CompactLayout(
             }
         }
         
-        // Detail overlay when open and available
-        if (layoutState.detailPaneOpen && detailContent != null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
+        // Detail overlay when open and available with slide animation
+        detailContent?.let { content ->
+            AnimatedVisibility(
+                visible = layoutState.detailPaneOpen,
+                enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+                exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
             ) {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    // Main content area
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxSize()
-                    ) {
-                        contentContent()
-                    }
-                    
-                    // Detail pane
-                    Box(
-                        modifier = Modifier
-                            .width(320.dp)
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surface)
-                    ) {
-                        detailContent()
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
+                ) {
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        // Main content area
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxSize()
+                        ) {
+                            contentContent()
+                        }
+                        
+                        // Detail pane
+                        Box(
+                            modifier = Modifier
+                                .width(320.dp)
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.surface)
+                        ) {
+                            content()
+                        }
                     }
                 }
             }
@@ -154,6 +170,7 @@ private fun CompactLayout(
 
 /**
  * Medium layout: Shows navigation + content or content + detail.
+ * Uses animated visibility for smooth transitions.
  */
 @Composable
 private fun MediumLayout(
@@ -164,8 +181,12 @@ private fun MediumLayout(
     detailContent: @Composable (() -> Unit)?
 ) {
     Row(modifier = Modifier.fillMaxSize()) {
-        // Navigation pane (collapsible)
-        if (layoutState.navigationPaneOpen) {
+        // Navigation pane (collapsible) with animation
+        AnimatedVisibility(
+            visible = layoutState.navigationPaneOpen,
+            enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
+            exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+        ) {
             Box(
                 modifier = Modifier
                     .width(280.dp)
@@ -187,15 +208,21 @@ private fun MediumLayout(
             contentContent()
         }
         
-        // Detail pane (optional)
-        if (layoutState.detailPaneOpen && detailContent != null) {
-            Box(
-                modifier = Modifier
-                    .width(320.dp)
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface)
+        // Detail pane (optional) with animation
+        detailContent?.let { content ->
+            AnimatedVisibility(
+                visible = layoutState.detailPaneOpen,
+                enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+                exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
             ) {
-                detailContent()
+                Box(
+                    modifier = Modifier
+                        .width(320.dp)
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface)
+                ) {
+                    content()
+                }
             }
         }
     }
@@ -203,6 +230,7 @@ private fun MediumLayout(
 
 /**
  * Expanded layout: Shows all three panes simultaneously.
+ * Uses animated visibility for detail pane transitions.
  */
 @Composable
 private fun ExpandedLayout(
@@ -233,15 +261,21 @@ private fun ExpandedLayout(
             contentContent()
         }
         
-        // Detail pane (optional)
-        if (detailContent != null) {
-            Box(
-                modifier = Modifier
-                    .width(320.dp)
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface)
+        // Detail pane (optional) with animation
+        detailContent?.let { content ->
+            AnimatedVisibility(
+                visible = true,
+                enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+                exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
             ) {
-                detailContent()
+                Box(
+                    modifier = Modifier
+                        .width(320.dp)
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface)
+                ) {
+                    content()
+                }
             }
         }
     }
