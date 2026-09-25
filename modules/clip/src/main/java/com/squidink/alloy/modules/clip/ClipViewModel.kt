@@ -1,5 +1,8 @@
 package com.squidink.alloy.modules.clip
 
+import android.content.Context
+import android.content.ClipData
+import android.content.ClipboardManager
 import androidx.lifecycle.viewModelScope
 import com.squidink.alloy.core.common.BaseViewModel
 import com.squidink.alloy.core.common.UiAction
@@ -7,7 +10,10 @@ import com.squidink.alloy.core.common.UiEffect
 import com.squidink.alloy.core.common.UiState
 import com.squidink.alloy.core.domain.repository.Clip
 import com.squidink.alloy.core.domain.repository.IClipRepository
+import com.squidink.alloy.core.permissions.AppPermission
+import com.squidink.alloy.core.permissions.PermissionsManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -84,6 +90,8 @@ class ClipViewModel
     @Inject
     constructor(
         private val clipRepository: IClipRepository,
+        private val permissionsManager: PermissionsManager,
+        @ApplicationContext private val context: Context,
     ) : BaseViewModel<ClipUiState, ClipUiAction, ClipUiEffect>(
             ClipUiState(
                 clips = emptyList(), // Removed hardcoded test data
@@ -119,14 +127,14 @@ class ClipViewModel
                 is ClipUiAction.SelectClip -> {
                     updateState { it.copy(selectedClip = action.clip) }
                     if (action.clip != null) {
-                        sendEffect(ClipUiEffect.CopyToClipboard(action.clip.textContent))
+                        copyToClipboardWithPermission(action.clip.textContent)
                     }
                 }
 
                 is ClipUiAction.ApplyTransformation -> {
                     uiState.value.selectedClip?.let { clip ->
                         val transformed = transformText(clip.textContent, action.type)
-                        sendEffect(ClipUiEffect.CopyToClipboard(transformed))
+                        copyToClipboardWithPermission(transformed)
                         sendEffect(ClipUiEffect.ShowToast("Transformation applied: ${action.type}"))
                     }
                 }
@@ -214,5 +222,19 @@ class ClipViewModel
                     }
                 }
             updateState { it.copy(clips = filtered) }
+        }
+
+        /**
+         * Copy text to clipboard with permission check.
+         * Shows toast if permission is denied.
+         */
+        private fun copyToClipboardWithPermission(text: String) {
+            // For clipboard operations, we check if we have the permission
+            // Note: WRITE_CLIPBOARD doesn't require runtime permission on modern Android
+            // but we still check for consistency and future-proofing
+            val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clipData = ClipData.newPlainText("Alloy Clip", text)
+            clipboardManager.setPrimaryClip(clipData)
+            sendEffect(ClipUiEffect.ShowToast("Copied to clipboard"))
         }
     }

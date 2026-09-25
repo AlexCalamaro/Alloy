@@ -1,8 +1,12 @@
 package com.squidink.alloy.modules.clip
 
+import android.content.Context
 import app.cash.turbine.test
 import com.squidink.alloy.core.domain.repository.Clip
 import com.squidink.alloy.core.domain.repository.IClipRepository
+import com.squidink.alloy.core.permissions.AppPermission
+import com.squidink.alloy.core.permissions.PermissionUiState
+import com.squidink.alloy.core.permissions.PermissionsManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -54,9 +58,24 @@ class FakeClipRepository : IClipRepository {
     override suspend fun deleteAllClips() {}
 }
 
+class TestPermissionsManager : PermissionsManager() {
+    override fun isPermissionGranted(context: Context, permission: AppPermission): Boolean {
+        return true
+    }
+    
+    override fun getPermissionState(context: Context, activity: android.app.Activity, permission: AppPermission): PermissionUiState {
+        return PermissionUiState(
+            permission = permission,
+            state = com.squidink.alloy.core.permissions.PermissionState.Granted
+        )
+    }
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class ClipViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
+    private val mockContext: Context = android.app.Application()
+    private val mockPermissionsManager: PermissionsManager = TestPermissionsManager()
 
     @Before
     fun setUp() {
@@ -78,7 +97,7 @@ class ClipViewModelTest {
     @Test
     fun `add clip and search filter updates state`() =
         runTest {
-            val viewModel = ClipViewModel(FakeClipRepository())
+            val viewModel = ClipViewModel(FakeClipRepository(), mockPermissionsManager, mockContext)
             
             // Update search query
             viewModel.onAction(ClipUiAction.UpdateSearchQuery("Unique"))
@@ -88,7 +107,7 @@ class ClipViewModelTest {
     @Test
     fun `apply transformation emits CopyToClipboard effect`() =
         runTest {
-            val viewModel = ClipViewModel(FakeClipRepository())
+            val viewModel = ClipViewModel(FakeClipRepository(), mockPermissionsManager, mockContext)
             // Select the first clip from the initial state (GitHub URL)
             val githubClip = viewModel.uiState.value.clips.first { it.id == "1" }
             

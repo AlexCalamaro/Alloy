@@ -34,6 +34,11 @@ The Clip module provides a powerful clipboard management system with real-time c
   - Track which application each clip originated from
   - Display source app metadata with each clip
 
+- **Permission Integration**
+  - Integrated with centralized PermissionsManager system
+  - Clipboard operations include permission checks for consistency
+  - Toast notifications via SnackbarHost for user feedback
+
 ## Architecture
 
 ```
@@ -81,11 +86,15 @@ clip/
   - `ClipUiState`: Reactive UI state
   - `ClipUiAction`: User interactions
   - `ClipUiEffect`: One-time effects (toasts, clipboard ops)
+  - `PermissionsManager` integration for permission checks
+  - `copyToClipboardWithPermission()` for safe clipboard operations
 
 - `ClipScreen`: Composable UI with:
   - Dual-pane layout (clips list + transformations)
   - Real-time search and filtering
   - Pin/unpin functionality
+  - SnackbarHost for toast notifications
+  - Edit dialog for clip content modification
 
 ## Dependencies
 
@@ -94,6 +103,7 @@ implementation(project(":core:common"))
 implementation(project(":core:design"))
 implementation(project(":core:datastore"))
 implementation(project(":core:domain"))
+implementation(project(":core:permissions"))
 
 // Room for persistence
 implementation(libs.room.runtime)

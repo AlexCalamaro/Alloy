@@ -25,11 +25,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.res.stringResource
-import com.squidink.alloy.core.design.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,9 +39,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.squidink.alloy.core.design.R
 import com.squidink.alloy.core.design.desktopHover
 import com.squidink.alloy.modules.clip.ClipUiAction
+import com.squidink.alloy.modules.clip.ClipUiEffect
 import com.squidink.alloy.modules.clip.ClipViewModel
 import com.squidink.alloy.modules.clip.TransformationType
 
@@ -49,11 +54,25 @@ fun ClipScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val effects by viewModel.effect.collectAsState(initial = null)
+    val snackbarHostState = remember { SnackbarHostState() }
     var showEditDialog by remember { mutableStateOf(false) }
     var editingClipId by remember { mutableStateOf<String?>(null) }
     var editingContent by remember { mutableStateOf("") }
 
-    Row(modifier = modifier.fillMaxSize().padding(16.dp)) {
+    // Handle effects (toasts)
+    LaunchedEffect(effects) {
+        effects?.let { effect ->
+            if (effect is ClipUiEffect.ShowToast) {
+                snackbarHostState.showSnackbar(effect.message)
+            }
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Row(modifier = modifier.fillMaxSize().padding(paddingValues).padding(16.dp)) {
         // Clips List Pane
         Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
             Text(stringResource(R.string.clip_title), style = MaterialTheme.typography.headlineSmall)
@@ -261,8 +280,9 @@ fun ClipScreen(
             } else {
                 Text(stringResource(R.string.clip_no_selection), style = MaterialTheme.typography.bodyMedium)
             }
-        }
-    }
+        } // End of Column
+    } // End of Row
+} // End of Scaffold lambda
 
     // Edit Clip Dialog
     if (showEditDialog && editingClipId != null) {
@@ -305,7 +325,7 @@ fun ClipScreen(
     }
 }
 
-private fun formatTimestamp(timestamp: Long): String {
+fun formatTimestamp(timestamp: Long): String {
     val now = System.currentTimeMillis()
     val diff = now - timestamp
     return when {

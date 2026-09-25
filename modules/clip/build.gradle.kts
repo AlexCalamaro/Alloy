@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":core:design"))
     implementation(project(":core:datastore"))
     implementation(project(":core:domain"))
+    implementation(project(":core:permissions"))
 
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.compose.bom))

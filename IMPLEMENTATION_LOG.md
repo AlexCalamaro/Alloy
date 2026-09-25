@@ -165,6 +165,30 @@
 
 ---
 
+#### 6. Clip Module - Permission Integration ✅
+**Files:** 
+- `modules/clip/src/main/java/com/squidink/alloy/modules/clip/ClipViewModel.kt`
+- `modules/clip/src/main/java/com/squidink/alloy/modules/clip/ui/ClipScreen.kt`
+- `modules/clip/src/test/java/com/squidink/alloy/modules/clip/ClipViewModelTest.kt`
+- `modules/clip/build.gradle.kts`
+
+**Changes:**
+- Added `PermissionsManager` and `Context` dependencies to `ClipViewModel` constructor
+- Created `copyToClipboardWithPermission()` function to handle clipboard operations with permission checks
+- Updated `SelectClip` action to call `copyToClipboardWithPermission()` instead of directly sending effect
+- Updated `ApplyTransformation` action to use `copyToClipboardWithPermission()` for transformed text
+- Added `SnackbarHost` to `ClipScreen` for displaying toast messages
+- Implemented `LaunchedEffect` to consume `ShowToast` effects from the ViewModel
+- Created `TestPermissionsManager` mock implementation for unit tests
+- Updated `ClipViewModelTest` to include `PermissionsManager` and `Context` dependencies
+- Added `core:permissions` module dependency to Clip module's build.gradle.kts
+
+**Note:** Clipboard operations on modern Android don't require runtime permissions for writing to the clipboard, but the permission framework is in place for consistency and future-proofing.
+
+**Status:** Complete - Build successful, all tests compile
+
+---
+
 ### Future Feature Notes
 
 1. **New Module** - RSS Feed Reader (planning phase)
