@@ -120,6 +120,51 @@
 
 ---
 
+### Centralized Permissions Management System ✅
+
+**Issue:** Permissions were being checked ad-hoc in individual feature modules without a unified approach
+
+**Implementation:**
+- Created new `core:permissions` module with centralized permission handling
+- Defined `AppPermission` sealed class with permission metadata (title, description, rationale)
+- Implemented `PermissionsManager` for permission checking, requesting, and state management
+- Created UI components for consistent permission dialogs following Material You theming:
+  - `PermissionRationaleDialog` - Shows permission rationale before requesting
+  - `PermissionStatusIndicator` - Visual status indicator with re-request capability
+  - `PermissionStatusBadge` - Compact status badge for toolbars
+- Added Hilt DI module for dependency injection
+- Updated StatsViewModel to use PermissionsManager for overlay permission checks
+
+**Available Permissions:**
+- `SystemOverlay` - For StatsPill floating overlay (SYSTEM_ALERT_WINDOW)
+- `PostNotifications` - For alerts and notifications (Android 13+)
+- `ReadClipboard` - For Clip module clipboard management
+- `WriteClipboard` - For Clip module paste functionality
+- `ReceiveBoot` - For auto-start features (future)
+
+**Files Created:**
+- `core/permissions/build.gradle.kts`
+- `core/permissions/src/main/java/.../Permission.kt`
+- `core/permissions/src/main/java/.../PermissionState.kt`
+- `core/permissions/src/main/java/.../PermissionsManager.kt`
+- `core/permissions/src/main/java/.../PermissionUtils.kt`
+- `core/permissions/src/main/java/.../di/PermissionsModule.kt`
+- `core/permissions/src/main/java/.../ui/PermissionDialog.kt`
+- `core/permissions/src/main/java/.../ui/PermissionStatus.kt`
+
+**Files Modified:**
+- `settings.gradle.kts` - Added core:permissions module
+- `modules/statspill/build.gradle.kts` - Added permissions dependency
+- `modules/statspill/StatsViewModel.kt` - Integrated PermissionsManager
+- `core/design/res/values/strings.xml` - Added permission string resources
+
+**Documentation:**
+- Created `PERMISSIONS_GUIDE.md` with usage examples and best practices
+
+**Status:** Complete - Ready for integration with all feature modules
+
+---
+
 ### Future Feature Notes
 
 1. **New Module** - RSS Feed Reader (planning phase)
