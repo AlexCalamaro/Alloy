@@ -32,6 +32,7 @@ include(":core:datastore")
 include(":core:domain")
 include(":core:netlocal")
 include(":core:navigation")
+include(":core:permissions")
 include(":core:proc")
 include(":tooling:probe")
 

@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
-import android.provider.Settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.squidink.alloy.core.common.BaseViewModel
@@ -12,6 +11,8 @@ import com.squidink.alloy.core.common.UiAction
 import com.squidink.alloy.core.common.UiEffect
 import com.squidink.alloy.core.common.UiState
 import com.squidink.alloy.core.domain.repository.IStatsRepository
+import com.squidink.alloy.core.permissions.AppPermission
+import com.squidink.alloy.core.permissions.PermissionsManager
 import com.squidink.alloy.core.proc.MemInfo
 import com.squidink.alloy.core.proc.ProcReader
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -86,6 +87,7 @@ class StatsViewModel
         private val statsRepository: IStatsRepository,
         private val procReader: ProcReader,
         @ApplicationContext private val context: Context,
+        private val permissionsManager: PermissionsManager,
     ) : BaseViewModel<StatsUiState, StatsUiAction, StatsUiEffect>(StatsUiState()) {
         private var pollingJob: Job? = null
         private var batteryReceiver: android.content.BroadcastReceiver? = null
@@ -175,8 +177,8 @@ class StatsViewModel
         }
 
         private fun startOverlayService() {
-            // Check overlay permission
-            if (!Settings.canDrawOverlays(context)) {
+            // Check overlay permission using PermissionsManager
+            if (!permissionsManager.isPermissionGranted(context, AppPermission.SystemOverlay)) {
                 sendEffect(StatsUiEffect.ShowToast("Overlay permission required. Please grant in Settings."))
                 updateState { it.copy(isLiveOverlayActive = false) }
                 return

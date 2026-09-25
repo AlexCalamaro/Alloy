@@ -59,6 +59,23 @@
     <string name="stats_overlay_desc">Float live CPU/RAM/network vitals over all desktop windows</string>
     <string name="stats_refresh">Refresh Now</string>
     <string name="stats_overlay_active">Live Desktop Overlay Active</string>
+
+    <!-- Permission strings -->
+    <string name="permission_icon_content_description">Permission icon</string>
+    <string name="permission_required_icon_content_description">Permission required icon</string>
+    <string name="permission_required_title">Permission Required</string>
+    <string name="permission_grant_button">Grant Permission</string>
+    <string name="permission_settings_button">Go to Settings</string>
+    <string name="permission_continue_button">Continue</string>
+    <string name="permission_cancel_button">Cancel</string>
+    <string name="permission_status_granted">Granted</string>
+    <string name="permission_status_denied">Denied</string>
+    <string name="permission_status_permanently_denied">Permanently Denied</string>
+    <string name="permission_status_pending">Pending</string>
+    <string name="permission_status_granted_description">%1$s granted</string>
+    <string name="permission_status_denied_description">%1$s denied</string>
+    <string name="permission_status_permanently_denied_description">%1$s permanently denied</string>
+    <string name="permission_status_pending_description">%1$s pending</string>
     
     <!-- Scratch Module -->
     <string name="scratch_title">Pinned Scratchpad</string>

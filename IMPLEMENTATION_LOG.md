@@ -99,6 +99,27 @@
 
 ---
 
+### StatsPill Overlay Mode Fix ✅
+
+**Issue:** Overlay pill mode didn't appear at all, and tooltip incorrectly mentioned battery vitals
+
+**Fixes Applied:**
+- Implemented `startOverlayService()` and `stopOverlayService()` in StatsViewModel
+- Added permission check using `Settings.canDrawOverlays()`
+- Added toast notification for permission denial
+- Fixed tooltip text: "CPU/RAM/network" instead of "CPU/RAM/battery"
+- Added SnackbarHost for effect handling in StatsScreen
+
+**Files Modified:**
+- `modules/statspill/StatsViewModel.kt`
+- `modules/statspill/ui/StatsScreen.kt`
+- `modules/statspill/README.md`
+- `core/design/res/values/strings.xml`
+
+**Status:** Complete - Ready for testing on device
+
+---
+
 ### Future Feature Notes
 
 1. **New Module** - RSS Feed Reader (planning phase)
