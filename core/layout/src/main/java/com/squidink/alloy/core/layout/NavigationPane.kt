@@ -119,22 +119,3 @@ fun NavigationPane(
         )
     }
 }
-
-/**
- * Compact navigation drawer with close button.
- * Used for overlay navigation on compact screens.
- */
-@Composable
-fun NavigationDrawer(
-    layoutController: LayoutController,
-    screens: List<Screens>,
-    onScreenSelected: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    NavigationPane(
-        layoutController = layoutController,
-        screens = screens,
-        onScreenSelected = onScreenSelected,
-        modifier = modifier
-    )
-}

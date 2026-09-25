@@ -22,6 +22,36 @@ import androidx.compose.ui.unit.dp
 import com.squidink.alloy.core.design.desktopHover
 
 /**
+ * Navigation enter animation spec.
+ */
+private val NavigationEnter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn()
+
+/**
+ * Navigation exit animation spec.
+ */
+private val NavigationExit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+
+/**
+ * Detail enter animation spec.
+ */
+private val DetailEnter = slideInHorizontally(initialOffsetX = { it }) + fadeIn()
+
+/**
+ * Detail exit animation spec.
+ */
+private val DetailExit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
+
+/**
+ * Navigation pane width in dp.
+ */
+private const val NAVIGATION_PANE_WIDTH_DP = 280
+
+/**
+ * Detail pane width in dp.
+ */
+private const val DETAIL_PANE_WIDTH_DP = 320
+
+/**
  * Main scaffold for three-pane responsive layout.
  * Adapts layout based on window size class:
  * - COMPACT: Shows one pane at a time (navigation overlay or content or detail)
@@ -100,8 +130,8 @@ private fun CompactLayout(
         // Navigation overlay when open with slide animation
         AnimatedVisibility(
             visible = layoutState.navigationPaneOpen,
-            enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
-            exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+            enter = NavigationEnter,
+            exit = NavigationExit
         ) {
             Box(
                 modifier = Modifier
@@ -112,7 +142,7 @@ private fun CompactLayout(
                 Row(modifier = Modifier.fillMaxSize()) {
                     Box(
                         modifier = Modifier
-                            .width(280.dp)
+                            .width(NAVIGATION_PANE_WIDTH_DP.dp)
                             .fillMaxSize()
                             .background(MaterialTheme.colorScheme.surface)
                     ) {
@@ -134,8 +164,8 @@ private fun CompactLayout(
         detailContent?.let { content ->
             AnimatedVisibility(
                 visible = layoutState.detailPaneOpen,
-                enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
-                exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
+                enter = DetailEnter,
+                exit = DetailExit
             ) {
                 Box(
                     modifier = Modifier
@@ -155,7 +185,7 @@ private fun CompactLayout(
                         // Detail pane
                         Box(
                             modifier = Modifier
-                                .width(320.dp)
+                                .width(DETAIL_PANE_WIDTH_DP.dp)
                                 .fillMaxSize()
                                 .background(MaterialTheme.colorScheme.surface)
                         ) {
@@ -184,12 +214,12 @@ private fun MediumLayout(
         // Navigation pane (collapsible) with animation
         AnimatedVisibility(
             visible = layoutState.navigationPaneOpen,
-            enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
-            exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+            enter = NavigationEnter,
+            exit = NavigationExit
         ) {
             Box(
                 modifier = Modifier
-                    .width(280.dp)
+                    .width(NAVIGATION_PANE_WIDTH_DP.dp)
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface)
             ) {
@@ -212,12 +242,12 @@ private fun MediumLayout(
         detailContent?.let { content ->
             AnimatedVisibility(
                 visible = layoutState.detailPaneOpen,
-                enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
-                exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
+                enter = DetailEnter,
+                exit = DetailExit
             ) {
                 Box(
                     modifier = Modifier
-                        .width(320.dp)
+                        .width(DETAIL_PANE_WIDTH_DP.dp)
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.surface)
                 ) {

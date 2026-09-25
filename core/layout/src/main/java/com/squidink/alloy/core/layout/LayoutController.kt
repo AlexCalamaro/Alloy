@@ -19,15 +19,11 @@ class LayoutController @Inject constructor(
 ) : ViewModel() {
     
     private val _layoutState = repository.observeLayoutState()
-    val layoutState: StateFlow<AppLayoutState> = _layoutState
-        .map { it }
-        .let { flow ->
-            flow.stateIn(
-                scope = viewModelScope,
-                started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
-                initialValue = AppLayoutState.DEFAULT
-            )
-        }
+    val layoutState: StateFlow<AppLayoutState> = _layoutState.stateIn(
+        scope = viewModelScope,
+        started = kotlinx.coroutines.flow.SharingStarted.Eagerly,
+        initialValue = AppLayoutState.DEFAULT
+    )
     
     /**
      * Process a layout event and update state accordingly.

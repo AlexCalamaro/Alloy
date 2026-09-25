@@ -15,6 +15,7 @@
             <option value="$PROJECT_DIR$/core/datastore" />
             <option value="$PROJECT_DIR$/core/design" />
             <option value="$PROJECT_DIR$/core/domain" />
+            <option value="$PROJECT_DIR$/core/layout" />
             <option value="$PROJECT_DIR$/core/navigation" />
             <option value="$PROJECT_DIR$/core/netlocal" />
             <option value="$PROJECT_DIR$/core/permissions" />

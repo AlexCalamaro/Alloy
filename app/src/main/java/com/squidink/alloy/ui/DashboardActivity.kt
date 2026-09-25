@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -20,6 +21,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -108,45 +111,46 @@ fun DashboardScreen(dynamicColorEnabled: Boolean = true) {
     // Scroll behavior for TopAppBar
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
-    // Handle keyboard shortcuts
-    fun handleKeyEvent(event: android.view.KeyEvent): Boolean {
-        when (event.keyCode) {
-            android.view.KeyEvent.KEYCODE_M -> {
-                layoutController.toggleNavigation()
-                return true
-            }
-            android.view.KeyEvent.KEYCODE_D -> {
-                layoutController.toggleDetail()
-                return true
-            }
-            android.view.KeyEvent.KEYCODE_DPAD_RIGHT,
-            android.view.KeyEvent.KEYCODE_DPAD_LEFT -> {
-                val features = listOf("statspill", "clip", "scratch", "scenes")
-                val currentIndex = features.indexOf(layoutState.currentFeature)
-                val nextIndex = if (event.keyCode == android.view.KeyEvent.KEYCODE_DPAD_RIGHT) {
-                    (currentIndex + 1) % features.size
-                } else {
-                    if (currentIndex <= 0) features.size - 1 else currentIndex - 1
-                }
-                layoutController.selectFeature(features[nextIndex])
-                return true
-            }
-        }
-        return false
-    }
+    // Feature list for keyboard navigation
+    val allFeatures = listOf("statspill", "clip", "scratch", "scenes")
 
     AlloyTheme(dynamicColor = dynamicColorEnabled) {
         Box(
             modifier = Modifier
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .focusRequester(focusRequester)
+                .onKeyEvent { event ->
+                    when (event.nativeKeyEvent.keyCode) {
+                        android.view.KeyEvent.KEYCODE_M -> {
+                            layoutController.toggleNavigation()
+                            true
+                        }
+                        android.view.KeyEvent.KEYCODE_D -> {
+                            layoutController.toggleDetail()
+                            true
+                        }
+                        android.view.KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                            val currentIndex = allFeatures.indexOf(layoutState.currentFeature)
+                            val nextIndex = (currentIndex + 1) % allFeatures.size
+                            layoutController.selectFeature(allFeatures[nextIndex])
+                            true
+                        }
+                        android.view.KeyEvent.KEYCODE_DPAD_LEFT -> {
+                            val currentIndex = allFeatures.indexOf(layoutState.currentFeature)
+                            val prevIndex = if (currentIndex <= 0) allFeatures.size - 1 else currentIndex - 1
+                            layoutController.selectFeature(allFeatures[prevIndex])
+                            true
+                        }
+                        else -> false
+                    }
+                }
         ) {
             // Request focus on launch for keyboard shortcuts
             LaunchedEffect(Unit) {
                 focusRequester.requestFocus()
             }
 
-            // TopAppBar for compact screens
+            // TopAppBar for compact screens with navigation and detail toggle
             if (windowSizeClass == WindowSizeClass.COMPACT) {
                 CenterAlignedTopAppBar(
                     title = { 
@@ -161,6 +165,17 @@ fun DashboardScreen(dynamicColorEnabled: Boolean = true) {
                                 imageVector = Icons.Default.Menu,
                                 contentDescription = "Open navigation"
                             )
+                        }
+                    },
+                    actions = {
+                        // Detail pane toggle button for compact screens
+                        if (currentFeatureDetail?.showsDetailPane == true) {
+                            IconButton(onClick = { layoutController.toggleDetail() }) {
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = "Toggle settings"
+                                )
+                            }
                         }
                     },
                     scrollBehavior = scrollBehavior
