@@ -177,7 +177,7 @@ override fun getTheme(): Flow<String> {
 
 ## Future Enhancements
 
-See [FEATURE_ENHANCEMENTS.md](../../FEATURE_ENHANCEMENTS.md#settings-module) for the complete roadmap.
+See [FEATURE_ENHANCEMENTS.md](../../.md-storage/planning/FEATURE_ENHANCEMENTS.md#settings-module) for the complete roadmap.
 
 ### High Priority
 - [ ] **Theme selection** (Light/Dark/System)

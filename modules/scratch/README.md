@@ -251,7 +251,7 @@ val split = lapSeconds - prevLap
 
 ## Future Enhancements
 
-See [FEATURE_ENHANCEMENTS.md](../../FEATURE_ENHANCEMENTS.md#scratch-module-pinned-scratchpad) for the complete roadmap.
+See [FEATURE_ENHANCEMENTS.md](../../.md-storage/planning/FEATURE_ENHANCEMENTS.md#scratch-module-pinned-scratchpad) for the complete roadmap.
 
 ### High Priority
 - [ ] **Full-screen widget** for home screen whiteboard

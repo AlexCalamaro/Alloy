@@ -31,23 +31,23 @@ import com.squidink.alloy.core.navigation.Screens
 import com.squidink.alloy.core.navigation.getScreenTitle
 
 /**
- * Navigation pane component for the three-pane layout.
+ * Navigation pane component for the modal drawer.
  * Displays feature navigation items with selection state.
  *
- * @param layoutController The layout state controller
+ * @param currentFeature The currently selected feature route
  * @param screens List of screens to display in navigation
  * @param onScreenSelected Callback when a screen is selected
+ * @param onDismiss Optional callback to close the drawer (for compact screens)
  * @param modifier Modifier to apply to the root container
  */
 @Composable
 fun NavigationPane(
-    layoutController: LayoutController,
+    currentFeature: String,
     screens: List<Screens>,
     onScreenSelected: (String) -> Unit,
+    onDismiss: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    val layoutState by layoutController.layoutState.collectAsState()
-    
     Column(
         modifier = modifier.fillMaxSize()
     ) {
@@ -64,12 +64,14 @@ fun NavigationPane(
                 modifier = Modifier.weight(1f)
             )
             
-            // Close button for compact screens
-            IconButton(onClick = { layoutController.closeNavigation() }) {
-                Icon(
-                    imageVector = Icons.Default.ChevronLeft,
-                    contentDescription = "Close navigation"
-                )
+            // Close button (optional - for compact screens)
+            onDismiss?.let { dismiss ->
+                IconButton(onClick = dismiss) {
+                    Icon(
+                        imageVector = Icons.Default.ChevronLeft,
+                        contentDescription = "Close navigation"
+                    )
+                }
             }
         }
         
@@ -78,7 +80,7 @@ fun NavigationPane(
         // Navigation items
         LazyColumn {
             items(screens) { screen ->
-                val isSelected = layoutState.currentFeature == screen.route
+                val isSelected = currentFeature == screen.route
                 
                 Card(
                     modifier = Modifier
@@ -86,7 +88,7 @@ fun NavigationPane(
                         .padding(horizontal = 16.dp, vertical = 4.dp)
                         .clickable {
                             onScreenSelected(screen.route)
-                            layoutController.selectFeature(screen.route)
+                            onDismiss?.invoke()
                         }
                         .desktopHover(),
                     colors = CardDefaults.cardColors(

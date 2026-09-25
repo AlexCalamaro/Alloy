@@ -72,4 +72,23 @@ class DataStoreManager @Inject constructor(
             preferences[preferencesKey] = value
         }
     }
+
+    /**
+     * Get a boolean preference as a Flow.
+     * Returns null if the key is not set.
+     */
+    fun getBooleanFlow(key: Preferences.Key<Boolean>): Flow<Boolean?> {
+        return context.dataStore.data.map { preferences ->
+            preferences[key]
+        }
+    }
+
+    /**
+     * Set a boolean preference.
+     */
+    suspend fun setBoolean(key: Preferences.Key<Boolean>, value: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[key] = value
+        }
+    }
 }

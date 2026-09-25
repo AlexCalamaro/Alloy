@@ -97,6 +97,7 @@
         "Focus exclusively on idiomatic Kotlin and declarative Jetpack Compose.",
         "Follow UDF (Unidirectional Data Flow) and Clean Architecture.",
         "Always write unit tests for ViewModels, UseCases, and Repositories.",
+        "Always assume that a timeout during a test run is a failure",
         "After tests pass, update WORK_PLAN.md and run git commit -am 'checkpoint'."
       ]
     },

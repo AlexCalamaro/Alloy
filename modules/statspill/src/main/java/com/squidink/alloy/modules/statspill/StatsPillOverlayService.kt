@@ -28,7 +28,7 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.squidink.alloy.core.design.AlloyTheme
-import com.squidink.alloy.core.proc.ProcReader
+import com.squidink.alloy.core.proc.SystemStatsReader
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,7 +44,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class StatsPillOverlayService : LifecycleService(), SavedStateRegistryOwner {
 
-    @Inject lateinit var procReader: ProcReader
+    @Inject lateinit var systemStatsReader: SystemStatsReader
 
     private var windowManager: WindowManager? = null
     private var overlayComposeView: ComposeView? = null
@@ -125,15 +125,15 @@ class StatsPillOverlayService : LifecycleService(), SavedStateRegistryOwner {
     private fun startTelemetryLoop() {
         serviceJob = CoroutineScope(Dispatchers.Main).launch {
             while (true) {
-                val mem = withContext(Dispatchers.IO) { procReader.readMemInfo() }
-                val cpu = withContext(Dispatchers.IO) { procReader.readCpuUsagePercent() }
-                val net = withContext(Dispatchers.IO) { procReader.readNetworkStats() }
+                val mem = withContext(Dispatchers.IO) { systemStatsReader.readMemInfo() }
+                val cpu = withContext(Dispatchers.IO) { systemStatsReader.readCpuUsagePercent() }
+                val net = withContext(Dispatchers.IO) { systemStatsReader.readNetworkStats() }
                 
                 val memUsedMb = (mem.totalMemKb - mem.availableMemKb) / 1024
                 
                 val cpuText = cpu?.let { String.format(java.util.Locale.US, "%.1f%%", it) } ?: "--"
-                val rxText = String.format(java.util.Locale.US, "%.0f KB/s", net.rxKbps)
-                val txText = String.format(java.util.Locale.US, "%.0f KB/s", net.txKbps)
+                val rxText = String.format(java.util.Locale.US, "%.0f KB/s", net.rxBytesPerSecond)
+                val txText = String.format(java.util.Locale.US, "%.0f KB/s", net.txBytesPerSecond)
                 liveTextState = "CPU: $cpuText | RAM: $memUsedMb MB | ↓$rxText ↑$txText"
                 
                 delay(1000L)

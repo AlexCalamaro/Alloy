@@ -220,7 +220,7 @@ DisplayBounds(width / 2, 0, width, height / 2)
 
 ## Future Enhancements
 
-See [FEATURE_ENHANCEMENTS.md](../../FEATURE_ENHANCEMENTS.md#scenes-module-workspace-launcher) for the complete roadmap.
+See [FEATURE_ENHANCEMENTS.md](../../.md-storage/planning/FEATURE_ENHANCEMENTS.md#scenes-module-workspace-launcher) for the complete roadmap.
 
 ### High Priority
 - [x] **Keyboard shortcuts** (`Ctrl+Alt+1…9`) for quick scene launch

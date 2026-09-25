@@ -13,7 +13,7 @@ Alloy fully supports Material You (Android 12+/API 31+) dynamic color theming. T
 ### Architecture
 
 #### Core Theme Component
-Located in `core/design/src/main/java/com/squidink/alloy/core/design/Theme.kt`:
+Located in `src/main/java/com/squidink/alloy/core/design/Theme.kt`:
 
 ```kotlin
 @Composable
@@ -87,7 +87,7 @@ setContent {
 
 ### Color Resource Files
 
-#### `core/design/src/main/res/values/colors.xml`
+#### `src/main/res/values/colors.xml`
 Contains XML color resources for non-Compose usage:
 
 ```xml
@@ -97,7 +97,7 @@ Contains XML color resources for non-Compose usage:
 <!-- ... more colors -->
 ```
 
-#### `core/design/src/main/res/values/strings.xml`
+#### `src/main/res/values/strings.xml`
 Contains all user-facing strings for localization:
 
 ```xml

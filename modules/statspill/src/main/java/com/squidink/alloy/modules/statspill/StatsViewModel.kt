@@ -10,15 +10,19 @@ import com.squidink.alloy.core.common.BaseViewModel
 import com.squidink.alloy.core.common.UiAction
 import com.squidink.alloy.core.common.UiEffect
 import com.squidink.alloy.core.common.UiState
+import com.squidink.alloy.core.datastore.DataStoreManager
 import com.squidink.alloy.core.domain.repository.IStatsRepository
 import com.squidink.alloy.core.permissions.AppPermission
 import com.squidink.alloy.core.permissions.PermissionsManager
 import com.squidink.alloy.core.proc.MemInfo
-import com.squidink.alloy.core.proc.ProcReader
+import com.squidink.alloy.core.proc.SystemStatsReader
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -52,6 +56,48 @@ data class BatteryInfo(
             BatteryManager.BATTERY_STATUS_NOT_CHARGING -> "Not Charging"
             else -> "Unknown"
         }
+}
+
+data class StatsSettings(
+    val showPill: Boolean = true,
+    val usePercentages: Boolean = true,
+    val cornerPosition: CornerPosition = CornerPosition.TOP_RIGHT
+) {
+    fun toJson(): String = """
+        {
+            "showPill": $showPill,
+            "usePercentages": $usePercentages,
+            "cornerPosition": "${cornerPosition.name}"
+        }
+    """.trimIndent()
+    
+    companion object {
+        fun fromJson(json: String): StatsSettings {
+            return try {
+                val showPillJson = json.substringAfter("\"showPill\":", "").substringBefore(",", "").trim()
+                val usePercentagesJson = json.substringAfter("\"usePercentages\":", "").substringBefore(",", "").trim()
+                val cornerPositionJson = json.substringAfter("\"cornerPosition\":", "").substringBefore("}", "").trim().removeSurrounding("\"")
+                
+                val showPill = showPillJson.equals("true", ignoreCase = true)
+                val usePercentages = usePercentagesJson.equals("true", ignoreCase = true)
+                val cornerPosition = try {
+                    CornerPosition.valueOf(cornerPositionJson)
+                } catch (e: IllegalArgumentException) {
+                    CornerPosition.TOP_RIGHT
+                }
+                StatsSettings(showPill, usePercentages, cornerPosition)
+            } catch (e: Exception) {
+                StatsSettings()
+            }
+        }
+    }
+}
+
+enum class CornerPosition(val displayName: String) {
+    TOP_LEFT("Top-Left"),
+    TOP_RIGHT("Top-Right"),
+    BOTTOM_LEFT("Bottom-Left"),
+    BOTTOM_RIGHT("Bottom-Right")
 }
 
 data class StatsUiState(
@@ -91,10 +137,15 @@ class StatsViewModel
     @Inject
     constructor(
         private val statsRepository: IStatsRepository,
-        private val procReader: ProcReader,
+        private val systemStatsReader: SystemStatsReader,
         @ApplicationContext private val context: Context,
         private val permissionsManager: PermissionsManager,
+        private val dataStoreManager: DataStoreManager,
     ) : BaseViewModel<StatsUiState, StatsUiAction, StatsUiEffect>(StatsUiState()) {
+        
+        private val _settings = MutableStateFlow(StatsSettings())
+        val settings: StateFlow<StatsSettings> = _settings.asStateFlow()
+        
         private var pollingJob: Job? = null
         private var batteryReceiver: android.content.BroadcastReceiver? = null
         private var serviceJob: Job? = null
@@ -102,6 +153,27 @@ class StatsViewModel
         init {
             startPolling()
             registerBatteryReceiver()
+            loadSettings()
+        }
+        
+        private fun loadSettings() {
+            viewModelScope.launch {
+                dataStoreManager.getStringFlow(KEY_STATS_SETTINGS).collect { json ->
+                    json?.let { _settings.value = StatsSettings.fromJson(it) }
+                }
+            }
+        }
+        
+        fun updateSettings(newSettings: StatsSettings) {
+            _settings.value = newSettings
+            viewModelScope.launch {
+                dataStoreManager.setString(KEY_STATS_SETTINGS, newSettings.toJson())
+            }
+        }
+        
+        companion object {
+            private const val TAG = "StatsViewModel"
+            private const val KEY_STATS_SETTINGS = "stats_settings"
         }
 
         private fun registerBatteryReceiver() {
@@ -211,7 +283,7 @@ class StatsViewModel
 
         private suspend fun pollVitals() {
             val stats = statsRepository.pollSystemStats()
-            val netStats = procReader.readNetworkStats()
+            val netStats = systemStatsReader.readNetworkStats()
             
             updateState { currentState ->
                 currentState.copy(

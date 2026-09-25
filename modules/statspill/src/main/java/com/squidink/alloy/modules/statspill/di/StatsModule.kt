@@ -2,9 +2,8 @@ package com.squidink.alloy.modules.statspill.di
 
 import com.squidink.alloy.core.domain.repository.IStatsRepository
 import com.squidink.alloy.modules.statspill.data.StatsRepositoryImpl
-import com.squidink.alloy.core.proc.ProcReader
+import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
@@ -14,14 +13,12 @@ import javax.inject.Singleton
  */
 @Module
 @InstallIn(SingletonComponent::class)
-object StatsModule {
+abstract class StatsModule {
     
     /**
-     * Provide IStatsRepository implementation.
+     * Bind IStatsRepository to StatsRepositoryImpl.
      */
-    @Provides
+    @Binds
     @Singleton
-    fun provideStatsRepository(procReader: ProcReader): IStatsRepository {
-        return StatsRepositoryImpl(procReader)
-    }
+    abstract fun bindStatsRepository(statsRepositoryImpl: StatsRepositoryImpl): IStatsRepository
 }

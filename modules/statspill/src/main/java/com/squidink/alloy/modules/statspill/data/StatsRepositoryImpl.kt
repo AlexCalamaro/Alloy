@@ -4,7 +4,7 @@ import com.squidink.alloy.core.common.Logger
 import com.squidink.alloy.core.domain.repository.IStatsRepository
 import com.squidink.alloy.core.domain.repository.SystemStats
 import com.squidink.alloy.core.proc.MemInfo
-import com.squidink.alloy.core.proc.ProcReader
+import com.squidink.alloy.core.proc.SystemStatsReader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -14,15 +14,15 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Implementation of [IStatsRepository] using ProcReader.
+ * Implementation of [IStatsRepository] using SystemStatsReader.
  *
  * This is the data layer implementation that handles:
- * - Reading system statistics from /proc filesystem
+ * - Reading system statistics using Android APIs (ActivityManager, TrafficStats, Debug)
  * - Thread dispatching
  * - Error handling
  */
 class StatsRepositoryImpl @Inject constructor(
-    private val procReader: ProcReader
+    private val systemStatsReader: SystemStatsReader
 ) : IStatsRepository {
     
     private val tag = "StatsRepositoryImpl"
@@ -38,8 +38,8 @@ class StatsRepositoryImpl @Inject constructor(
     override suspend fun pollSystemStats(): SystemStats {
         return withContext(Dispatchers.IO) {
             try {
-                val mem = procReader.readMemInfo()
-                val cpu = procReader.readCpuUsagePercent() ?: 0f
+                val mem = systemStatsReader.readMemInfo()
+                val cpu = systemStatsReader.readCpuUsagePercent() ?: 0f
                 
                 val totalBytes = mem.totalMemKb * 1024
                 val availableBytes = mem.availableMemKb * 1024
@@ -71,7 +71,7 @@ class StatsRepositoryImpl @Inject constructor(
     override suspend fun getMemoryPercent(): Float {
         return withContext(Dispatchers.IO) {
             try {
-                val mem = procReader.readMemInfo()
+                val mem = systemStatsReader.readMemInfo()
                 val totalBytes = mem.totalMemKb * 1024
                 val availableBytes = mem.availableMemKb * 1024
                 val usedBytes = totalBytes - availableBytes
@@ -89,7 +89,7 @@ class StatsRepositoryImpl @Inject constructor(
     override suspend fun getCpuPercent(): Float {
         return withContext(Dispatchers.IO) {
             try {
-                procReader.readCpuUsagePercent() ?: 0f
+                systemStatsReader.readCpuUsagePercent() ?: 0f
             } catch (e: Exception) {
                 Logger.e(tag, "Error getting CPU percent", e)
                 0f

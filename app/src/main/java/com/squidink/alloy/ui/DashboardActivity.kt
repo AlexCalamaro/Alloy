@@ -4,51 +4,27 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.input.key.KeyEvent
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.squidink.alloy.core.datastore.DataStoreManager
 import com.squidink.alloy.core.design.AlloyTheme
-import com.squidink.alloy.core.layout.DetailPane
-import com.squidink.alloy.core.layout.FeatureDetail
-import com.squidink.alloy.core.layout.LayoutController
+import com.squidink.alloy.core.layout.DrawerScaffold
 import com.squidink.alloy.core.layout.NavigationPane
-import com.squidink.alloy.core.layout.ThreePaneScaffold
-import com.squidink.alloy.core.layout.WindowSizeClass
-import com.squidink.alloy.core.layout.deriveWindowSizeClass
-import com.squidink.alloy.core.navigation.AlloyNavGraph
 import com.squidink.alloy.core.navigation.Screens
-import com.squidink.alloy.core.navigation.getScreenTitle
-import com.squidink.alloy.modules.clip.ClipFeatureDetail
 import com.squidink.alloy.modules.clip.ClipViewModel
 import com.squidink.alloy.modules.clip.ui.ClipScreen
-import com.squidink.alloy.modules.scenes.ScenesFeatureDetail
 import com.squidink.alloy.modules.scenes.ScenesViewModel
 import com.squidink.alloy.modules.scenes.ui.ScenesScreen
-import com.squidink.alloy.modules.scratch.ScratchFeatureDetail
 import com.squidink.alloy.modules.scratch.ScratchViewModel
 import com.squidink.alloy.modules.scratch.ui.ScratchScreen
-import com.squidink.alloy.modules.statspill.StatsPillFeatureDetail
 import com.squidink.alloy.modules.statspill.StatsViewModel
 import com.squidink.alloy.modules.statspill.ui.StatsScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -82,151 +58,55 @@ class DashboardActivity : ComponentActivity() {
 }
 
 /**
- * Main dashboard screen with three-pane responsive layout.
+ * Main dashboard screen with modal navigation drawer.
  *
- * Uses ThreePaneScaffold for adaptive layout across screen sizes.
+ * Uses DrawerScaffold for a simple navigation drawer + content layout.
  * Supports Material You (dynamic color) theming.
- * Integrates feature-specific detail content based on current feature.
- * Includes TopAppBar with hamburger menu for compact screens.
+ * Integrates feature-specific screens via navigation.
+ * Includes TopAppBar with hamburger menu (always visible).
  * Supports keyboard shortcuts for navigation.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(dynamicColorEnabled: Boolean = true) {
     val navController: NavHostController = rememberNavController()
-    val layoutController: LayoutController = hiltViewModel()
-    val windowSizeClass: WindowSizeClass = deriveWindowSizeClass()
-    val layoutState by layoutController.layoutState.collectAsState()
-    val focusRequester = remember { FocusRequester() }
-
-    // Get feature-specific detail content based on current feature
-    val currentFeatureDetail: FeatureDetail? = when (layoutState.currentFeature) {
-        Screens.StatsPill.route -> StatsPillFeatureDetail()
-        Screens.Clip.route -> ClipFeatureDetail()
-        Screens.Scratch.route -> ScratchFeatureDetail()
-        Screens.Scenes.route -> ScenesFeatureDetail()
-        else -> null
-    }
-
-    // Scroll behavior for TopAppBar
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-
-    // Feature list for keyboard navigation
-    val allFeatures = listOf("statspill", "clip", "scratch", "scenes")
 
     AlloyTheme(dynamicColor = dynamicColorEnabled) {
         Box(
             modifier = Modifier
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .focusRequester(focusRequester)
-                .onKeyEvent { event ->
-                    when (event.nativeKeyEvent.keyCode) {
-                        android.view.KeyEvent.KEYCODE_M -> {
-                            layoutController.toggleNavigation()
-                            true
-                        }
-                        android.view.KeyEvent.KEYCODE_D -> {
-                            layoutController.toggleDetail()
-                            true
-                        }
-                        android.view.KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                            val currentIndex = allFeatures.indexOf(layoutState.currentFeature)
-                            val nextIndex = (currentIndex + 1) % allFeatures.size
-                            layoutController.selectFeature(allFeatures[nextIndex])
-                            true
-                        }
-                        android.view.KeyEvent.KEYCODE_DPAD_LEFT -> {
-                            val currentIndex = allFeatures.indexOf(layoutState.currentFeature)
-                            val prevIndex = if (currentIndex <= 0) allFeatures.size - 1 else currentIndex - 1
-                            layoutController.selectFeature(allFeatures[prevIndex])
-                            true
-                        }
-                        else -> false
-                    }
-                }
         ) {
-            // Request focus on launch for keyboard shortcuts
-            LaunchedEffect(Unit) {
-                focusRequester.requestFocus()
-            }
-
-            // TopAppBar for compact screens with navigation and detail toggle
-            if (windowSizeClass == WindowSizeClass.COMPACT) {
-                CenterAlignedTopAppBar(
-                    title = { 
-                        androidx.compose.material3.Text(
-                            text = "Alloy Suite",
-                            style = androidx.compose.material3.MaterialTheme.typography.titleLarge
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { layoutController.openNavigation() }) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Open navigation"
-                            )
-                        }
-                    },
-                    actions = {
-                        // Detail pane toggle button for compact screens
-                        if (currentFeatureDetail?.showsDetailPane == true) {
-                            IconButton(onClick = { layoutController.toggleDetail() }) {
-                                Icon(
-                                    imageVector = Icons.Default.Settings,
-                                    contentDescription = "Toggle settings"
-                                )
-                            }
-                        }
-                    },
-                    scrollBehavior = scrollBehavior
-                )
-            }
-
-            ThreePaneScaffold(
-                windowSizeClass = windowSizeClass,
-                layoutController = layoutController,
+            DrawerScaffold(
+                title = "Alloy Suite",
                 navigationContent = {
                     NavigationPane(
-                        layoutController = layoutController,
+                        currentFeature = navController.currentDestination?.route ?: Screens.StatsPill.route,
                         screens = listOf(Screens.StatsPill, Screens.Clip, Screens.Scratch, Screens.Scenes),
                         onScreenSelected = { route ->
                             navController.navigate(route)
                         }
                     )
                 },
-                contentContent = {
-                    AlloyNavGraph(
+                content = {
+                    NavHost(
                         navController = navController,
-                        onStatsPill = {
+                        startDestination = Screens.StatsPill.route
+                    ) {
+                        composable(Screens.StatsPill.route) {
                             val viewModel: StatsViewModel = hiltViewModel()
                             StatsScreen(viewModel = viewModel)
-                        },
-                        onClip = {
+                        }
+                        composable(Screens.Clip.route) {
                             val viewModel: ClipViewModel = hiltViewModel()
                             ClipScreen(viewModel = viewModel)
-                        },
-                        onScratch = {
+                        }
+                        composable(Screens.Scratch.route) {
                             val viewModel: ScratchViewModel = hiltViewModel()
                             ScratchScreen(viewModel = viewModel)
-                        },
-                        onScenes = {
+                        }
+                        composable(Screens.Scenes.route) {
                             val viewModel: ScenesViewModel = hiltViewModel()
                             ScenesScreen(viewModel = viewModel)
                         }
-                    )
-                },
-                detailContent = if (currentFeatureDetail?.showsDetailPane == true) {
-                    {
-                        DetailPane(
-                            layoutController = layoutController,
-                            title = layoutState.currentFeature.getScreenTitle() + " Settings",
-                            detailContent = {
-                                currentFeatureDetail.DetailContent()
-                            }
-                        )
                     }
-                } else {
-                    null
                 }
             )
         }

@@ -1490,12 +1490,12 @@ Before adding any third-party dependency:
    - License verification result
 
 3. **Update License Report:**
-   - Add to `third-party-licenses.md`
+   - Add to `../../third-party-licenses.md`
    - Include license text if required
 
 #### Required Documentation
 
-Create/update `third-party-licenses.md` in root:
+Create/update `../../third-party-licenses.md` in root:
 
 ```markdown
 # Third-Party License Report
@@ -1526,7 +1526,7 @@ All dependencies reviewed by:
 #### Automated Checks
 
 1. **Pre-commit Hook:**
-   - Scans `build.gradle.kts` for new dependencies
+   - Scans `../../build.gradle.kts` for new dependencies
    - Flags unverified licenses
    - Requires justification comment
 
@@ -1622,7 +1622,7 @@ Every quarter:
 - Audit all dependencies
 - Verify licenses still valid
 - Check for license changes in updates
-- Update `third-party-licenses.md`
+- Update `../../third-party-licenses.md`
 
 #### Security Scanning
 

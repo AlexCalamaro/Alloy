@@ -185,7 +185,7 @@ the `ClipFeatureDetail` content.
 
 ## Future Enhancements
 
-See [FEATURE_ENHANCEMENTS.md](../../FEATURE_ENHANCEMENTS.md#clip-module-clipboard-workbench) for the complete roadmap.
+See [FEATURE_ENHANCEMENTS.md](../../.md-storage/planning/FEATURE_ENHANCEMENTS.md#clip-module-clipboard-workbench) for the complete roadmap.
 
 ### High Priority
 - [ ] **Tags & folders** for clip organization
