@@ -136,6 +136,41 @@ open class PermissionsManager {
     }
     
     /**
+     * Open the specific settings page for a permission.
+     * For special permissions like SYSTEM_ALERT_WINDOW, opens the dedicated settings page.
+     * Falls back to general app settings for other permissions.
+     */
+    fun openPermissionSettings(context: Context, permission: AppPermission) {
+        when (permission) {
+            is AppPermission.SystemOverlay -> {
+                // Direct link to overlay permission settings
+                val intent = Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:${context.packageName}")
+                ).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
+            }
+            is AppPermission.PostNotifications -> {
+                // Direct link to notification settings (Android 8.0+)
+                val intent = Intent(
+                    Settings.ACTION_APP_NOTIFICATION_SETTINGS,
+                    null
+                ).apply {
+                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
+            }
+            else -> {
+                // Fall back to general app settings for other permissions
+                openAppSettings(context)
+            }
+        }
+    }
+    
+    /**
      * Check multiple permissions at once.
      * Returns list of granted and denied permissions.
      */

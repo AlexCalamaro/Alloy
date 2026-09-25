@@ -163,7 +163,7 @@ class StatsViewModel
                 }
                 
                 StatsUiAction.OpenOverlayPermissionSettings -> {
-                    permissionsManager.openAppSettings(context)
+                    permissionsManager.openPermissionSettings(context, AppPermission.SystemOverlay)
                 }
                 
                 StatsUiAction.DismissPermissionDialog -> {

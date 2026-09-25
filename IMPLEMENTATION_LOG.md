@@ -189,6 +189,39 @@
 
 ---
 
+#### 8. Core Permissions Module - Direct Settings Navigation ✅
+**Files:** 
+- `core/permissions/src/main/java/com/squidink/alloy/core/permissions/PermissionsManager.kt`
+- `modules/statspill/src/main/java/com/squidink/alloy/modules/statspill/StatsViewModel.kt`
+- `PERMISSIONS_GUIDE.md`
+- `core/permissions/README.md`
+
+**Changes:**
+- Added `openPermissionSettings(context: Context, permission: AppPermission)` method to `PermissionsManager`
+- Method intelligently routes to permission-specific settings pages:
+  - `SystemOverlay` → Direct link to overlay permission settings (Settings > Apps > Special app access > Draw over other apps)
+  - `PostNotifications` → Direct link to notification settings (Settings > Apps > Notifications)
+  - Other permissions → Falls back to general app settings
+- Updated `StatsViewModel` to use new method for overlay permission settings
+- Updated documentation in `PERMISSIONS_GUIDE.md` and created `core/permissions/README.md`
+
+**Benefits:**
+- **Better UX**: Users land directly on the exact permission settings page they need
+- **Centralized logic**: All permission-specific navigation handled in one place
+- **Reusable**: Any module can use `openPermissionSettings()` for any permission type
+- **Maintainable**: Future permission types only need changes in PermissionsManager
+
+**User Flow:**
+1. User toggles "Live Mode Floating Overlay" switch
+2. Permission dialog appears explaining the requirement
+3. User clicks "Grant" or "Settings"
+4. **Directly lands on overlay permission settings page** (not general app info)
+5. User can toggle permission immediately without extra navigation
+
+**Status:** Complete - Build successful, significantly improved permission flow UX
+
+---
+
 #### 7. StatsPill Module - Permission Dialog Integration ✅
 **Files:** 
 - `modules/statspill/src/main/java/com/squidink/alloy/modules/statspill/StatsViewModel.kt`

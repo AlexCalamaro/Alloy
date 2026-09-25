@@ -133,7 +133,7 @@ fun MyScreen(viewModel: MyViewModel) {
             },
             onSettingsClick = { 
                 showPermissionDialog = false
-                permissionsManager.openAppSettings(context)
+                permissionsManager.openPermissionSettings(context, AppPermission.SystemOverlay)
             },
             onDismiss = { showPermissionDialog = false }
         )
