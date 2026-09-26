@@ -48,9 +48,6 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
-    // RSS parsing library
-    implementation("com.romandanylyk:rssreader:1.0.3")
-
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)

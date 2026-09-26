@@ -40,7 +40,6 @@ data class StatsUiState(
     val isLiveOverlayActive: Boolean = false,
     val isPolling: Boolean = false,
     val overlayServiceIntent: Intent? = null,
-    val showPill: Boolean = true,
     val usePercentages: Boolean = true,
     val cornerPosition: CornerPosition = CornerPosition.TOP_RIGHT,
     val isLiveOverlayPermissionGranted: Boolean = false
@@ -68,8 +67,6 @@ sealed interface StatsUiAction : UiAction {
     data object OpenOverlayPermissionSettings : StatsUiAction
 
     data object DismissPermissionDialog : StatsUiAction
-
-    data class UpdateShowPill(val show: Boolean) : StatsUiAction
 
     data class UpdateUsePercentages(val usePercentages: Boolean) : StatsUiAction
 
@@ -105,7 +102,6 @@ enum class CornerPosition(val displayName: String) {
  * Contains user preferences for stats display and behavior.
  */
 data class StatsSettings(
-    val showPill: Boolean = true,
     val usePercentages: Boolean = true,
     val cornerPosition: CornerPosition = CornerPosition.TOP_RIGHT
 )
@@ -171,7 +167,6 @@ class StatsViewModel
                 StatsUiAction.RefreshNow -> refreshNow()
                 StatsUiAction.OpenOverlayPermissionSettings -> openPermissionSettings()
                 StatsUiAction.DismissPermissionDialog -> { /* no-op */ }
-                is StatsUiAction.UpdateShowPill -> updateSettings(showPill = action.show)
                 is StatsUiAction.UpdateUsePercentages -> updateSettings(usePercentages = action.usePercentages)
                 is StatsUiAction.UpdateCornerPosition -> updateSettings(cornerPosition = action.position)
             }
@@ -196,12 +191,10 @@ class StatsViewModel
         }
 
         private fun updateSettings(
-            showPill: Boolean? = null,
             usePercentages: Boolean? = null,
             cornerPosition: CornerPosition? = null
         ) {
             settingsManager.updateSettings(
-                showPill = showPill,
                 usePercentages = usePercentages,
                 cornerPosition = cornerPosition,
                 currentState = uiState.value

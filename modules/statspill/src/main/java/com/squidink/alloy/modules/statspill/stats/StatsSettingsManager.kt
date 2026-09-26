@@ -24,19 +24,8 @@ class StatsSettingsManager(
      * Start observing all settings streams.
      */
     fun startObserving() {
-        observeShowPill()
         observeUsePercentages()
         observeCornerPosition()
-    }
-
-    private fun observeShowPill() {
-        scope.launch {
-            settingsRepository.observeShowPill().collectLatest { showPill ->
-                stateUpdater { currentState ->
-                    currentState.copy(showPill = showPill)
-                }
-            }
-        }
     }
 
     private fun observeUsePercentages() {
@@ -68,25 +57,21 @@ class StatsSettingsManager(
      * Update settings and persist to DataStore.
      */
     fun updateSettings(
-        showPill: Boolean? = null,
         usePercentages: Boolean? = null,
         cornerPosition: CornerPosition? = null,
         currentState: StatsUiState
     ) {
-        val newShowPill = showPill ?: currentState.showPill
         val newUsePercentages = usePercentages ?: currentState.usePercentages
         val newCornerPosition = cornerPosition ?: currentState.cornerPosition
 
         stateUpdater { it ->
             it.copy(
-                showPill = newShowPill,
                 usePercentages = newUsePercentages,
                 cornerPosition = newCornerPosition
             )
         }
 
         scope.launch {
-            settingsRepository.setShowPill(newShowPill)
             settingsRepository.setUsePercentages(newUsePercentages)
             settingsRepository.setCornerPosition(newCornerPosition.name)
         }

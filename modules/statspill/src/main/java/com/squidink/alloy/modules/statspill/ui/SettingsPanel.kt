@@ -56,41 +56,6 @@ fun SettingsPanel(
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Show Stat Pill Toggle
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp)
-                .desktopHover(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Show Stat Pill",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Display system stats in corner overlay",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Switch(
-                    checked = settings.showPill,
-                    onCheckedChange = { onSettingsChange(StatsUiAction.UpdateShowPill(it)) }
-                )
-            }
-        }
-
         // Live Overlay Mode Toggle
         Card(
             modifier = Modifier

@@ -32,7 +32,6 @@ class SettingsRepository @Inject constructor(
     private val KEY_MODULE_ENABLED = "module_enabled_"
     
     // Stats module settings keys
-    private val KEY_STATS_SHOW_PILL = "stats_show_pill"
     private val KEY_STATS_USE_PERCENTAGES = "stats_use_percentages"
     private val KEY_STATS_CORNER_POSITION = "stats_corner_position"
     
@@ -69,25 +68,6 @@ class SettingsRepository @Inject constructor(
     }
 
     // ==================== Stats Module Settings ====================
-
-    /**
-     * Observe whether the stats pill is visible.
-     *
-     * @return Flow emitting true if pill should be shown
-     */
-    fun observeShowPill(): Flow<Boolean> {
-        return dataStoreManager.getBooleanFlow(booleanPreferencesKey(KEY_STATS_SHOW_PILL))
-            .map { it ?: true }
-    }
-
-    /**
-     * Set whether the stats pill should be visible.
-     *
-     * @param show The visibility state
-     */
-    suspend fun setShowPill(show: Boolean) {
-        dataStoreManager.setBoolean(booleanPreferencesKey(KEY_STATS_SHOW_PILL), show)
-    }
 
     /**
      * Observe whether to display values as percentages.

@@ -38,7 +38,6 @@ class StatsViewModelTest {
         assertNotNull(state.memInfo)
         assertFalse(state.isLiveOverlayActive)
         assertFalse(state.isPolling)
-        assertTrue(state.showPill)
         assertTrue(state.usePercentages)
         assertEquals(CornerPosition.TOP_RIGHT, state.cornerPosition)
     }
@@ -46,11 +45,9 @@ class StatsViewModelTest {
     @Test
     fun `StatsUiState can be copied with updated values`() = runTest {
         val original = StatsUiState()
-        val modified = original.copy(showPill = false, usePercentages = false)
+        val modified = original.copy(usePercentages = false)
         
-        assertFalse(modified.showPill)
         assertFalse(modified.usePercentages)
-        assertTrue(original.showPill)
         assertTrue(original.usePercentages)
     }
 
@@ -77,12 +74,6 @@ class StatsViewModelTest {
     @Test
     fun `StatsUiAction RefreshNow is defined`() = runTest {
         val action = StatsUiAction.RefreshNow
-        assertNotNull(action)
-    }
-
-    @Test
-    fun `StatsUiAction UpdateShowPill is defined`() = runTest {
-        val action = StatsUiAction.UpdateShowPill(false)
         assertNotNull(action)
     }
 

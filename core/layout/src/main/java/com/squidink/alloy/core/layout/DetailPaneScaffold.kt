@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -22,9 +23,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+
+private val DetailPaneWidth = 360.dp
 
 /**
  * Reusable detail pane scaffold for features.
@@ -48,24 +53,32 @@ fun DetailPaneScaffold(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
+    val density = LocalDensity.current
+    val paneOffsetPx = remember(density) { with(density) { DetailPaneWidth.roundToPx() } }
+
     AnimatedVisibility(
         visible = isOpen,
-        enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
-        exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
+        enter = slideInHorizontally(initialOffsetX = { paneOffsetPx }) + fadeIn(),
+        exit = slideOutHorizontally(targetOffsetX = { paneOffsetPx }) + fadeOut()
     ) {
         // BackHandler to prevent accidental dismissal
         BackHandler {
             onDismiss()
         }
         
-        // Detail pane content - fixed width panel aligned to the right
-        Column(
-            modifier = modifier
-                .fillMaxHeight()
-                .width(360.dp)
-                .align(Alignment.CenterEnd)
-                .background(MaterialTheme.colorScheme.surface)
+        // Positioning container - anchors the detail pane to the right edge
+        Box(
+            modifier = modifier.fillMaxSize()
         ) {
+            // Detail pane content - fixed width panel aligned to the right
+            Column(
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(DetailPaneWidth)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .align(Alignment.CenterEnd)
+            ) {
                 // Header bar with title and close button
                 Surface(
                     modifier = Modifier.fillMaxWidth()
@@ -108,5 +121,6 @@ fun DetailPaneScaffold(
                     content()
                 }
             }
+        }
     }
 }
