@@ -129,7 +129,8 @@ class ScratchViewModel
                 }
 
                 ScratchUiAction.ToggleTimer -> {
-                    if (uiState.value.isTimerRunning) stopTimer() else startTimer()
+                    val currentState = uiState.value
+                    if (currentState.isTimerRunning) stopTimer() else startTimer()
                 }
 
                 ScratchUiAction.ResetTimer -> {
@@ -138,7 +139,8 @@ class ScratchViewModel
                 }
 
                 ScratchUiAction.StartStopwatch -> {
-                    if (!uiState.value.isStopwatchRunning) startStopwatch()
+                    val currentState = uiState.value
+                    if (!currentState.isStopwatchRunning) startStopwatch()
                 }
 
                 ScratchUiAction.StopStopwatch -> {
@@ -181,12 +183,13 @@ class ScratchViewModel
         }
 
         private fun scheduleAutoSave(content: String) {
+            val currentState = uiState.value
             autoSaveJob?.cancel()
             pendingContent = content
 
             autoSaveJob =
                 viewModelScope.launch {
-                    delay(uiState.value.autoSaveDebounceMs)
+                    delay(currentState.autoSaveDebounceMs)
                     savePendingContent()
                 }
         }
@@ -242,7 +245,8 @@ class ScratchViewModel
         }
 
         private fun addLap() {
-            val currentSeconds = uiState.value.stopwatchSeconds
+            val currentState = uiState.value
+            val currentSeconds = currentState.stopwatchSeconds
             updateState { it.copy(stopwatchLaps = it.stopwatchLaps + currentSeconds) }
             sendEffect(ScratchUiEffect.StopwatchLapRecorded)
         }

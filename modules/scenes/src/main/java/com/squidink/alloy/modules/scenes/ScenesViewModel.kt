@@ -38,7 +38,8 @@ class ScenesViewModel @Inject constructor(
     override fun onAction(action: ScenesUiAction) {
         when (action) {
             is ScenesUiAction.FireScene -> {
-                val scene = uiState.value.scenes.find { it.id == action.sceneId }
+                val currentState = uiState.value
+                val scene = currentState.scenes.find { it.id == action.sceneId }
                 if (scene != null) {
                     val success = sceneLauncher.launchScene(context, scene)
                     val msg = if (success) "Fired scene: ${scene.name}" else "Failed to fire scene: ${scene.name}"

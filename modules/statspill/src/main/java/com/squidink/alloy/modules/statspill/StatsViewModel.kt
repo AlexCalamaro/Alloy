@@ -8,17 +8,17 @@ import com.squidink.alloy.core.common.UiAction
 import com.squidink.alloy.core.common.UiEffect
 import com.squidink.alloy.core.common.UiState
 import com.squidink.alloy.core.data.repository.SettingsRepository
+import com.squidink.alloy.core.domain.repository.BatteryInfo
 import com.squidink.alloy.core.domain.repository.IStatsRepository
+import com.squidink.alloy.core.domain.repository.NetStats
 import com.squidink.alloy.core.permissions.AppPermission
 import com.squidink.alloy.core.permissions.PermissionsManager
 import com.squidink.alloy.core.proc.MemInfo
-import com.squidink.alloy.core.proc.NetStats
-import com.squidink.alloy.core.data.datasource.BatteryInfo
-import com.squidink.alloy.modules.statspill.data.StatsRepositoryImpl
+import com.squidink.alloy.modules.statspill.stats.OverlayServiceManager
+import com.squidink.alloy.modules.statspill.stats.StatsDataObserver
+import com.squidink.alloy.modules.statspill.stats.StatsSettingsManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -114,9 +114,10 @@ data class StatsSettings(
  * ViewModel for the Stats screen.
  *
  * Handles UI state management and user action dispatching.
- * Delegates data operations to repositories:
- * - [StatsRepositoryImpl] for system and battery statistics
- * - [SettingsRepository] for user preferences
+ * Delegates data operations to managers:
+ * - [StatsDataObserver] for system and battery statistics
+ * - [StatsSettingsManager] for user preferences
+ * - [OverlayServiceManager] for overlay service lifecycle
  *
  * This ViewModel follows MVI pattern with:
  * - UiState for reactive UI updates
@@ -128,250 +129,87 @@ class StatsViewModel
     @Inject
     constructor(
         private val statsRepository: IStatsRepository,
-        private val statsRepositoryImpl: StatsRepositoryImpl,
         private val settingsRepository: SettingsRepository,
         @ApplicationContext private val context: Context,
         private val permissionsManager: PermissionsManager,
     ) : BaseViewModel<StatsUiState, StatsUiAction, StatsUiEffect>(StatsUiState()) {
 
-        private var pollingJob: Job? = null
-        private var batteryReceiver: android.content.BroadcastReceiver? = null
-        private var serviceJob: Job? = null
+        // Delegate managers for separation of concerns
+        private val dataObserver = StatsDataObserver(
+            statsRepository = statsRepository,
+            stateUpdater = { reducer -> updateState(reducer) }
+        )
+
+        private lateinit var settingsManager: StatsSettingsManager
+        private lateinit var overlayManager: OverlayServiceManager
 
         init {
-            // Start observing data streams
-            observeSystemStats()
-            observeBatteryInfo()
-            observeNetworkStats()
-            loadSettings()
-        }
-
-        /**
-         * Observe system statistics from the repository.
-         * Updates UI state when new stats are available.
-         */
-        private fun observeSystemStats() {
-            viewModelScope.launch {
-                statsRepository.observeSystemStats().collectLatest { stats ->
-                    updateState { currentState ->
-                        currentState.copy(
-                            memInfo = MemInfo(
-                                totalMemKb = stats.memoryTotalBytes / 1024,
-                                freeMemKb = (stats.memoryTotalBytes - stats.memoryUsedBytes) / 1024,
-                                availableMemKb = (stats.memoryTotalBytes - stats.memoryUsedBytes) / 1024
-                            ),
-                            cpuUsagePercent = stats.cpuPercent
-                        )
-                    }
-                }
-            }
-        }
-
-        /**
-         * Observe battery information from the repository.
-         * Updates UI state when battery changes.
-         */
-        private fun observeBatteryInfo() {
-            viewModelScope.launch {
-                statsRepositoryImpl.observeBatteryInfo().collectLatest { batteryInfo ->
-                    updateState { currentState ->
-                        currentState.copy(batteryInfo = batteryInfo)
-                    }
-                }
-            }
-        }
-
-        /**
-         * Observe network statistics from the repository.
-         * Updates UI state when network stats change.
-         */
-        private fun observeNetworkStats() {
-            viewModelScope.launch {
-                statsRepositoryImpl.observeNetworkStats().collectLatest { netStats ->
-                    updateState { currentState ->
-                        currentState.copy(netStats = netStats)
-                    }
-                }
-            }
-        }
-
-        /**
-         * Load settings from the settings repository.
-         * Observes settings changes and updates UI state accordingly.
-         */
-        private fun loadSettings() {
-            viewModelScope.launch {
-                settingsRepository.observeShowPill().collectLatest { showPill ->
-                    updateState { it.copy(showPill = showPill) }
-                }
-            }
-
-            viewModelScope.launch {
-                settingsRepository.observeUsePercentages().collectLatest { usePercentages ->
-                    updateState { it.copy(usePercentages = usePercentages) }
-                }
-            }
-
-            viewModelScope.launch {
-                settingsRepository.observeCornerPosition().collectLatest { positionName ->
-                    val position = try {
-                        CornerPosition.valueOf(positionName)
-                    } catch (e: IllegalArgumentException) {
-                        CornerPosition.TOP_RIGHT
-                    }
-                    updateState { it.copy(cornerPosition = position) }
-                }
-            }
-
-            // Check overlay permission
-            checkOverlayPermission()
-        }
-
-        /**
-         * Check if overlay permission is granted.
-         */
-        private fun checkOverlayPermission() {
-            val isGranted = permissionsManager.isPermissionGranted(
-                context,
-                AppPermission.SystemOverlay
+            // Initialize managers with scope
+            settingsManager = StatsSettingsManager(
+                settingsRepository = settingsRepository,
+                stateUpdater = { reducer -> updateState(reducer) },
+                scope = viewModelScope
             )
-            updateState { it.copy(isLiveOverlayPermissionGranted = isGranted) }
-        }
 
-        /**
-         * Update settings through the settings repository.
-         *
-         * @param newSettings The updated settings
-         */
-        fun updateSettings(
-            showPill: Boolean = uiState.value.showPill,
-            usePercentages: Boolean = uiState.value.usePercentages,
-            cornerPosition: CornerPosition = uiState.value.cornerPosition
-        ) {
-            val newShowPill = showPill
-            val newUsePercentages = usePercentages
-            val newCornerPosition = cornerPosition
+            overlayManager = OverlayServiceManager(
+                context = context,
+                permissionsManager = permissionsManager,
+                effectEmitter = { effect -> sendEffect(effect) },
+                stateUpdater = { reducer -> updateState(reducer) }
+            )
 
-            updateState {
-                it.copy(
-                    showPill = newShowPill,
-                    usePercentages = newUsePercentages,
-                    cornerPosition = newCornerPosition
-                )
-            }
-
-            viewModelScope.launch {
-                settingsRepository.setShowPill(newShowPill)
-                settingsRepository.setUsePercentages(newUsePercentages)
-                settingsRepository.setCornerPosition(newCornerPosition.name)
-            }
+            // Start observing data and settings
+            dataObserver.startObserving(viewModelScope)
+            settingsManager.startObserving()
+            overlayManager.checkPermission()
         }
 
         override fun onAction(action: StatsUiAction) {
             when (action) {
-                StatsUiAction.TogglePolling -> {
-                    if (uiState.value.isPolling) stopPolling() else startPolling()
-                }
-
-                is StatsUiAction.ToggleLiveOverlay -> {
-                    if (action.enable) {
-                        startOverlayService()
-                    } else {
-                        stopOverlayService()
-                    }
-                }
-
-                StatsUiAction.RefreshNow -> {
-                    viewModelScope.launch {
-                        statsRepository.pollSystemStats()
-                    }
-                }
-
-                StatsUiAction.OpenOverlayPermissionSettings -> {
-                    permissionsManager.openPermissionSettings(
-                        context,
-                        AppPermission.SystemOverlay
-                    )
-                }
-
-                StatsUiAction.DismissPermissionDialog -> {
-                    // Just dismiss, no action needed
-                }
-
-                is StatsUiAction.UpdateShowPill -> {
-                    updateSettings(showPill = action.show)
-                }
-
-                is StatsUiAction.UpdateUsePercentages -> {
-                    updateSettings(usePercentages = action.usePercentages)
-                }
-
-                is StatsUiAction.UpdateCornerPosition -> {
-                    updateSettings(cornerPosition = action.position)
-                }
+                StatsUiAction.TogglePolling -> togglePolling()
+                is StatsUiAction.ToggleLiveOverlay -> toggleOverlay(action.enable)
+                StatsUiAction.RefreshNow -> refreshNow()
+                StatsUiAction.OpenOverlayPermissionSettings -> openPermissionSettings()
+                StatsUiAction.DismissPermissionDialog -> { /* no-op */ }
+                is StatsUiAction.UpdateShowPill -> updateSettings(showPill = action.show)
+                is StatsUiAction.UpdateUsePercentages -> updateSettings(usePercentages = action.usePercentages)
+                is StatsUiAction.UpdateCornerPosition -> updateSettings(cornerPosition = action.position)
             }
         }
 
-        /**
-         * Start polling system statistics.
-         *
-         * Polling is handled by the repository data source.
-         * This ViewModel just controls the polling state.
-         */
-        fun startPolling() {
-            if (pollingJob?.isActive == true) return
-            updateState { it.copy(isPolling = true) }
-            // Repository already handles the polling loop via observeSystemStats()
-            // This is just a flag to indicate polling is active
+        private fun togglePolling() {
+            val isPolling = uiState.value.isPolling
+            updateState { it.copy(isPolling = !isPolling) }
+            // Note: Repository handles actual polling via observeSystemStats()
         }
 
-        /**
-         * Stop polling system statistics.
-         */
-        fun stopPolling() {
-            pollingJob?.cancel()
-            pollingJob = null
-            updateState { it.copy(isPolling = false) }
+        private fun toggleOverlay(enable: Boolean) {
+            if (enable) overlayManager.startOverlay() else overlayManager.stopOverlay()
         }
 
-        /**
-         * Start the overlay service for live stats display.
-         */
-        private fun startOverlayService() {
-            if (!permissionsManager.isPermissionGranted(
-                    context,
-                    AppPermission.SystemOverlay
-                )
-            ) {
-                sendEffect(StatsUiEffect.OpenOverlayPermissionSettings)
-                updateState { it.copy(isLiveOverlayActive = false) }
-                return
-            }
-
-            val intent = Intent(context, StatsPillOverlayService::class.java)
-            context.startForegroundService(intent)
-            updateState { it.copy(isLiveOverlayActive = true, overlayServiceIntent = intent) }
+        private fun refreshNow() {
+            viewModelScope.launch { statsRepository.pollSystemStats() }
         }
 
-        /**
-         * Stop the overlay service.
-         */
-        private fun stopOverlayService() {
-            val intent = uiState.value.overlayServiceIntent
-                ?: Intent(context, StatsPillOverlayService::class.java)
-            context.stopService(intent)
-            updateState { it.copy(isLiveOverlayActive = false, overlayServiceIntent = null) }
+        private fun openPermissionSettings() {
+            overlayManager.openPermissionSettings()
+        }
+
+        private fun updateSettings(
+            showPill: Boolean? = null,
+            usePercentages: Boolean? = null,
+            cornerPosition: CornerPosition? = null
+        ) {
+            settingsManager.updateSettings(
+                showPill = showPill,
+                usePercentages = usePercentages,
+                cornerPosition = cornerPosition,
+                currentState = uiState.value
+            )
         }
 
         override fun onCleared() {
             super.onCleared()
-            stopPolling()
-            serviceJob?.cancel()
-            serviceJob = null
-            try {
-                batteryReceiver?.let { context.unregisterReceiver(it) }
-            } catch (e: Exception) {
-                // Already unregistered
-            }
+            overlayManager.stopOverlay()
         }
     }

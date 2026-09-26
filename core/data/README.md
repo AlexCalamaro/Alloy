@@ -160,6 +160,32 @@ data class SystemStatsData(
 )
 ```
 
+**NetStats Domain Model:**
+
+Network statistics are also defined in `core:domain` for domain independence:
+
+```kotlin
+// core/domain/src/main/java/com/squidink/alloy/core/domain/repository/DomainModels.kt
+data class NetStats(
+    val rxBytes: Long = 0,
+    val txBytes: Long = 0,
+    val rxBytesPerSecond: Float = 0f,
+    val txBytesPerSecond: Float = 0f,
+)
+```
+
+The `SystemStatsDataSource` provides access to network stats through the embedded `NetStats`:
+
+```kotlin
+// core/data/src/main/java/com/squidink/alloy/core/data/datasource/StatsDataSources.kt
+class SystemStatsDataSource @Inject constructor(
+    private val systemStatsReader: SystemStatsReader,
+    private val cache: MemoryCache<String, Any>
+) {
+    val currentStats: Flow<SystemStatsData>
+}
+```
+
 #### BatteryDataSource
 
 Provides battery information from Android system:
@@ -187,20 +213,33 @@ dataSource.unregisterBatteryReceiver(receiver)
 ```
 
 **BatteryInfo Model:**
+
+The `BatteryInfo` domain model is defined in `core:domain` for business logic independence:
+
 ```kotlin
+// core/domain/src/main/java/com/squidink/alloy/core/domain/repository/DomainModels.kt
 data class BatteryInfo(
     val level: Int = 0,
     val scale: Int = 100,
     val percentage: Int = 0,
-    val health: Int = BatteryManager.BATTERY_HEALTH_UNKNOWN,
-    val status: Int = BatteryManager.BATTERY_STATUS_UNKNOWN,
-    val temperature: Int = 0,
-    val voltage: Int = 0,
-    val isCharging: Boolean = false
+    val health: Int = 0,
+    val status: Int = 0,
+    val temperature: Int = 0, // tenths of a degree Celsius
+    val voltage: Int = 0, // millivolts
+    val isCharging: Boolean = false,
 ) {
-    fun getTemperatureCelsius(): Float
-    fun getHealthString(): String
-    fun getStatusString(): String
+    fun getTemperatureCelsius(): Float = temperature / 10f
+}
+```
+
+The data layer (`core:data`) provides `BatteryDataSource` which emits this domain model:
+
+```kotlin
+// core/data/src/main/java/com/squidink/alloy/core/data/datasource/BatteryDataSource.kt
+class BatteryDataSource @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
+    val batteryInfo: Flow<BatteryInfo> // Emits domain model
 }
 ```
 

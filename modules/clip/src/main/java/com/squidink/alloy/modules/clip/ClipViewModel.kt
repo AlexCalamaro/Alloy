@@ -132,7 +132,8 @@ class ClipViewModel
                 }
 
                 is ClipUiAction.ApplyTransformation -> {
-                    uiState.value.selectedClip?.let { clip ->
+                    val currentState = uiState.value
+                    currentState.selectedClip?.let { clip ->
                         val transformed = transformText(clip.textContent, action.type)
                         copyToClipboardWithPermission(transformed)
                         sendEffect(ClipUiEffect.ShowToast("Transformation applied: ${action.type}"))
@@ -156,8 +157,9 @@ class ClipViewModel
                 }
 
                 is ClipUiAction.TogglePin -> {
+                    val currentState = uiState.value
                     viewModelScope.launch {
-                        val clip = uiState.value.clips.find { it.id == action.clipId }
+                        val clip = currentState.clips.find { it.id == action.clipId }
                         clip?.let {
                             // Update via repository
                             val updatedClip = it.copy(isPinned = !it.isPinned)
@@ -180,8 +182,9 @@ class ClipViewModel
                 }
 
                 is ClipUiAction.UpdateClipContent -> {
+                    val currentState = uiState.value
                     viewModelScope.launch {
-                        val clip = uiState.value.clips.find { it.id == action.clipId }
+                        val clip = currentState.clips.find { it.id == action.clipId }
                         clip?.let {
                             val updatedClip = it.copy(textContent = action.newContent, updatedAt = System.currentTimeMillis())
                             clipRepository.updateClip(updatedClip)

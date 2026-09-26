@@ -17,7 +17,11 @@ sealed interface SettingsUiAction : UiAction {
     data object Refresh : SettingsUiAction
 }
 
-sealed interface SettingsUiEffect : UiEffect
+sealed interface SettingsUiEffect : UiEffect {
+    data class ShowToast(val message: String) : SettingsUiEffect
+    data object SettingsSaved : SettingsUiEffect
+    data object SettingsLoadError : SettingsUiEffect
+}
 
 @HiltViewModel
 class SettingsViewModel

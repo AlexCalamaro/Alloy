@@ -136,6 +136,27 @@ sealed interface StatsUiEffect {
 }
 ```
 
+#### Manager Classes
+
+The StatsPill module uses specialized manager classes to separate concerns:
+
+**StatsDataObserver** - Coordinates observation of all system statistics data streams:
+- System stats (CPU, memory)
+- Battery information  
+- Network statistics
+- Updates UI state via provided state updater function
+
+**StatsSettingsManager** - Manages stats-related settings lifecycle:
+- Loading settings from DataStore
+- Observing settings changes
+- Persisting settings updates
+- Provides `updateSettings()` for batch updates
+
+**OverlayServiceManager** - Manages the overlay service lifecycle:
+- Starting/stopping the foreground service
+- Checking overlay permissions
+- Emitting permission-related effects
+
 #### Presentation Layer
 
 **StatsViewModel**
@@ -147,12 +168,62 @@ MVI-compliant ViewModel handling:
 - Lifecycle management
 
 Key responsibilities:
-- `observeSystemStats()`: Subscribes to system stats flow
-- `observeBatteryInfo()`: Subscribes to battery info flow
-- `observeNetworkStats()`: Subscribes to network stats flow
-- `loadSettings()`: Loads user preferences from SettingsRepository
-- `updateSettings()`: Updates settings via SettingsRepository
-- `onAction()`: Handles all UI actions
+- `observeSystemStats()`: Subscribes to system stats flow (delegated to `StatsDataObserver`)
+- `observeBatteryInfo()`: Subscribes to battery info flow (delegated to `StatsDataObserver`)
+- `observeNetworkStats()`: Subscribes to network stats flow (delegated to `StatsDataObserver`)
+- `loadSettings()`: Loads user preferences from SettingsRepository (delegated to `StatsSettingsManager`)
+- `updateSettings()`: Updates settings via SettingsRepository (delegated to `StatsSettingsManager`)
+- `onAction()`: Handles all UI actions via manager classes
+
+**Manager Integration:**
+
+The ViewModel now delegates to specialized managers:
+
+```kotlin
+class StatsViewModel @Inject constructor(
+    private val statsRepository: IStatsRepository,
+    private val settingsRepository: SettingsRepository,
+    private val context: Context,
+    private val permissionsManager: PermissionsManager
+) : BaseViewModel<StatsUiState, StatsUiAction, StatsUiEffect>(StatsUiState()) {
+    
+    private lateinit var settingsManager: StatsSettingsManager
+    private lateinit var overlayManager: OverlayServiceManager
+    
+    init {
+        // Initialize managers with scope
+        settingsManager = StatsSettingsManager(
+            settingsRepository = settingsRepository,
+            stateUpdater = { reducer -> updateState(reducer) },
+            scope = viewModelScope
+        )
+        
+        overlayManager = OverlayServiceManager(
+            context = context,
+            permissionsManager = permissionsManager,
+            effectEmitter = { effect -> sendEffect(effect) },
+            stateUpdater = { reducer -> updateState(reducer) }
+        )
+        
+        // Start observing data and settings
+        StatsDataObserver(statsRepository, { reducer -> updateState(reducer) })
+            .startObserving(viewModelScope)
+        settingsManager.startObserving()
+        overlayManager.checkPermission()
+    }
+    
+    override fun onAction(action: StatsUiAction) {
+        when (action) {
+            StatsUiAction.TogglePolling -> togglePolling()
+            is StatsUiAction.ToggleLiveOverlay -> overlayManager.toggleOverlay(action.enable)
+            StatsUiAction.RefreshNow -> refreshNow()
+            StatsUiAction.OpenOverlayPermissionSettings -> overlayManager.openPermissionSettings()
+            is StatsUiAction.UpdateShowPill -> settingsManager.updateSettings(showPill = action.show)
+            // ...
+        }
+    }
+}
+```
 
 **StatsScreen**
 
@@ -458,6 +529,28 @@ The ViewModel follows strict MVI pattern:
 1. **State**: `StatsUiState` - Immutable, represents complete UI state
 2. **Action**: `StatsUiAction` - Sealed interface for user interactions
 3. **Effect**: `StatsUiEffect` - One-shot side effects (toasts, navigation)
+
+**Manager-Based Architecture:**
+
+The refactored architecture delegates concerns to specialized managers:
+
+```kotlin
+// Data observation - StatsDataObserver
+StatsDataObserver(statsRepository, stateUpdater).startObserving(viewModelScope)
+
+// Settings management - StatsSettingsManager
+settingsManager.updateSettings(showPill = true, currentState = uiState.value)
+
+// Overlay service - OverlayServiceManager
+overlayManager.startOverlay()
+overlayManager.checkPermission()
+```
+
+Benefits:
+- Separation of concerns
+- Easier testing with isolated managers
+- Cleaner ViewModel code
+- Reusable manager components
 
 ```kotlin
 class StatsViewModel @Inject constructor(

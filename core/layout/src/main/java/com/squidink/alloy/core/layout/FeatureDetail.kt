@@ -28,9 +28,13 @@ interface FeatureDetail {
     /**
      * The content to display in the detail pane.
      * Only called if [showsDetailPane] is true.
+     * 
+     * Default implementation provides empty content for features that don't need it.
      */
     @Composable
-    fun DetailContent()
+    fun DetailContent() {
+        // Empty default implementation
+    }
 }
 
 /**

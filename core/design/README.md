@@ -85,6 +85,76 @@ setContent {
 }
 ```
 
+### Reusable UI Components
+
+#### Setting Cards (`SettingCards.kt`)
+
+Reusable composable components for consistent settings UI:
+
+**`SettingSection`** - Container for a settings section with title:
+```kotlin
+@Composable
+fun SettingSection(
+    title: String,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+)
+```
+
+**`InfoCard`** - Info card for tips, warnings, or helpful information:
+```kotlin
+@Composable
+fun InfoCard(
+    message: String,
+    modifier: Modifier = Modifier
+)
+```
+
+**`SettingCard`** - Card for displaying a single setting:
+```kotlin
+@Composable
+fun SettingCard(
+    title: String,
+    subtitle: String? = null,
+    value: String? = null,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit = {}
+)
+```
+
+**`FeatureDetailSection`** - Container for feature detail content:
+```kotlin
+@Composable
+fun FeatureDetailSection(
+    title: String,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+)
+```
+
+#### Spacing Constants (`Spacing.kt`)
+
+Standard spacing values and application constants:
+
+```kotlin
+@Stable
+object Spacing {
+    val XSmall = 4.dp
+    val Small = 8.dp
+    val Medium = 12.dp
+    val Large = 16.dp
+    val XLarge = 24.dp
+    val XXLarge = 32.dp
+}
+
+object AppConstants {
+    const val POLLING_INTERVAL_MS = 1000L
+    const val DEFAULT_CACHE_SIZE = 100
+    const val BATTERY_SCALE_DEFAULT = 100
+    const val MAX_HISTORY_ITEMS = 50
+}
+```
+
 ### Color Resource Files
 
 #### `src/main/res/values/colors.xml`

@@ -44,4 +44,18 @@ interface IStatsRepository {
      * @return CPU usage as percentage (0.0 to 100.0)
      */
     suspend fun getCpuPercent(): Float
+    
+    /**
+     * Observe battery information.
+     *
+     * @return Flow emitting battery info updates
+     */
+    fun observeBatteryInfo(): Flow<BatteryInfo>
+    
+    /**
+     * Observe network statistics.
+     *
+     * @return Flow emitting network stats updates
+     */
+    fun observeNetworkStats(): Flow<NetStats>
 }

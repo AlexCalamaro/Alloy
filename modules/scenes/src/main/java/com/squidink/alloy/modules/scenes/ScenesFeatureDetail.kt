@@ -1,18 +1,9 @@
 package com.squidink.alloy.modules.scenes
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.squidink.alloy.core.design.FeatureDetailSection
+import com.squidink.alloy.core.design.InfoCard
+import com.squidink.alloy.core.design.SettingCard
 import com.squidink.alloy.core.layout.FeatureDetail
 
 /**
@@ -24,89 +15,19 @@ class ScenesFeatureDetail : FeatureDetail {
     
     @Composable
     override fun DetailContent() {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "Scene Settings",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 16.dp)
+        FeatureDetailSection("Scene Settings") {
+            SettingCard(
+                title = "Scene Templates",
+                subtitle = "Pre-configured window layouts for common workflows",
+                value = "4 templates available"
             )
             
-            // Scene Templates
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Scene Templates",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Pre-configured window layouts for common workflows",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "4 templates available",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
+            SettingCard(
+                title = "Auto-launch Apps",
+                subtitle = "Automatically launch apps when scene is activated"
+            )
             
-            // Auto-launch Settings
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Auto-launch Apps",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Automatically launch apps when scene is activated",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            
-            // Info card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                )
-            ) {
-                Text(
-                    text = "Scenes help you quickly set up your workspace for different tasks.",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
+            InfoCard("Scenes help you quickly set up your workspace for different tasks.")
         }
     }
 }

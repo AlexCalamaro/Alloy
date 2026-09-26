@@ -68,6 +68,19 @@ settings/
   - DataStore-based preference persistence
   - Type-safe settings access
   - Flow-based reactive updates
+  
+**Repository Methods:**
+```kotlin
+// Observe settings
+fun observeShowPill(): Flow<Boolean>
+fun observeUsePercentages(): Flow<Boolean>
+fun observeCornerPosition(): Flow<String>
+
+// Update settings
+suspend fun setShowPill(show: Boolean)
+suspend fun setUsePercentages(usePercentages: Boolean)
+suspend fun setCornerPosition(position: String)
+```
 
 #### Presentation Layer
 

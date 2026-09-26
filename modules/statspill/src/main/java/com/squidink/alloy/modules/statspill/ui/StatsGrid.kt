@@ -190,7 +190,7 @@ fun StatsGrid(
 data class ResourceStats(
     val cpuUsagePercent: Float?,
     val memInfo: com.squidink.alloy.core.proc.MemInfo,
-    val netStats: com.squidink.alloy.core.proc.NetStats
+    val netStats: com.squidink.alloy.core.domain.repository.NetStats
 )
 
 /**

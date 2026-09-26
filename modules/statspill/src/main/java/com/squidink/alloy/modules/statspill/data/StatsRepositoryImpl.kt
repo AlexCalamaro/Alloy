@@ -2,11 +2,13 @@ package com.squidink.alloy.modules.statspill.data
 
 import com.squidink.alloy.core.common.Logger
 import com.squidink.alloy.core.data.datasource.BatteryDataSource
+import com.squidink.alloy.core.data.datasource.BatteryInfo as DataBatteryInfo
 import com.squidink.alloy.core.data.datasource.SystemStatsDataSource
 import com.squidink.alloy.core.data.datasource.SystemStatsData
+import com.squidink.alloy.core.domain.repository.BatteryInfo
 import com.squidink.alloy.core.domain.repository.IStatsRepository
+import com.squidink.alloy.core.domain.repository.NetStats
 import com.squidink.alloy.core.domain.repository.SystemStats
-import com.squidink.alloy.core.proc.NetStats
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
@@ -127,8 +129,19 @@ class StatsRepositoryImpl @Inject constructor(
      *
      * @return Flow emitting battery info updates
      */
-    fun observeBatteryInfo(): Flow<com.squidink.alloy.core.data.datasource.BatteryInfo> {
-        return batteryDataSource.batteryInfo
+    override fun observeBatteryInfo(): Flow<BatteryInfo> {
+        return batteryDataSource.batteryInfo.map { dataInfo ->
+            BatteryInfo(
+                level = dataInfo.level,
+                scale = dataInfo.scale,
+                percentage = dataInfo.percentage,
+                health = dataInfo.health,
+                status = dataInfo.status,
+                temperature = dataInfo.temperature,
+                voltage = dataInfo.voltage,
+                isCharging = dataInfo.isCharging
+            )
+        }
     }
 
     /**
@@ -148,8 +161,15 @@ class StatsRepositoryImpl @Inject constructor(
      *
      * @return Flow emitting network stats updates
      */
-    fun observeNetworkStats(): Flow<NetStats> {
-        return systemStatsDataSource.currentStats.map { it.netStats }
+    override fun observeNetworkStats(): Flow<NetStats> {
+        return systemStatsDataSource.currentStats.map { statsData ->
+            NetStats(
+                rxBytes = statsData.netStats.rxBytes,
+                txBytes = statsData.netStats.txBytes,
+                rxBytesPerSecond = statsData.netStats.rxBytesPerSecond,
+                txBytesPerSecond = statsData.netStats.txBytesPerSecond
+            )
+        }
     }
 
     companion object {
