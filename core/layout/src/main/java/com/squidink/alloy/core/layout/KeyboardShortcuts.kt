@@ -8,7 +8,6 @@ package com.squidink.alloy.core.layout
  *
  * | Shortcut | Action |
  * |----------|--------|
- * | `M` | Toggle navigation pane |
  * | `D` | Toggle detail pane |
  * | `Arrow Right` | Navigate to next feature |
  * | `Arrow Left` | Navigate to previous feature |
@@ -33,7 +32,6 @@ object KeyboardShortcuts {
     /**
      * Key codes for layout commands
      */
-    const val TOGGLE_NAVIGATION_KEY = android.view.KeyEvent.KEYCODE_M
     const val TOGGLE_DETAIL_KEY = android.view.KeyEvent.KEYCODE_D
     const val NEXT_FEATURE_KEY = android.view.KeyEvent.KEYCODE_DPAD_RIGHT
     const val PREVIOUS_FEATURE_KEY = android.view.KeyEvent.KEYCODE_DPAD_LEFT

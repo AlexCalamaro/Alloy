@@ -4,7 +4,10 @@ import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Metadata representation for an Alloy desktop module.
+ * 
+ * @deprecated Use [com.squidink.alloy.core.feature.FeatureDefinition] instead.
  */
+@Deprecated("Use FeatureDefinition instead")
 data class ModuleInfo(
     val id: String,
     val name: String,
@@ -16,6 +19,9 @@ data class ModuleInfo(
 
 /**
  * Central registry contract managing module lifecycles, states, and enable/disable toggles.
+ * 
+ * This is the legacy interface kept for backward compatibility.
+ * New code should use [com.squidink.alloy.core.feature.IFeatureRegistry] instead.
  */
 interface ModuleRegistry {
 
@@ -27,6 +33,7 @@ interface ModuleRegistry {
     /**
      * Returns list of all registered modules.
      */
+    @Deprecated("Use FeatureRegistry instead")
     fun getRegisteredModules(): List<ModuleInfo>
 
     /**

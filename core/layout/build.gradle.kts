@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":core:design"))
     implementation(project(":core:datastore"))
     implementation(project(":core:navigation"))
+    implementation(project(":core:domain"))
 
     // Compose
     implementation(platform(libs.compose.bom))

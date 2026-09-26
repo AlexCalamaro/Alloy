@@ -27,7 +27,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.squidink.alloy.core.design.desktopHover
+import com.squidink.alloy.core.feature.featureRegistry
 import com.squidink.alloy.core.navigation.Screens
+import com.squidink.alloy.core.navigation.getFeatureId
+import com.squidink.alloy.core.navigation.getNavigationIcon
 import com.squidink.alloy.core.navigation.getScreenTitle
 
 /**
@@ -99,11 +102,22 @@ fun NavigationPane(
                         }
                     )
                 ) {
-                    Text(
-                        text = screen.route.getScreenTitle(),
+                    Row(
                         modifier = Modifier.padding(12.dp),
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Icon from extension function
+                        Icon(
+                            imageVector = screen.getNavigationIcon(),
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 12.dp)
+                        )
+                        
+                        Text(
+                            text = screen.route.getScreenTitle(),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
                 }
             }
         }

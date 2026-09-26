@@ -26,9 +26,6 @@ android {
 }
 
 dependencies {
-    // Core modules
-    implementation(project(":core:common"))
-    
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
@@ -36,6 +33,12 @@ dependencies {
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)
+    
+    // Compose
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons.extended)
     
     // Testing
     testImplementation(libs.junit)

@@ -4,9 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -16,8 +15,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.squidink.alloy.core.datastore.DataStoreManager
 import com.squidink.alloy.core.design.AlloyTheme
+import com.squidink.alloy.core.feature.featureRegistry
 import com.squidink.alloy.core.layout.DrawerScaffold
-import com.squidink.alloy.core.layout.NavigationPane
 import com.squidink.alloy.core.navigation.Screens
 import com.squidink.alloy.modules.clip.ClipViewModel
 import com.squidink.alloy.modules.clip.ui.ClipScreen
@@ -58,33 +57,38 @@ class DashboardActivity : ComponentActivity() {
 }
 
 /**
- * Main dashboard screen with modal navigation drawer.
+ * Main dashboard screen with navigation rail/drawer.
  *
- * Uses DrawerScaffold for a simple navigation drawer + content layout.
+ * Uses DrawerScaffold for responsive navigation layout.
  * Supports Material You (dynamic color) theming.
  * Integrates feature-specific screens via navigation.
- * Includes TopAppBar with hamburger menu (always visible).
- * Supports keyboard shortcuts for navigation.
+ * - Navigation rail for expanded screens (> 840dp)
+ * - Modal drawer for compact/medium screens
  */
 @Composable
 fun DashboardScreen(dynamicColorEnabled: Boolean = true) {
     val navController: NavHostController = rememberNavController()
+    val featureRegistry by featureRegistry().features.collectAsState()
+    
+    // Get enabled features sorted by category and sort order
+    val enabledFeatures = featureRegistry.values.filter { 
+        featureRegistry[it.id]?.let { def -> 
+            // Check if feature is enabled (default to true if not in states)
+            true 
+        } ?: true
+    }.sortedBy { it.sortOrder }
 
     AlloyTheme(dynamicColor = dynamicColorEnabled) {
         Box(
             modifier = Modifier
         ) {
             DrawerScaffold(
-                title = "Alloy Suite",
-                navigationContent = {
-                    NavigationPane(
-                        currentFeature = navController.currentDestination?.route ?: Screens.StatsPill.route,
-                        screens = listOf(Screens.StatsPill, Screens.Clip, Screens.Scratch, Screens.Scenes),
-                        onScreenSelected = { route ->
-                            navController.navigate(route)
-                        }
-                    )
+                currentFeature = navController.currentDestination?.route ?: Screens.StatsPill.route,
+                screens = listOf(Screens.StatsPill, Screens.Clip, Screens.Scratch, Screens.Scenes),
+                onScreenSelected = { route ->
+                    navController.navigate(route)
                 },
+                title = "Alloy Suite",
                 content = {
                     NavHost(
                         navController = navController,

@@ -1,9 +1,21 @@
 package com.squidink.alloy.core.navigation
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.FolderZip
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.squidink.alloy.core.feature.FeatureIds
+import com.squidink.alloy.core.feature.featureRegistry
+
 /**
  * Sealed class defining all navigation routes in the app.
  *
  * Provides type-safe navigation routes and prevents typos.
+ * 
+ * Note: Screen metadata (icons, titles, categories) is now managed by the
+ * FeatureRegistry. This class primarily serves as route constants.
  */
 sealed class Screens(val route: String) {
     // Main tabs
@@ -27,6 +39,13 @@ sealed class Screens(val route: String) {
         // Helper functions for route construction
         fun clipDetailRoute(clipId: String) = "clip_detail/$clipId"
         fun scratchDetailRoute(scratchId: String) = "scratch_detail/$scratchId"
+        
+        /**
+         * Get all main feature screens (excluding detail routes).
+         */
+        fun getMainScreens(): List<Screens> {
+            return listOf(StatsPill, Clip, Scratch, Scenes)
+        }
     }
 }
 
@@ -60,13 +79,49 @@ sealed class NavActions {
 
 /**
  * Extension function to get screen title from route.
+ * 
+ * Now delegates to FeatureRegistry for the actual title.
  */
 fun String.getScreenTitle(): String {
+    val featureRegistry = featureRegistry()
     return when (this) {
-        Screens.StatsPill.route -> "System Stats"
-        Screens.Clip.route -> "Clipboard"
-        Screens.Scratch.route -> "Scratchpad"
-        Screens.Scenes.route -> "Scenes"
+        Screens.StatsPill.route -> featureRegistry.getFeature(FeatureIds.STATS_PILL)?.name ?: "System Stats"
+        Screens.Clip.route -> featureRegistry.getFeature(FeatureIds.CLIP)?.name ?: "Clipboard"
+        Screens.Scratch.route -> featureRegistry.getFeature(FeatureIds.SCRATCH)?.name ?: "Scratchpad"
+        Screens.Scenes.route -> featureRegistry.getFeature(FeatureIds.SCENES)?.name ?: "Scenes"
         else -> "Alloy"
+    }
+}
+
+/**
+ * Extension function to get navigation icon for a screen.
+ * 
+ * Now delegates to FeatureRegistry for the actual icon.
+ */
+fun Screens.getNavigationIcon(): ImageVector {
+    val featureRegistry = featureRegistry()
+    return when (this) {
+        is Screens.StatsPill -> featureRegistry.getFeature(FeatureIds.STATS_PILL)?.icon 
+            ?: Icons.Default.Dashboard
+        is Screens.Clip -> featureRegistry.getFeature(FeatureIds.CLIP)?.icon 
+            ?: Icons.Default.FolderZip
+        is Screens.Scratch -> featureRegistry.getFeature(FeatureIds.SCRATCH)?.icon 
+            ?: Icons.Default.Campaign
+        is Screens.Scenes -> featureRegistry.getFeature(FeatureIds.SCENES)?.icon 
+            ?: Icons.Default.EmojiEvents
+        is Screens.ClipDetail, is Screens.ScratchDetail -> Icons.Default.Dashboard
+    }
+}
+
+/**
+ * Extension function to get feature ID from a screen.
+ */
+fun Screens.getFeatureId(): String {
+    return when (this) {
+        is Screens.StatsPill -> FeatureIds.STATS_PILL
+        is Screens.Clip -> FeatureIds.CLIP
+        is Screens.Scratch -> FeatureIds.SCRATCH
+        is Screens.Scenes -> FeatureIds.SCENES
+        is Screens.ClipDetail, is Screens.ScratchDetail -> ""
     }
 }
