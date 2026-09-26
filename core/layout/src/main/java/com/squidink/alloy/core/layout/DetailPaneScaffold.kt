@@ -9,10 +9,11 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
@@ -52,18 +53,19 @@ fun DetailPaneScaffold(
         enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
         exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
     ) {
-        Box(
+        // BackHandler to prevent accidental dismissal
+        BackHandler {
+            onDismiss()
+        }
+        
+        // Detail pane content - fixed width panel aligned to the right
+        Column(
             modifier = modifier
-                .fillMaxSize()
+                .fillMaxHeight()
+                .width(360.dp)
+                .align(Alignment.CenterEnd)
                 .background(MaterialTheme.colorScheme.surface)
         ) {
-            // BackHandler to prevent accidental dismissal
-            BackHandler {
-                onDismiss()
-            }
-            
-            // Detail pane content
-            Column(modifier = Modifier.fillMaxSize()) {
                 // Header bar with title and close button
                 Surface(
                     modifier = Modifier.fillMaxWidth()
@@ -85,8 +87,8 @@ fun DetailPaneScaffold(
                         IconButton(
                             onClick = onDismiss,
                             modifier = Modifier
-                                .align(Alignment.CenterEnd)
-                                .padding(end = 8.dp)
+                                .align(Alignment.CenterStart)
+                                .padding(start = 8.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
@@ -99,12 +101,12 @@ fun DetailPaneScaffold(
                 // Content area
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
+                        .fillMaxHeight()
                         .padding(16.dp)
                 ) {
                     content()
                 }
             }
-        }
     }
 }

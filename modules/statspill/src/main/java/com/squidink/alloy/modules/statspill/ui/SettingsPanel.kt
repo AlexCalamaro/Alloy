@@ -91,6 +91,41 @@ fun SettingsPanel(
             }
         }
 
+        // Live Overlay Mode Toggle
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp)
+                .desktopHover(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Live Overlay Mode",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Enable floating overlay for real-time stats",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = settings.isLiveOverlayActive,
+                    onCheckedChange = { onSettingsChange(StatsUiAction.ToggleLiveOverlay(it)) }
+                )
+            }
+        }
+
         // Display Format Dropdown
         var expandedFormat by remember { mutableStateOf(false) }
         val formatOptions = listOf("Percentages", "Absolute Values")

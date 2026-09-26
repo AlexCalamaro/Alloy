@@ -1,6 +1,8 @@
 package com.squidink.alloy.modules.statspill
 
+import com.squidink.alloy.core.domain.repository.BatteryInfo
 import com.squidink.alloy.core.domain.repository.IStatsRepository
+import com.squidink.alloy.core.domain.repository.NetStats
 import com.squidink.alloy.core.domain.repository.SystemStats
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -9,7 +11,7 @@ import kotlinx.coroutines.flow.flowOf
  * Fake implementation of IStatsRepository for testing.
  * Provides mock data for system statistics operations.
  */
-open class FakeStatsRepository : IStatsRepository {
+class FakeStatsRepository : IStatsRepository {
     override fun observeSystemStats(): Flow<SystemStats> = flowOf(
         SystemStats(
             memoryUsedBytes = 6000000 * 1024,
@@ -30,4 +32,8 @@ open class FakeStatsRepository : IStatsRepository {
     
     override suspend fun getMemoryPercent(): Float = 37.5f
     override suspend fun getCpuPercent(): Float = 25.5f
+    
+    override fun observeBatteryInfo(): Flow<BatteryInfo> = flowOf(BatteryInfo())
+    
+    override fun observeNetworkStats(): Flow<NetStats> = flowOf(NetStats())
 }

@@ -48,4 +48,5 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
     testImplementation("io.mockk:mockk:1.13.9")
+    testImplementation("io.mockk:mockk-agent:1.13.9")
 }

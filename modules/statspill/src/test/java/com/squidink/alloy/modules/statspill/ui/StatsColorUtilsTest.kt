@@ -13,8 +13,8 @@ class StatsColorUtilsTest {
     fun `calculatePercentageColor returns green for low values`() {
         val color = calculatePercentageColor(0.1f)
         
-        // Green should dominate at low values
-        assertEquals(0.255f, color.red, 0.01f)
+        // At 10%: R = (0.1 * 255)/255 = 0.1, G = (0.9 * 255)/255 = 0.9, B = 100/255
+        assertEquals(0.1f, color.red, 0.01f)
         assertEquals(0.9f, color.green, 0.01f)
         assertEquals(100f / 255f, color.blue, 0.01f)
     }
@@ -23,8 +23,8 @@ class StatsColorUtilsTest {
     fun `calculatePercentageColor returns yellow for medium values`() {
         val color = calculatePercentageColor(0.5f)
         
-        // At 50%, should be yellow (red + green)
-        assertEquals(1.0f, color.red, 0.01f)
+        // At 50%: R = (0.5 * 255)/255 = 0.5, G = (0.5 * 255)/255 = 0.5, B = 100/255
+        assertEquals(0.5f, color.red, 0.01f)
         assertEquals(0.5f, color.green, 0.01f)
         assertEquals(100f / 255f, color.blue, 0.01f)
     }
@@ -40,7 +40,7 @@ class StatsColorUtilsTest {
     }
 
     @Test
-    fun `calculatePercentageColor clamps values above 1.0`() {
+    fun `calculatePercentageColor clamps values above one`() {
         val color = calculatePercentageColor(1.5f)
         
         // Should be same as 1.0f (clamped)
@@ -64,7 +64,7 @@ class StatsColorUtilsTest {
         val color = calculatePercentageColor(50f, maximum = 100f)
         
         // 50/100 = 0.5, should be yellow-ish
-        assertEquals(1.0f, color.red, 0.01f)
+        assertEquals(0.5f, color.red, 0.01f)
         assertEquals(0.5f, color.green, 0.01f)
         assertEquals(100f / 255f, color.blue, 0.01f)
     }

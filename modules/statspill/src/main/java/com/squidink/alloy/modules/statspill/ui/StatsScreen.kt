@@ -79,10 +79,26 @@ fun StatsScreen(
                 .padding(paddingValues)
                 .padding(16.dp),
         ) {
-            Text(
-                stringResource(R.string.stats_title),
-                style = MaterialTheme.typography.headlineSmall
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    stringResource(R.string.stats_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.weight(1f)
+                )
+                
+                // Settings button in top right corner
+                IconButton(
+                    onClick = { showSettings = true },
+                ) {
+                    Icon(
+                        Icons.Default.Settings,
+                        contentDescription = "Settings"
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(16.dp))
 
             // Stats Grid with color-coded backgrounds
@@ -91,52 +107,6 @@ fun StatsScreen(
                 settings = uiState,
                 modifier = Modifier.weight(1f)
             )
-
-            // Settings button
-            IconButton(
-                onClick = { showSettings = true },
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .padding(top = 16.dp)
-            ) {
-                Icon(
-                    Icons.Default.Settings,
-                    contentDescription = "Settings"
-                )
-            }
-
-            // Live Mode Floating Overlay Toggle Card
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
-                    .desktopHover(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            stringResource(R.string.stats_overlay_mode),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            stringResource(R.string.stats_overlay_desc),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                    Switch(
-                        checked = uiState.isLiveOverlayActive,
-                        onCheckedChange = { viewModel.onAction(StatsUiAction.ToggleLiveOverlay(it)) },
-                    )
-                }
-            }
 
             // Refresh button
             Box(
