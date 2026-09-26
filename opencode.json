@@ -74,13 +74,14 @@
     }
   },
   "agents": {
-    "planner": {
+    "droidplanner": {
       "name": "Architecture & State Manager",
       "description": "Breaks down specs and tracks progress to prevent context loss.",
       "mode": "subagent",
       "temperature": 0.1,
       "instructions": [
         "Read the provided product specification.",
+        "Adhere to DRY, SOLID principles and Clean Architecture.",
         "Create and continuously maintain a WORK_PLAN.md file in the root directory.",
         "Check off tasks as they are completed by the coder.",
         "If the coder gets stuck in a loop, analyze WORK_PLAN.md and pivot the strategy.",
@@ -96,22 +97,24 @@
         "Before writing code, read WORK_PLAN.md.",
         "Focus exclusively on idiomatic Kotlin and declarative Jetpack Compose.",
         "Follow UDF (Unidirectional Data Flow) and Clean Architecture.",
+        "Adhere to DRY, and SOLID principles.",
         "Always write unit tests for ViewModels, UseCases, and Repositories.",
         "Always assume that a timeout during a test run is a failure",
         "After tests pass, update WORK_PLAN.md and run git commit -am 'checkpoint'."
       ]
     },
-    "reviewer": {
+    "droidreviewer": {
       "name": "Android Code Reviewer",
       "description": "Audits PRs and diffs for Compose recomposition bugs, memory leaks, and coroutine anti-patterns",
       "mode": "subagent",
       "temperature": 0.1,
       "instructions": [
         "Audit diffs specifically for: unstable Compose parameters causing recomposition loops, missing keys in LazyColumn, GlobalScope or unconfined CoroutineScope usage, and context leaks.",
-        "Do not write or rewrite full files unless explicitly requested. Provide concise, targeted review comments with line references."
+        "Do not write or rewrite full files unless explicitly requested. Provide concise, targeted review comments with line references.",
+        "Look for violations of DRY, SOLID, and Clean Architecture principles."
       ]
     },
-    "debugger": {
+    "droiddebugger": {
       "name": "Gradle & Logcat Troubleshooter",
       "description": "Analyzes stacktraces, Gradle sync issues, and Logcat crashes",
       "mode": "subagent",

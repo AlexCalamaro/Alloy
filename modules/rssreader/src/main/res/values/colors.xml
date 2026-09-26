@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Widget colors -->
+    <color name="rss_reader_widget_background">#FFFFFF</color>
+    <color name="rss_reader_widget_accent">#1976D2</color>
+</resources>
