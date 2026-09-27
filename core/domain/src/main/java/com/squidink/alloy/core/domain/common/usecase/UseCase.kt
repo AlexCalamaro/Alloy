@@ -1,4 +1,4 @@
-package com.squidink.alloy.core.domain.usecase
+package com.squidink.alloy.core.domain.common.usecase
 
 /**
  * Base interface for all Use Cases in the domain layer.

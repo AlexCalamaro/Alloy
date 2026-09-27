@@ -1,7 +1,7 @@
 package com.squidink.alloy.modules.clip.data
 
-import com.squidink.alloy.core.domain.repository.Clip
-import com.squidink.alloy.core.domain.repository.IClipRepository
+import com.squidink.alloy.core.domain.common.repository.Clip
+import com.squidink.alloy.core.domain.common.repository.IClipRepository
 import com.squidink.alloy.modules.clip.db.ClipDao
 import com.squidink.alloy.modules.clip.db.ClipEntity
 import kotlinx.coroutines.Dispatchers
@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Implementation of [IClipRepository] using Room DAO.

@@ -8,13 +8,13 @@ import com.squidink.alloy.core.common.BaseViewModel
 import com.squidink.alloy.core.common.UiAction
 import com.squidink.alloy.core.common.UiEffect
 import com.squidink.alloy.core.common.UiState
-import com.squidink.alloy.core.domain.repository.Clip
-import com.squidink.alloy.core.domain.repository.IClipRepository
-import com.squidink.alloy.core.permissions.AppPermission
+import com.squidink.alloy.core.domain.common.repository.Clip
+import com.squidink.alloy.core.domain.common.repository.IClipRepository
 import com.squidink.alloy.core.permissions.PermissionsManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 data class ClipUiState(
@@ -144,7 +144,7 @@ class ClipViewModel
                     viewModelScope.launch {
                         val newClip =
                             Clip(
-                                id = java.util.UUID.randomUUID().toString(),
+                                id = UUID.randomUUID().toString(),
                                 textContent = action.text,
                                 sourceApp = action.sourceApp,
                                 isPinned = false,

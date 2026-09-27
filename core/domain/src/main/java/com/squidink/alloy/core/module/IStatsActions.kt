@@ -1,6 +1,5 @@
 package com.squidink.alloy.core.module
 
-import com.squidink.alloy.core.domain.repository.SystemStats
 
 /**
  * Interface for Stats module actions.
@@ -8,10 +7,6 @@ import com.squidink.alloy.core.domain.repository.SystemStats
  * Defines actions that can be triggered on the Stats module from other parts of the app.
  */
 interface IStatsActions : IModuleActions {
-    /**
-     * Get current system statistics.
-     */
-    fun getSystemStats(): SystemStats
     
     /**
      * Start monitoring system stats.

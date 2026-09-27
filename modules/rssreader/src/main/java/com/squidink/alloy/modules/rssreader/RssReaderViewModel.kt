@@ -5,7 +5,7 @@ import com.squidink.alloy.core.common.BaseViewModel
 import com.squidink.alloy.core.common.UiAction
 import com.squidink.alloy.core.common.UiEffect
 import com.squidink.alloy.core.common.UiState
-import com.squidink.alloy.core.domain.repository.IRssFeedRepository
+import com.squidink.alloy.core.domain.common.repository.IRssFeedRepository
 import com.squidink.alloy.core.domain.repository.RssFeed
 import com.squidink.alloy.core.domain.repository.RssFeedItem
 import dagger.hilt.android.lifecycle.HiltViewModel

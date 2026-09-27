@@ -1,6 +1,6 @@
 package com.squidink.alloy.core.module
 
-import com.squidink.alloy.core.domain.repository.Clip
+import com.squidink.alloy.core.domain.common.repository.Clip
 
 /**
  * Interface for Clip module actions.

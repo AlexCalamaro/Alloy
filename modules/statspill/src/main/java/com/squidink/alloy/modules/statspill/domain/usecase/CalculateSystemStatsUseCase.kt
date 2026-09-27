@@ -1,8 +1,8 @@
-package com.squidink.alloy.core.domain.usecase.stats
+package com.squidink.alloy.core.domain.common.usecase.stats
 
-import com.squidink.alloy.core.domain.repository.IStatsRepository
-import com.squidink.alloy.core.domain.repository.SystemStats
-import com.squidink.alloy.core.domain.usecase.SimpleUseCase
+import com.squidink.alloy.modules.statspill.domain.model.SystemStats
+import com.squidink.alloy.core.domain.common.usecase.SimpleUseCase
+import com.squidink.alloy.modules.statspill.domain.repository.IStatsRepository
 import javax.inject.Inject
 
 /**

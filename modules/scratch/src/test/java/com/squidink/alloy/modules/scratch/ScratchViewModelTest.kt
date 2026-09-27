@@ -1,7 +1,7 @@
 package com.squidink.alloy.modules.scratch
 
-import com.squidink.alloy.core.domain.repository.IScratchRepository
-import com.squidink.alloy.core.domain.repository.Scratch
+import com.squidink.alloy.core.domain.common.repository.IScratchRepository
+import com.squidink.alloy.core.domain.common.repository.Scratch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow

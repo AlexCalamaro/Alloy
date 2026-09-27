@@ -23,6 +23,7 @@
             <option value="$PROJECT_DIR$/core/proc" />
             <option value="$PROJECT_DIR$/modules" />
             <option value="$PROJECT_DIR$/modules/clip" />
+            <option value="$PROJECT_DIR$/modules/rssreader" />
             <option value="$PROJECT_DIR$/modules/scenes" />
             <option value="$PROJECT_DIR$/modules/scratch" />
             <option value="$PROJECT_DIR$/modules/settings" />

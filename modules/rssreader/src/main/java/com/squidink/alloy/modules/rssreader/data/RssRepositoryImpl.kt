@@ -1,8 +1,8 @@
 package com.squidink.alloy.modules.rssreader.data
 
-import com.squidink.alloy.core.domain.repository.IRssFeedRepository
-import com.squidink.alloy.core.domain.model.RssFeed
-import com.squidink.alloy.core.domain.model.RssFeedItem
+import com.squidink.alloy.core.domain.common.repository.IRssFeedRepository
+import com.squidink.alloy.core.domain.common.model.RssFeed
+import com.squidink.alloy.core.domain.common.model.RssFeedItem
 import com.squidink.alloy.modules.rssreader.db.RssFeedDao
 import com.squidink.alloy.modules.rssreader.db.RssFeedItemEntity
 import com.squidink.alloy.modules.rssreader.db.RssFeedSubscriptionEntity

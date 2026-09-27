@@ -42,7 +42,7 @@
     <string name="scenes_steps">%d launch steps</string>
     
     <!-- StatsPill Module -->
-    <string name="stats_title">System Telemetry Vitals</string>
+    <string name="stats_title">System Telemetry</string>
     <string name="stats_cpu_title">CPU Utilization</string>
     <string name="stats_cpu_usage">CPU Usage: %s</string>
     <string name="stats_ram_title">RAM Usage</string>

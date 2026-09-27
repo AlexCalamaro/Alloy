@@ -2,7 +2,7 @@ package com.squidink.alloy.modules.clip.di
 
 import android.content.Context
 import androidx.room.Room
-import com.squidink.alloy.core.domain.repository.IClipRepository
+import com.squidink.alloy.core.domain.common.repository.IClipRepository
 import com.squidink.alloy.modules.clip.data.ClipRepositoryImpl
 import com.squidink.alloy.modules.clip.db.ClipDao
 import com.squidink.alloy.modules.clip.db.ClipDatabase

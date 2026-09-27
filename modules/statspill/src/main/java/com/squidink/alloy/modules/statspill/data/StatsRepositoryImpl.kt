@@ -2,89 +2,152 @@ package com.squidink.alloy.modules.statspill.data
 
 import com.squidink.alloy.core.common.Logger
 import com.squidink.alloy.core.data.datasource.BatteryDataSource
-import com.squidink.alloy.core.data.datasource.BatteryInfo as DataBatteryInfo
+import com.squidink.alloy.core.data.datasource.DiskDataSource
+import com.squidink.alloy.core.data.datasource.NetworkDataSource
 import com.squidink.alloy.core.data.datasource.SystemStatsDataSource
-import com.squidink.alloy.core.data.datasource.SystemStatsData
-import com.squidink.alloy.core.domain.repository.BatteryInfo
-import com.squidink.alloy.core.domain.repository.IStatsRepository
-import com.squidink.alloy.core.domain.repository.NetStats
-import com.squidink.alloy.core.domain.repository.SystemStats
+import com.squidink.alloy.core.data.datasource.ThermalDataSource
+import com.squidink.alloy.modules.statspill.domain.model.StatCategory
+import com.squidink.alloy.modules.statspill.domain.model.StatType
+import com.squidink.alloy.modules.statspill.domain.model.BatteryInfo
+import com.squidink.alloy.modules.statspill.domain.model.DiskStats
+import com.squidink.alloy.modules.statspill.domain.model.NetworkStats
+import com.squidink.alloy.modules.statspill.domain.model.SystemStats
+import com.squidink.alloy.modules.statspill.domain.model.ThermalStats
+import com.squidink.alloy.modules.statspill.domain.repository.IStatsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Implementation of [IStatsRepository] using data sources.
+ * Implementation of [IStatsRepository] using modular data sources.
  *
- * This repository coordinates between:
- * - [SystemStatsDataSource] for CPU, memory, and network statistics
+ * This repository coordinates multiple specialized data sources:
+ * - [SystemStatsDataSource] for CPU and memory statistics
  * - [BatteryDataSource] for battery information
+ * - [NetworkDataSource] for network I/O statistics
+ * - [DiskDataSource] for storage statistics
+ * - [ThermalDataSource] for temperature statistics
  *
  * The repository handles:
  * - Data source coordination
  * - Thread dispatching
  * - Error handling
- * - Domain model mapping
+ * - Type-safe stat access
  */
 @Singleton
 class StatsRepositoryImpl @Inject constructor(
     private val systemStatsDataSource: SystemStatsDataSource,
-    private val batteryDataSource: BatteryDataSource
+    private val batteryDataSource: BatteryDataSource,
+    private val networkDataSource: NetworkDataSource,
+    private val diskDataSource: DiskDataSource,
+    private val thermalDataSource: ThermalDataSource
 ) : IStatsRepository {
 
     private val tag = "StatsRepositoryImpl"
 
     /**
-     * Observe system statistics as a Flow.
-     *
-     * Polls system stats at 1Hz for real-time telemetry.
-     *
-     * @return Flow emitting system statistics
+     * Observe all statistics as a map by category.
+     */
+    override fun observeAllStats(): Flow<Map<StatCategory, StatType>> {
+        return combine(
+            systemStatsDataSource.observe(),
+            batteryDataSource.observe(),
+            networkDataSource.observe(),
+            diskDataSource.observe(),
+            thermalDataSource.observe()
+        ) { system, battery, network, disk, thermal ->
+            mapOf(
+                StatCategory.SYSTEM to system,
+                StatCategory.POWER to battery,
+                StatCategory.NETWORK to network,
+                StatCategory.STORAGE to disk,
+                StatCategory.THERMAL to thermal
+            )
+        }.flowOn(Dispatchers.IO)
+    }
+
+    /**
+     * Observe statistics for a specific category.
+     */
+    override fun observeStats(category: StatCategory): Flow<StatType> {
+        return when (category) {
+            StatCategory.SYSTEM -> systemStatsDataSource.observe()
+            StatCategory.POWER -> batteryDataSource.observe()
+            StatCategory.NETWORK -> networkDataSource.observe()
+            StatCategory.STORAGE -> diskDataSource.observe()
+            StatCategory.THERMAL -> thermalDataSource.observe()
+            StatCategory.CUSTOM -> emptyFlow() // Custom stats not implemented yet
+        }
+    }
+
+    /**
+     * Poll all statistics immediately.
+     */
+    override suspend fun pollAllStats(): Map<StatCategory, StatType> {
+        return withContext(Dispatchers.IO) {
+            try {
+                mapOf(
+                    StatCategory.SYSTEM to systemStatsDataSource.read(),
+                    StatCategory.POWER to batteryDataSource.read(),
+                    StatCategory.NETWORK to networkDataSource.read(),
+                    StatCategory.STORAGE to diskDataSource.read(),
+                    StatCategory.THERMAL to thermalDataSource.read()
+                )
+            } catch (e: Exception) {
+                Logger.e(tag, "Error polling all stats", e)
+                emptyMap()
+            }
+        }
+    }
+
+    /**
+     * Poll statistics for a specific category.
+     */
+    override suspend fun pollStats(category: StatCategory): StatType {
+        return withContext(Dispatchers.IO) {
+            try {
+                when (category) {
+                    StatCategory.SYSTEM -> systemStatsDataSource.read()
+                    StatCategory.POWER -> batteryDataSource.read()
+                    StatCategory.NETWORK -> networkDataSource.read()
+                    StatCategory.STORAGE -> diskDataSource.read()
+                    StatCategory.THERMAL -> thermalDataSource.read()
+                    StatCategory.CUSTOM -> throw UnsupportedOperationException("Custom stats not implemented")
+                }
+            } catch (e: Exception) {
+                Logger.e(tag, "Error polling stats for category: $category", e)
+                createDefaultStat(category)
+            }
+        }
+    }
+
+    /**
+     * Observe system statistics (CPU, memory) as a Flow.
      */
     override fun observeSystemStats(): Flow<SystemStats> {
-        return systemStatsDataSource.currentStats
-            .map { stats ->
-                SystemStats(
-                    memoryUsedBytes = stats.memoryUsedBytes,
-                    memoryTotalBytes = stats.memoryTotalBytes,
-                    memoryPercent = stats.memoryPercent,
-                    cpuPercent = stats.cpuPercent,
-                    timestamp = stats.timestamp
-                )
-            }
-            .flowOn(Dispatchers.IO)
+        return systemStatsDataSource.observe()
     }
 
     /**
      * Poll system statistics once.
-     *
-     * Triggers an immediate poll from the data source and returns the result.
-     *
-     * @return Current system statistics
      */
     override suspend fun pollSystemStats(): SystemStats {
         return withContext(Dispatchers.IO) {
             try {
-                val stats = systemStatsDataSource.pollStats()
-                SystemStats(
-                    memoryUsedBytes = stats.memoryUsedBytes,
-                    memoryTotalBytes = stats.memoryTotalBytes,
-                    memoryPercent = stats.memoryPercent,
-                    cpuPercent = stats.cpuPercent,
-                    timestamp = stats.timestamp
-                )
+                systemStatsDataSource.read()
             } catch (e: Exception) {
                 Logger.e(tag, "Error polling system stats", e)
                 SystemStats(
+                    timestamp = System.currentTimeMillis(),
                     memoryUsedBytes = 0,
                     memoryTotalBytes = 0,
                     memoryPercent = 0f,
-                    cpuPercent = 0f,
-                    timestamp = System.currentTimeMillis()
+                    cpuPercent = 0f
                 )
             }
         }
@@ -92,14 +155,11 @@ class StatsRepositoryImpl @Inject constructor(
 
     /**
      * Get memory usage percentage.
-     *
-     * @return Memory usage as percentage (0.0 to 100.0)
      */
     override suspend fun getMemoryPercent(): Float {
         return withContext(Dispatchers.IO) {
             try {
-                val stats = systemStatsDataSource.pollStats()
-                stats.memoryPercent
+                systemStatsDataSource.read().memoryPercent
             } catch (e: Exception) {
                 Logger.e(tag, "Error getting memory percent", e)
                 0f
@@ -109,14 +169,11 @@ class StatsRepositoryImpl @Inject constructor(
 
     /**
      * Get CPU usage percentage.
-     *
-     * @return CPU usage as percentage (0.0 to 100.0)
      */
     override suspend fun getCpuPercent(): Float {
         return withContext(Dispatchers.IO) {
             try {
-                val stats = systemStatsDataSource.pollStats()
-                stats.cpuPercent
+                systemStatsDataSource.read().cpuPercent
             } catch (e: Exception) {
                 Logger.e(tag, "Error getting CPU percent", e)
                 0f
@@ -126,53 +183,93 @@ class StatsRepositoryImpl @Inject constructor(
 
     /**
      * Observe battery information.
-     *
-     * @return Flow emitting battery info updates
      */
     override fun observeBatteryInfo(): Flow<BatteryInfo> {
-        return batteryDataSource.batteryInfo.map { dataInfo ->
-            BatteryInfo(
-                level = dataInfo.level,
-                scale = dataInfo.scale,
-                percentage = dataInfo.percentage,
-                health = dataInfo.health,
-                status = dataInfo.status,
-                temperature = dataInfo.temperature,
-                voltage = dataInfo.voltage,
-                isCharging = dataInfo.isCharging
-            )
-        }
-    }
-
-    /**
-     * Get current battery information.
-     *
-     * @return Current battery info
-     */
-    suspend fun getBatteryInfo(): com.squidink.alloy.core.data.datasource.BatteryInfo {
-        return withContext(Dispatchers.IO) {
-            batteryDataSource.fetchById(BATTERY_CACHE_KEY) 
-                ?: com.squidink.alloy.core.data.datasource.BatteryInfo()
-        }
+        return batteryDataSource.observe()
     }
 
     /**
      * Observe network statistics.
-     *
-     * @return Flow emitting network stats updates
      */
-    override fun observeNetworkStats(): Flow<NetStats> {
-        return systemStatsDataSource.currentStats.map { statsData ->
-            NetStats(
-                rxBytes = statsData.netStats.rxBytes,
-                txBytes = statsData.netStats.txBytes,
-                rxBytesPerSecond = statsData.netStats.rxBytesPerSecond,
-                txBytesPerSecond = statsData.netStats.txBytesPerSecond
-            )
+    override fun observeNetworkStats(): Flow<NetworkStats> {
+        return networkDataSource.observe()
+    }
+
+    /**
+     * Observe disk/storage statistics.
+     */
+    override fun observeDiskStats(): Flow<DiskStats> {
+        return diskDataSource.observe()
+    }
+
+    /**
+     * Poll disk/storage statistics once.
+     */
+    override suspend fun pollDiskStats(): DiskStats {
+        return withContext(Dispatchers.IO) {
+            try {
+                diskDataSource.read()
+            } catch (e: Exception) {
+                Logger.e(tag, "Error polling disk stats", e)
+                DiskStats(
+                    timestamp = System.currentTimeMillis(),
+                    totalBytes = 0,
+                    usedBytes = 0,
+                    freeBytes = 0,
+                    percentUsed = 0f
+                )
+            }
         }
     }
 
-    companion object {
-        private const val BATTERY_CACHE_KEY = "current_battery"
+    /**
+     * Observe thermal/temperature statistics.
+     */
+    override fun observeThermalStats(): Flow<ThermalStats> {
+        return thermalDataSource.observe()
+    }
+
+    /**
+     * Poll thermal/temperature statistics once.
+     */
+    override suspend fun pollThermalStats(): ThermalStats {
+        return withContext(Dispatchers.IO) {
+            try {
+                thermalDataSource.read()
+            } catch (e: Exception) {
+                Logger.e(tag, "Error polling thermal stats", e)
+                ThermalStats(
+                    timestamp = System.currentTimeMillis()
+                )
+            }
+        }
+    }
+
+    /**
+     * Create a default stat value for the given category.
+     */
+    private fun createDefaultStat(category: StatCategory): StatType {
+        return when (category) {
+            StatCategory.SYSTEM -> SystemStats(
+                timestamp = System.currentTimeMillis(),
+                memoryUsedBytes = 0,
+                memoryTotalBytes = 0,
+                memoryPercent = 0f,
+                cpuPercent = 0f
+            )
+            StatCategory.POWER -> BatteryInfo(
+                timestamp = System.currentTimeMillis()
+            )
+            StatCategory.NETWORK -> NetworkStats(
+                timestamp = System.currentTimeMillis()
+            )
+            StatCategory.STORAGE -> DiskStats(
+                timestamp = System.currentTimeMillis()
+            )
+            StatCategory.THERMAL -> ThermalStats(
+                timestamp = System.currentTimeMillis()
+            )
+            StatCategory.CUSTOM -> throw UnsupportedOperationException("Custom stats not implemented")
+        }
     }
 }

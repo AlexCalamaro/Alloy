@@ -5,7 +5,8 @@ import com.squidink.alloy.core.common.BaseViewModel
 import com.squidink.alloy.core.common.UiAction
 import com.squidink.alloy.core.common.UiEffect
 import com.squidink.alloy.core.common.UiState
-import com.squidink.alloy.core.domain.repository.IScratchRepository
+import com.squidink.alloy.core.domain.common.repository.IScratchRepository
+import com.squidink.alloy.core.domain.common.repository.Scratch
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -197,7 +198,7 @@ class ScratchViewModel
         private fun savePendingContent() {
             if (pendingContent.isNotEmpty()) {
                 viewModelScope.launch {
-                    val scratchpad = com.squidink.alloy.core.domain.repository.Scratch(
+                    val scratchpad = Scratch(
                         id = "default_scratch_note",
                         content = pendingContent,
                         label = "Default Note",

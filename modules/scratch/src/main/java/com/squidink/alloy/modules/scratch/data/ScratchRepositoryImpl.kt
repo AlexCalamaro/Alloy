@@ -1,7 +1,7 @@
 package com.squidink.alloy.modules.scratch.data
 
-import com.squidink.alloy.core.domain.repository.IScratchRepository
-import com.squidink.alloy.core.domain.repository.Scratch
+import com.squidink.alloy.core.domain.common.repository.IScratchRepository
+import com.squidink.alloy.core.domain.common.repository.Scratch
 import com.squidink.alloy.modules.scratch.db.ScratchDao
 import com.squidink.alloy.modules.scratch.db.ScratchEntity
 import kotlinx.coroutines.Dispatchers
@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Implementation of [IScratchRepository] using Room DAO.

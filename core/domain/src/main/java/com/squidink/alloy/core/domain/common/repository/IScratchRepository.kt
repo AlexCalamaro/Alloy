@@ -1,4 +1,4 @@
-package com.squidink.alloy.core.domain.repository
+package com.squidink.alloy.core.domain.common.repository
 
 import kotlinx.coroutines.flow.Flow
 

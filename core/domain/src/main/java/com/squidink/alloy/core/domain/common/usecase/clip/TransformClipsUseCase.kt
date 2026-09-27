@@ -1,7 +1,7 @@
-package com.squidink.alloy.core.domain.usecase.clip
+package com.squidink.alloy.core.domain.common.usecase.clip
 
-import com.squidink.alloy.core.domain.repository.Clip
-import com.squidink.alloy.core.domain.usecase.UseCase
+import com.squidink.alloy.core.domain.common.repository.Clip
+import com.squidink.alloy.core.domain.common.usecase.UseCase
 import javax.inject.Inject
 
 /**

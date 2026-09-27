@@ -8,12 +8,13 @@ import com.squidink.alloy.core.common.UiAction
 import com.squidink.alloy.core.common.UiEffect
 import com.squidink.alloy.core.common.UiState
 import com.squidink.alloy.core.data.repository.SettingsRepository
-import com.squidink.alloy.core.domain.repository.BatteryInfo
-import com.squidink.alloy.core.domain.repository.IStatsRepository
-import com.squidink.alloy.core.domain.repository.NetStats
-import com.squidink.alloy.core.permissions.AppPermission
+import com.squidink.alloy.modules.statspill.domain.model.BatteryInfo
+import com.squidink.alloy.modules.statspill.domain.model.DiskStats
+import com.squidink.alloy.modules.statspill.domain.model.NetworkStats
+import com.squidink.alloy.modules.statspill.domain.model.SystemStats
+import com.squidink.alloy.modules.statspill.domain.model.ThermalStats
+import com.squidink.alloy.modules.statspill.domain.repository.IStatsRepository
 import com.squidink.alloy.core.permissions.PermissionsManager
-import com.squidink.alloy.core.proc.MemInfo
 import com.squidink.alloy.modules.statspill.stats.OverlayServiceManager
 import com.squidink.alloy.modules.statspill.stats.StatsDataObserver
 import com.squidink.alloy.modules.statspill.stats.StatsSettingsManager
@@ -26,17 +27,19 @@ import javax.inject.Inject
  * UI State for the Stats screen.
  *
  * Contains all data needed to render the stats UI including:
- * - Memory information
- * - CPU usage
+ * - System statistics (CPU, memory)
  * - Network statistics
  * - Battery information
+ * - Disk statistics
+ * - Thermal statistics
  * - UI flags (polling state, overlay state, etc.)
  */
 data class StatsUiState(
-    val memInfo: MemInfo = MemInfo(),
-    val cpuUsagePercent: Float? = null,
-    val netStats: NetStats = NetStats(),
+    val systemStats: SystemStats? = null,
+    val netStats: NetworkStats = NetworkStats(),
     val batteryInfo: BatteryInfo = BatteryInfo(),
+    val diskStats: DiskStats? = null,
+    val thermalStats: ThermalStats? = null,
     val isLiveOverlayActive: Boolean = false,
     val isPolling: Boolean = false,
     val overlayServiceIntent: Intent? = null,

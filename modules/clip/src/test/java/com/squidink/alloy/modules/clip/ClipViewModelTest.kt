@@ -2,8 +2,8 @@ package com.squidink.alloy.modules.clip
 
 import android.content.Context
 import app.cash.turbine.test
-import com.squidink.alloy.core.domain.repository.Clip
-import com.squidink.alloy.core.domain.repository.IClipRepository
+import com.squidink.alloy.core.domain.common.repository.Clip
+import com.squidink.alloy.core.domain.common.repository.IClipRepository
 import com.squidink.alloy.core.permissions.AppPermission
 import com.squidink.alloy.core.permissions.PermissionUiState
 import com.squidink.alloy.core.permissions.PermissionsManager
@@ -12,7 +12,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain

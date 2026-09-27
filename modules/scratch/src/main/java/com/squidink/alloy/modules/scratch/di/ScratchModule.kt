@@ -2,7 +2,7 @@ package com.squidink.alloy.modules.scratch.di
 
 import android.content.Context
 import androidx.room.Room
-import com.squidink.alloy.core.domain.repository.IScratchRepository
+import com.squidink.alloy.core.domain.common.repository.IScratchRepository
 import com.squidink.alloy.modules.scratch.data.ScratchRepositoryImpl
 import com.squidink.alloy.modules.scratch.db.ScratchDao
 import com.squidink.alloy.modules.scratch.db.ScratchDatabase

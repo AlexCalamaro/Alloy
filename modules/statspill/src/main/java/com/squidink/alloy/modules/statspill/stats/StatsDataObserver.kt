@@ -1,8 +1,7 @@
 package com.squidink.alloy.modules.statspill.stats
 
-import com.squidink.alloy.core.domain.repository.IStatsRepository
-import com.squidink.alloy.core.domain.repository.SystemStats
-import com.squidink.alloy.core.proc.MemInfo
+import com.squidink.alloy.modules.statspill.domain.model.StatCategory
+import com.squidink.alloy.modules.statspill.domain.repository.IStatsRepository
 import com.squidink.alloy.modules.statspill.StatsUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
@@ -15,6 +14,8 @@ import kotlinx.coroutines.launch
  * - System stats (CPU, memory)
  * - Battery information
  * - Network statistics
+ * - Disk statistics
+ * - Thermal statistics
  *
  * Updates UI state via provided state updater function.
  */
@@ -29,20 +30,29 @@ class StatsDataObserver(
         observeSystemStats(scope)
         observeBatteryInfo(scope)
         observeNetworkStats(scope)
+        observeDiskStats(scope)
+        observeThermalStats(scope)
+    }
+
+    /**
+     * Start observing a specific stat category.
+     */
+    fun startObservingCategory(category: StatCategory, scope: CoroutineScope) {
+        when (category) {
+            StatCategory.SYSTEM -> observeSystemStats(scope)
+            StatCategory.POWER -> observeBatteryInfo(scope)
+            StatCategory.NETWORK -> observeNetworkStats(scope)
+            StatCategory.STORAGE -> observeDiskStats(scope)
+            StatCategory.THERMAL -> observeThermalStats(scope)
+            StatCategory.CUSTOM -> Unit // Not implemented yet
+        }
     }
 
     private fun observeSystemStats(scope: CoroutineScope) {
         scope.launch {
             statsRepository.observeSystemStats().collectLatest { stats ->
                 stateUpdater { currentState ->
-                    currentState.copy(
-                        memInfo = MemInfo(
-                            totalMemKb = stats.memoryTotalBytes / 1024,
-                            freeMemKb = (stats.memoryTotalBytes - stats.memoryUsedBytes) / 1024,
-                            availableMemKb = (stats.memoryTotalBytes - stats.memoryUsedBytes) / 1024
-                        ),
-                        cpuUsagePercent = stats.cpuPercent
-                    )
+                    currentState.copy(systemStats = stats)
                 }
             }
         }
@@ -63,6 +73,26 @@ class StatsDataObserver(
             statsRepository.observeNetworkStats().collectLatest { netStats ->
                 stateUpdater { currentState ->
                     currentState.copy(netStats = netStats)
+                }
+            }
+        }
+    }
+
+    private fun observeDiskStats(scope: CoroutineScope) {
+        scope.launch {
+            statsRepository.observeDiskStats().collectLatest { diskStats ->
+                stateUpdater { currentState ->
+                    currentState.copy(diskStats = diskStats)
+                }
+            }
+        }
+    }
+
+    private fun observeThermalStats(scope: CoroutineScope) {
+        scope.launch {
+            statsRepository.observeThermalStats().collectLatest { thermalStats ->
+                stateUpdater { currentState ->
+                    currentState.copy(thermalStats = thermalStats)
                 }
             }
         }

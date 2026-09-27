@@ -3,7 +3,6 @@ package com.squidink.alloy.modules.statspill
 import androidx.compose.runtime.Composable
 import com.squidink.alloy.core.design.FeatureDetailSection
 import com.squidink.alloy.core.design.InfoCard
-import com.squidink.alloy.core.design.SettingCard
 import com.squidink.alloy.core.layout.FeatureDetail
 
 /**

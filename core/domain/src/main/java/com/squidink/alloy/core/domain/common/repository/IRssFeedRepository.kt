@@ -1,5 +1,7 @@
-package com.squidink.alloy.core.domain.repository
+package com.squidink.alloy.core.domain.common.repository
 
+import com.squidink.alloy.core.domain.common.model.RssFeed
+import com.squidink.alloy.core.domain.common.model.RssFeedItem
 import kotlinx.coroutines.flow.Flow
 
 /**

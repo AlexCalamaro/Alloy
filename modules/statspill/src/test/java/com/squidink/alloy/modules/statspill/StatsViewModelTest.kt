@@ -1,8 +1,5 @@
 package com.squidink.alloy.modules.statspill
 
-import com.squidink.alloy.core.domain.repository.BatteryInfo
-import com.squidink.alloy.core.domain.repository.NetStats
-import com.squidink.alloy.core.domain.repository.SystemStats
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -13,6 +10,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -35,7 +33,7 @@ class StatsViewModelTest {
     fun `StatsUiState has default values`() = runTest {
         val state = StatsUiState()
         
-        assertNotNull(state.memInfo)
+        assertNull(state.systemStats)
         assertFalse(state.isLiveOverlayActive)
         assertFalse(state.isPolling)
         assertTrue(state.usePercentages)

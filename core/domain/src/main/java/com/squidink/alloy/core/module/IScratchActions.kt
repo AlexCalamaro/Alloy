@@ -1,6 +1,6 @@
 package com.squidink.alloy.core.module
 
-import com.squidink.alloy.core.domain.repository.Scratch
+import com.squidink.alloy.core.domain.common.repository.Scratch
 
 /**
  * Interface for Scratch module actions.

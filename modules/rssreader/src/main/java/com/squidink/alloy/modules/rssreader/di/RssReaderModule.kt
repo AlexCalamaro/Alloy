@@ -1,8 +1,7 @@
 package com.squidink.alloy.modules.rssreader.di
 
 import android.content.Context
-import androidx.room.Room
-import com.squidink.alloy.core.domain.repository.IRssFeedRepository
+import com.squidink.alloy.core.domain.common.repository.IRssFeedRepository
 import com.squidink.alloy.modules.rssreader.data.RssRepositoryImpl
 import com.squidink.alloy.modules.rssreader.db.RssFeedDao
 import com.squidink.alloy.modules.rssreader.db.RssFeedDatabase
