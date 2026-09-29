@@ -50,11 +50,6 @@ fun SettingsPanel(
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        Text(
-            text = "Stat Pill Settings",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
 
         // Live Overlay Mode Toggle
         Card(
@@ -203,20 +198,6 @@ fun SettingsPanel(
                     }
                 }
             }
-        }
-
-        // Info card
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-            )
-        ) {
-            Text(
-                text = "Note: Stats colors will shift from green (low usage) to red (high usage) for CPU and RAM.",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(16.dp)
-            )
         }
     }
 }

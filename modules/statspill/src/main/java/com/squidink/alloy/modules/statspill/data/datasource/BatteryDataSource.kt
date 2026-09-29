@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.os.BatteryManager
 import com.squidink.alloy.core.common.Logger
 import com.squidink.alloy.modules.statspill.domain.model.BatteryInfo
+import com.squidink.alloy.modules.statspill.domain.model.PluggedSource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -82,6 +83,9 @@ class BatteryDataSource @Inject constructor(
             val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
             val level = batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) ?: 0
             val isCharging = batteryManager?.isCharging ?: false
+            val currentUa = batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)?.takeIf {
+                it != Int.MIN_VALUE && it != 0
+            }
 
             BatteryInfo(
                 timestamp = System.currentTimeMillis(),
@@ -92,7 +96,9 @@ class BatteryDataSource @Inject constructor(
                 status = if (isCharging) BatteryManager.BATTERY_STATUS_CHARGING else BatteryManager.BATTERY_STATUS_DISCHARGING,
                 temperature = 0,
                 voltage = 0,
-                isCharging = isCharging
+                isCharging = isCharging,
+                pluggedSource = if (isCharging) PluggedSource.UNKNOWN else PluggedSource.UNPLUGGED,
+                currentMicroamperes = currentUa
             )
         } catch (e: Exception) {
             Logger.e(TAG, "Error reading from BatteryManager", e)
@@ -107,9 +113,24 @@ class BatteryDataSource @Inject constructor(
         val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)
         val temperature = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0)
         val voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)
+        val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
         val percentage = ((level.toFloat() / scale.toFloat()) * 100f).toInt().coerceIn(0, 100)
         val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
                 status == BatteryManager.BATTERY_STATUS_FULL
+
+        val pluggedSource = when (plugged) {
+            BatteryManager.BATTERY_PLUGGED_AC -> PluggedSource.AC
+            BatteryManager.BATTERY_PLUGGED_USB -> PluggedSource.USB
+            BatteryManager.BATTERY_PLUGGED_WIRELESS -> PluggedSource.WIRELESS
+            8 -> PluggedSource.DOCK // BATTERY_PLUGGED_DOCK (API 33+)
+            0 -> PluggedSource.UNPLUGGED
+            else -> if (isCharging) PluggedSource.UNKNOWN else PluggedSource.UNPLUGGED
+        }
+
+        val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+        val currentUa = batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)?.takeIf {
+            it != Int.MIN_VALUE && it != 0
+        }
 
         return BatteryInfo(
             timestamp = System.currentTimeMillis(),
@@ -120,7 +141,9 @@ class BatteryDataSource @Inject constructor(
             status = status,
             temperature = temperature,
             voltage = voltage,
-            isCharging = isCharging
+            isCharging = isCharging,
+            pluggedSource = pluggedSource,
+            currentMicroamperes = currentUa
         )
     }
 

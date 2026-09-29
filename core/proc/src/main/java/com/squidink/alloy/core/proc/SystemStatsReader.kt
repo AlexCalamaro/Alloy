@@ -190,6 +190,36 @@ open class SystemStatsReader @Inject constructor(
         }
     }
 
+    /**
+     * Returns the number of available CPU cores.
+     */
+    open fun readCpuCores(): Int {
+        return Runtime.getRuntime().availableProcessors()
+    }
+
+    /**
+     * Reads system load averages (1m, 5m, 15m) from /proc/loadavg.
+     * Returns an empty list if /proc/loadavg is inaccessible.
+     */
+    open fun readSystemLoadAverage(): List<Double> {
+        return try {
+            val file = java.io.File("/proc/loadavg")
+            if (file.exists() && file.canRead()) {
+                val content = file.readText().trim()
+                val parts = content.split("\\s+".toRegex())
+                if (parts.size >= 3) {
+                    listOfNotNull(
+                        parts[0].toDoubleOrNull(),
+                        parts[1].toDoubleOrNull(),
+                        parts[2].toDoubleOrNull()
+                    )
+                } else emptyList()
+            } else emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
     companion object {
         private const val TAG = "SystemStatsReader"
     }

@@ -29,6 +29,8 @@ class SystemStatsDataSource @Inject constructor(
         try {
             val memInfo = systemStatsReader.readMemInfo()
             val cpuPercent = systemStatsReader.readCpuUsagePercent() ?: 0f
+            val cpuCores = systemStatsReader.readCpuCores()
+            val loadAvg = systemStatsReader.readSystemLoadAverage()
 
             val totalBytes = memInfo.totalMemKb * 1024L
             val availableBytes = memInfo.availableMemKb * 1024L
@@ -42,7 +44,9 @@ class SystemStatsDataSource @Inject constructor(
                 memoryUsedBytes = usedBytes,
                 memoryTotalBytes = totalBytes,
                 memoryPercent = memPercent,
-                cpuPercent = cpuPercent.coerceIn(0f, 100f)
+                cpuPercent = cpuPercent.coerceIn(0f, 100f),
+                cpuCores = cpuCores,
+                systemLoadAverage = loadAvg
             )
         } catch (e: Exception) {
             Logger.e(TAG, "Error reading system stats", e)

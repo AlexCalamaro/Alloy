@@ -15,7 +15,7 @@ class StatsPillFeatureDetail : FeatureDetail {
     
     @Composable
     override fun DetailContent() {
-        FeatureDetailSection("Stats Settings") {
+        FeatureDetailSection("Overlay Settings") {
             InfoCard(
                 "Settings are available directly on the Stats screen via the settings button."
             )

@@ -1,6 +1,7 @@
 package com.squidink.alloy.core.layout
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -37,6 +38,7 @@ import kotlinx.coroutines.launch
  * @param title The title to display in the top app bar
  * @param content The main content area
  * @param modifier Modifier to apply to the root container
+ * @param railHeader Optional header composable to display at the top of the navigation rail
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +48,8 @@ fun DrawerScaffold(
     onScreenSelected: (String) -> Unit,
     title: String,
     content: @Composable () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    railHeader: (@Composable ColumnScope.() -> Unit)? = null
 ) {
     val windowSizeClass = deriveWindowSizeClass()
     
@@ -58,10 +61,12 @@ fun DrawerScaffold(
             NavigationRailPane(
                 currentFeature = currentFeature,
                 screens = screens,
-                onScreenSelected = onScreenSelected
+                onScreenSelected = onScreenSelected,
+                header = railHeader
             )
             
             Scaffold(
+                modifier = Modifier.weight(1f),
                 topBar = {
                     TopAppBar(
                         title = { Text(title) }
@@ -89,7 +94,11 @@ fun DrawerScaffold(
                     NavigationPane(
                         currentFeature = currentFeature,
                         screens = screens,
-                        onScreenSelected = onScreenSelected
+                        onScreenSelected = { route ->
+                            onScreenSelected(route)
+                            scope.launch { drawerState.close() }
+                        },
+                        onDismiss = { scope.launch { drawerState.close() } }
                     )
                 }
             }

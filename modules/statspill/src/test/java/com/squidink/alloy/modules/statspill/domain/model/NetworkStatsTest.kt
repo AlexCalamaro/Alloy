@@ -65,4 +65,28 @@ class NetworkStatsTest {
         assertTrue(stats.timestamp >= before)
         assertTrue(stats.timestamp <= after)
     }
+
+    @Test
+    fun `formatLinkSpeed formats Gbps and Mbps correctly`() {
+        val gigabit = NetworkStats(linkDownstreamBandwidthKbps = 1_200_000)
+        assertEquals("1.2 Gbps", gigabit.formatLinkSpeed())
+
+        val fast = NetworkStats(linkDownstreamBandwidthKbps = 100_000)
+        assertEquals("100 Mbps", fast.formatLinkSpeed())
+
+        val slow = NetworkStats(linkDownstreamBandwidthKbps = 512)
+        assertEquals("512 Kbps", slow.formatLinkSpeed())
+
+        val none = NetworkStats(linkDownstreamBandwidthKbps = null)
+        assertEquals(null, none.formatLinkSpeed())
+    }
+
+    @Test
+    fun `NetworkTransportType display names are correct`() {
+        assertEquals("Wi-Fi", NetworkTransportType.WIFI.getDisplayName())
+        assertEquals("Cellular", NetworkTransportType.CELLULAR.getDisplayName())
+        assertEquals("Ethernet", NetworkTransportType.ETHERNET.getDisplayName())
+        assertEquals("VPN", NetworkTransportType.VPN.getDisplayName())
+        assertEquals("Offline", NetworkTransportType.NONE.getDisplayName())
+    }
 }

@@ -64,4 +64,20 @@ class SystemStatsTest {
 
         assertEquals(timestamp, stats.timestamp)
     }
+
+    @Test
+    fun `SystemStats stores cpuCores and systemLoadAverage correctly`() {
+        val stats = SystemStats(
+            timestamp = 1000L,
+            memoryUsedBytes = 0L,
+            memoryTotalBytes = 0L,
+            memoryPercent = 0f,
+            cpuPercent = 0f,
+            cpuCores = 8,
+            systemLoadAverage = listOf(0.45, 0.32, 0.28)
+        )
+
+        assertEquals(8, stats.cpuCores)
+        assertEquals(listOf(0.45, 0.32, 0.28), stats.systemLoadAverage)
+    }
 }

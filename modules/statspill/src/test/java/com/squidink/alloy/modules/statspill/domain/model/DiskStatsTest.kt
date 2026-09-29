@@ -138,5 +138,26 @@ class DiskStatsTest {
         assertEquals(0L, stats.freeBytes)
         assertEquals(0f, stats.percentUsed)
         assertEquals(0f, stats.percentFree)
+        assertEquals(emptyList<StorageVolumeInfo>(), stats.volumes)
+    }
+
+    @Test
+    fun `StorageVolumeInfo stores and formats volume properties correctly`() {
+        val volume = StorageVolumeInfo(
+            name = "SanDisk SD Card",
+            isPrimary = false,
+            isRemovable = true,
+            totalBytes = 256_000_000_000L,
+            usedBytes = 100_000_000_000L,
+            freeBytes = 156_000_000_000L,
+            percentUsed = 39.1f
+        )
+
+        assertEquals("SanDisk SD Card", volume.name)
+        assertEquals(false, volume.isPrimary)
+        assertEquals(true, volume.isRemovable)
+        assertEquals(39.1f, volume.percentUsed)
+        assertEquals("93.1 GB", volume.formatUsedBytes())
+        assertEquals("238.4 GB", volume.formatTotalBytes())
     }
 }

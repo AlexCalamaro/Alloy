@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "local-cluster": {
+      "command": "python3",
+      "args": [
+        "/home/alex/AndroidStudioProjects/Alloy/.agents/mcp_servers/local_cluster_mcp.py"
+      ]
+    }
+  }
+}

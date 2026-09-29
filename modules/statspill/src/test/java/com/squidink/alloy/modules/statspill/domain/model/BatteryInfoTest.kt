@@ -84,4 +84,35 @@ class BatteryInfoTest {
         assertTrue(battery.timestamp >= before)
         assertTrue(battery.timestamp <= after)
     }
+
+    @Test
+    fun `getHealthString maps health codes to human-readable strings`() {
+        assertEquals("Good", BatteryInfo(health = 2).getHealthString())
+        assertEquals("Overheated", BatteryInfo(health = 3).getHealthString())
+        assertEquals("Dead", BatteryInfo(health = 4).getHealthString())
+        assertEquals("Over Voltage", BatteryInfo(health = 5).getHealthString())
+        assertEquals("Failed", BatteryInfo(health = 6).getHealthString())
+        assertEquals("Cold", BatteryInfo(health = 7).getHealthString())
+        assertEquals("Unknown", BatteryInfo(health = 99).getHealthString())
+    }
+
+    @Test
+    fun `getCurrentMilliAmperes converts microamperes correctly`() {
+        val batteryCharging = BatteryInfo(currentMicroamperes = 1_850_000)
+        assertEquals(1850, batteryCharging.getCurrentMilliAmperes())
+
+        val batteryDraining = BatteryInfo(currentMicroamperes = -420_000)
+        assertEquals(-420, batteryDraining.getCurrentMilliAmperes())
+
+        val batteryNull = BatteryInfo(currentMicroamperes = null)
+        assertEquals(null, batteryNull.getCurrentMilliAmperes())
+    }
+
+    @Test
+    fun `PluggedSource display names are correct`() {
+        assertEquals("AC Charger", PluggedSource.AC.getDisplayName())
+        assertEquals("USB", PluggedSource.USB.getDisplayName())
+        assertEquals("Wireless", PluggedSource.WIRELESS.getDisplayName())
+        assertEquals("Not Plugged", PluggedSource.UNPLUGGED.getDisplayName())
+    }
 }

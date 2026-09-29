@@ -3,15 +3,18 @@ package com.squidink.alloy.ui
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.squidink.alloy.core.datastore.DataStoreManager
 import com.squidink.alloy.core.design.AlloyTheme
@@ -43,6 +46,7 @@ class DashboardActivity : ComponentActivity() {
     lateinit var dataStoreManager: DataStoreManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         
         // Read dynamic color preference (defaults to true)
@@ -68,6 +72,8 @@ class DashboardActivity : ComponentActivity() {
 @Composable
 fun DashboardScreen(dynamicColorEnabled: Boolean = true) {
     val navController: NavHostController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route ?: Screens.StatsPill.route
     val featureRegistry by featureRegistry().features.collectAsState()
     
     // Get enabled features sorted by category and sort order
@@ -83,10 +89,18 @@ fun DashboardScreen(dynamicColorEnabled: Boolean = true) {
             modifier = Modifier
         ) {
             DrawerScaffold(
-                currentFeature = navController.currentDestination?.route ?: Screens.StatsPill.route,
+                currentFeature = currentRoute,
                 screens = listOf(Screens.StatsPill, Screens.Clip, Screens.Scratch, Screens.Scenes),
                 onScreenSelected = { route ->
-                    navController.navigate(route)
+                    if (route != currentRoute) {
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
                 },
                 title = "Alloy Suite",
                 content = {

@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -27,6 +28,8 @@ data class StatCardConfig(
     val primaryValue: String,
     val secondaryValues: List<StatValue>,
     val colorScheme: CardColorScheme = CardColorScheme.SURFACE_VARIANT,
+    val customBackgroundColor: Color? = null,
+    val customContentColor: Color? = null,
     val showPercentage: Boolean = true
 )
 
@@ -58,7 +61,7 @@ fun StatCard(
     config: StatCardConfig,
     modifier: Modifier = Modifier
 ) {
-    val backgroundColor = when (config.colorScheme) {
+    val backgroundColor = config.customBackgroundColor ?: when (config.colorScheme) {
         CardColorScheme.SURFACE_VARIANT -> MaterialTheme.colorScheme.surfaceVariant
         CardColorScheme.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
         CardColorScheme.WARNING -> Color(0xFFFFD54F) // Accessible amber container
@@ -66,19 +69,31 @@ fun StatCard(
         CardColorScheme.CUSTOM -> MaterialTheme.colorScheme.surfaceVariant
     }
 
-    val onTextColor = when (config.colorScheme) {
-        CardColorScheme.SURFACE_VARIANT -> MaterialTheme.colorScheme.onSurfaceVariant
-        CardColorScheme.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.onPrimaryContainer
-        CardColorScheme.WARNING -> Color(0xFF261900) // High-contrast dark text on amber
-        CardColorScheme.ERROR -> MaterialTheme.colorScheme.onErrorContainer
-        CardColorScheme.CUSTOM -> MaterialTheme.colorScheme.onSurface
+    val onTextColor = config.customContentColor ?: if (config.customBackgroundColor != null) {
+        // High-contrast text calculated from container luminance for accessibility
+        if (config.customBackgroundColor.luminance() > 0.45f) {
+            Color(0xFF1C1B1F)
+        } else {
+            Color(0xFFF4EFF4)
+        }
+    } else {
+        when (config.colorScheme) {
+            CardColorScheme.SURFACE_VARIANT -> MaterialTheme.colorScheme.onSurfaceVariant
+            CardColorScheme.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.onPrimaryContainer
+            CardColorScheme.WARNING -> Color(0xFF261900) // High-contrast dark text on amber
+            CardColorScheme.ERROR -> MaterialTheme.colorScheme.onErrorContainer
+            CardColorScheme.CUSTOM -> MaterialTheme.colorScheme.onSurface
+        }
     }
 
     Card(
         modifier = modifier
             .fillMaxWidth()
             .desktopHover(),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor,
+            contentColor = onTextColor
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {

@@ -111,6 +111,7 @@ class ThermalStatsTest {
         assertNull(stats.skinTemperature)
         assertNull(stats.maxTemperature)
         assertNull(stats.averageTemperature)
+        assertEquals(ThermalStatus.NONE, stats.thermalStatus)
     }
 
     @Test
@@ -121,5 +122,14 @@ class ThermalStatsTest {
 
         assertTrue(stats.timestamp >= before)
         assertTrue(stats.timestamp <= after)
+    }
+
+    @Test
+    fun `ThermalStatus display names are human friendly`() {
+        assertEquals("Normal", ThermalStatus.NONE.getDisplayName())
+        assertEquals("Light Throttling", ThermalStatus.LIGHT.getDisplayName())
+        assertEquals("Moderate Throttling", ThermalStatus.MODERATE.getDisplayName())
+        assertEquals("Severe Throttling", ThermalStatus.SEVERE.getDisplayName())
+        assertEquals("Critical", ThermalStatus.CRITICAL.getDisplayName())
     }
 }

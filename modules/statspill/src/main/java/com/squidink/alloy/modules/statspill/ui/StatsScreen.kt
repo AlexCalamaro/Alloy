@@ -97,18 +97,6 @@ fun StatsScreen(
                 settings = uiState,
                 modifier = Modifier.weight(1f)
             )
-
-            // Refresh button
-            Box(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Button(
-                    onClick = { viewModel.onAction(StatsUiAction.RefreshNow) },
-                    modifier = Modifier.align(Alignment.CenterEnd)
-                ) {
-                    Text(stringResource(R.string.stats_refresh))
-                }
-            }
         }
 
         // Settings side sheet
