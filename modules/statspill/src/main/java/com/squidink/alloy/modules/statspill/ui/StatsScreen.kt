@@ -15,7 +15,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -31,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.squidink.alloy.core.design.R
-import com.squidink.alloy.core.design.desktopHover
 import com.squidink.alloy.core.layout.DetailPaneScaffold
 import com.squidink.alloy.core.permissions.AppPermission
 import com.squidink.alloy.core.permissions.ui.PermissionRationaleDialog
@@ -45,14 +43,13 @@ fun StatsScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val effects by viewModel.effect.collectAsState(initial = null)
     val snackbarHostState = remember { SnackbarHostState() }
     val showPermissionDialog = remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
 
-    // Handle effects (toasts and permission requests)
-    LaunchedEffect(effects) {
-        effects?.let { effect ->
+    // Idiomatic MVI one-shot effect collection
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
             when (effect) {
                 is StatsUiEffect.ShowToast -> {
                     snackbarHostState.showSnackbar(effect.message)
@@ -63,9 +60,6 @@ fun StatsScreen(
             }
         }
     }
-
-    // Convert uiState to ResourceStats for grid display
-    val resourceStats = uiState.toResourceStats()
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -85,8 +79,7 @@ fun StatsScreen(
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.weight(1f)
                 )
-                
-                // Settings button in top right corner
+
                 IconButton(
                     onClick = { showSettings = true },
                 ) {
@@ -98,9 +91,9 @@ fun StatsScreen(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Stats Grid with color-coded backgrounds
+            // Responsive stats grid
             StatsGrid(
-                stats = resourceStats,
+                stats = uiState.telemetry,
                 settings = uiState,
                 modifier = Modifier.weight(1f)
             )
@@ -118,7 +111,7 @@ fun StatsScreen(
             }
         }
 
-        // Detail pane overlay for settings
+        // Settings side sheet
         DetailPaneScaffold(
             isOpen = showSettings,
             onDismiss = { showSettings = false },
@@ -131,7 +124,6 @@ fun StatsScreen(
         }
     }
 
-    // Permission Rationale Dialog for Overlay Permission
     if (showPermissionDialog.value) {
         PermissionRationaleDialog(
             permission = AppPermission.SystemOverlay,

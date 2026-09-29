@@ -4,77 +4,51 @@ import android.content.Context
 import android.content.Intent
 import com.squidink.alloy.core.permissions.AppPermission
 import com.squidink.alloy.core.permissions.PermissionsManager
-import com.squidink.alloy.modules.statspill.StatsUiEffect
-import com.squidink.alloy.modules.statspill.StatsUiState
 import com.squidink.alloy.modules.statspill.StatsPillOverlayService
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
- * Manages the overlay service lifecycle.
- *
- * Handles:
- * - Starting/stopping the foreground service
- * - Checking overlay permissions
- * - Emitting permission-related effects
+ * Manages the floating overlay service lifecycle.
+ * Decoupled from ViewModel lifecycle so overlays persist across app navigation.
  */
-class OverlayServiceManager(
-    private val context: Context,
-    private val permissionsManager: PermissionsManager,
-    private val effectEmitter: (StatsUiEffect) -> Unit,
-    private val stateUpdater: ((StatsUiState) -> StatsUiState) -> Unit
+@Singleton
+class OverlayServiceManager @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val permissionsManager: PermissionsManager
 ) {
-    private var currentServiceIntent: Intent? = null
 
     /**
-     * Check if overlay permission is granted.
+     * Check if overlay permission (SYSTEM_ALERT_WINDOW) is granted.
      */
-    fun checkPermission(): Boolean {
-        val isGranted = permissionsManager.isPermissionGranted(
-            context,
-            AppPermission.SystemOverlay
-        )
-        stateUpdater { currentState ->
-            currentState.copy(isLiveOverlayPermissionGranted = isGranted)
-        }
-        return isGranted
+    fun isPermissionGranted(): Boolean {
+        return permissionsManager.isPermissionGranted(context, AppPermission.SystemOverlay)
     }
 
     /**
-     * Start the overlay service.
-     *
-     * Returns true if started successfully, false if permission denied.
+     * Start the overlay foreground service.
+     * Returns true if launched, false if permission denied.
      */
     fun startOverlay(): Boolean {
-        if (!permissionsManager.isPermissionGranted(context, AppPermission.SystemOverlay)) {
-            effectEmitter(StatsUiEffect.OpenOverlayPermissionSettings)
-            stateUpdater { currentState ->
-                currentState.copy(isLiveOverlayActive = false)
-            }
+        if (!isPermissionGranted()) {
             return false
         }
-
         val intent = Intent(context, StatsPillOverlayService::class.java)
         context.startForegroundService(intent)
-        currentServiceIntent = intent
-        stateUpdater { currentState ->
-            currentState.copy(isLiveOverlayActive = true, overlayServiceIntent = intent)
-        }
         return true
     }
 
     /**
-     * Stop the overlay service.
+     * Stop the overlay foreground service.
      */
     fun stopOverlay() {
-        val intent = currentServiceIntent ?: Intent(context, StatsPillOverlayService::class.java)
+        val intent = Intent(context, StatsPillOverlayService::class.java)
         context.stopService(intent)
-        currentServiceIntent = null
-        stateUpdater { currentState ->
-            currentState.copy(isLiveOverlayActive = false, overlayServiceIntent = null)
-        }
     }
 
     /**
-     * Open permission settings screen.
+     * Open system settings for granting overlay permission.
      */
     fun openPermissionSettings() {
         permissionsManager.openPermissionSettings(context, AppPermission.SystemOverlay)

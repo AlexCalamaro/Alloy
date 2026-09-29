@@ -1,9 +1,10 @@
-package com.squidink.alloy.core.data.datasource
+package com.squidink.alloy.modules.statspill.data.datasource
 
 import com.squidink.alloy.core.common.Logger
 import com.squidink.alloy.core.proc.SystemStatsReader
 import com.squidink.alloy.modules.statspill.domain.model.SystemStats
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
@@ -13,13 +14,13 @@ import javax.inject.Singleton
 /**
  * Data source for system statistics (CPU, memory).
  * Uses [SystemStatsReader] to read from Android system APIs.
+ *
+ * Ensures all percentages are consistently formatted in the 0.0f..100.0f range.
  */
 @Singleton
 class SystemStatsDataSource @Inject constructor(
     private val systemStatsReader: SystemStatsReader
 ) : StatDataSource<SystemStats> {
-
-    private val tag = "SystemStatsDataSource"
 
     /**
      * Read current system statistics.
@@ -29,11 +30,11 @@ class SystemStatsDataSource @Inject constructor(
             val memInfo = systemStatsReader.readMemInfo()
             val cpuPercent = systemStatsReader.readCpuUsagePercent() ?: 0f
 
-            val totalBytes = memInfo.totalMemKb * 1024
-            val availableBytes = memInfo.availableMemKb * 1024
-            val usedBytes = totalBytes - availableBytes
+            val totalBytes = memInfo.totalMemKb * 1024L
+            val availableBytes = memInfo.availableMemKb * 1024L
+            val usedBytes = (totalBytes - availableBytes).coerceAtLeast(0L)
             val memPercent = if (totalBytes > 0) {
-                (usedBytes.toFloat() / totalBytes.toFloat()) * 100f
+                ((usedBytes.toFloat() / totalBytes.toFloat()) * 100f).coerceIn(0f, 100f)
             } else 0f
 
             SystemStats(
@@ -41,14 +42,14 @@ class SystemStatsDataSource @Inject constructor(
                 memoryUsedBytes = usedBytes,
                 memoryTotalBytes = totalBytes,
                 memoryPercent = memPercent,
-                cpuPercent = cpuPercent
+                cpuPercent = cpuPercent.coerceIn(0f, 100f)
             )
         } catch (e: Exception) {
-            Logger.e(tag, "Error reading system stats", e)
+            Logger.e(TAG, "Error reading system stats", e)
             SystemStats(
                 timestamp = System.currentTimeMillis(),
-                memoryUsedBytes = 0,
-                memoryTotalBytes = 0,
+                memoryUsedBytes = 0L,
+                memoryTotalBytes = 0L,
                 memoryPercent = 0f,
                 cpuPercent = 0f
             )
@@ -56,13 +57,17 @@ class SystemStatsDataSource @Inject constructor(
     }
 
     /**
-     * Observe system statistics as a continuous flow.
-     * Polls at 1Hz for real-time telemetry.
+     * Observe system statistics as a continuous flow at 1Hz.
      */
     override fun observe(): Flow<SystemStats> = flow {
         while (true) {
             emit(read())
-            kotlinx.coroutines.delay(1000)
+            delay(POLL_INTERVAL_MS)
         }
+    }
+
+    companion object {
+        private const val TAG = "SystemStatsDataSource"
+        const val POLL_INTERVAL_MS = 1000L
     }
 }

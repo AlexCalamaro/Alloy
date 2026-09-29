@@ -1,12 +1,14 @@
 package com.squidink.alloy.modules.statspill.domain.repository
 
 import com.squidink.alloy.modules.statspill.domain.model.BatteryInfo
+import com.squidink.alloy.modules.statspill.domain.model.CombinedTelemetry
 import com.squidink.alloy.modules.statspill.domain.model.DiskStats
 import com.squidink.alloy.modules.statspill.domain.model.NetworkStats
 import com.squidink.alloy.modules.statspill.domain.model.StatCategory
 import com.squidink.alloy.modules.statspill.domain.model.StatType
 import com.squidink.alloy.modules.statspill.domain.model.SystemStats
 import com.squidink.alloy.modules.statspill.domain.model.ThermalStats
+import com.squidink.alloy.modules.statspill.domain.model.StatError
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -15,6 +17,20 @@ import kotlinx.coroutines.flow.Flow
  * Provides both generic stat observation by category and type-safe convenience methods.
  */
 interface IStatsRepository {
+    /**
+     * Observe combined telemetry snapshot as a Flow.
+     *
+     * @return Flow emitting consolidated telemetry updates
+     */
+    fun observeCombinedTelemetry(): Flow<CombinedTelemetry>
+
+    /**
+     * Poll combined telemetry snapshot immediately.
+     *
+     * @return Current consolidated telemetry snapshot
+     */
+    suspend fun pollCombinedTelemetry(): CombinedTelemetry
+
     /**
      * Observe all statistics as a map by category.
      *
@@ -29,6 +45,13 @@ interface IStatsRepository {
      * @return Flow emitting stat updates for the specified category
      */
     fun observeStats(category: StatCategory): Flow<StatType>
+    
+    /**
+     * Observe errors across all stat categories.
+     *
+     * @return Flow emitting stat errors as they occur
+     */
+    fun observeErrors(): Flow<StatError>
     
     /**
      * Poll all statistics immediately.

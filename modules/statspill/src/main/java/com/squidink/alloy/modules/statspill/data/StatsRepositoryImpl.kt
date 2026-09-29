@@ -1,21 +1,26 @@
 package com.squidink.alloy.modules.statspill.data
 
 import com.squidink.alloy.core.common.Logger
-import com.squidink.alloy.core.data.datasource.BatteryDataSource
-import com.squidink.alloy.core.data.datasource.DiskDataSource
-import com.squidink.alloy.core.data.datasource.NetworkDataSource
-import com.squidink.alloy.core.data.datasource.SystemStatsDataSource
-import com.squidink.alloy.core.data.datasource.ThermalDataSource
-import com.squidink.alloy.modules.statspill.domain.model.StatCategory
-import com.squidink.alloy.modules.statspill.domain.model.StatType
+import com.squidink.alloy.modules.statspill.data.datasource.BatteryDataSource
+import com.squidink.alloy.modules.statspill.data.datasource.DiskDataSource
+import com.squidink.alloy.modules.statspill.data.datasource.NetworkDataSource
+import com.squidink.alloy.modules.statspill.data.datasource.SystemStatsDataSource
+import com.squidink.alloy.modules.statspill.data.datasource.ThermalDataSource
 import com.squidink.alloy.modules.statspill.domain.model.BatteryInfo
+import com.squidink.alloy.modules.statspill.domain.model.CombinedTelemetry
 import com.squidink.alloy.modules.statspill.domain.model.DiskStats
+import com.squidink.alloy.modules.statspill.domain.model.ErrorType
 import com.squidink.alloy.modules.statspill.domain.model.NetworkStats
+import com.squidink.alloy.modules.statspill.domain.model.StatCategory
+import com.squidink.alloy.modules.statspill.domain.model.StatError
+import com.squidink.alloy.modules.statspill.domain.model.StatType
 import com.squidink.alloy.modules.statspill.domain.model.SystemStats
 import com.squidink.alloy.modules.statspill.domain.model.ThermalStats
 import com.squidink.alloy.modules.statspill.domain.repository.IStatsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOn
@@ -24,20 +29,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Implementation of [IStatsRepository] using modular data sources.
- *
- * This repository coordinates multiple specialized data sources:
- * - [SystemStatsDataSource] for CPU and memory statistics
- * - [BatteryDataSource] for battery information
- * - [NetworkDataSource] for network I/O statistics
- * - [DiskDataSource] for storage statistics
- * - [ThermalDataSource] for temperature statistics
- *
- * The repository handles:
- * - Data source coordination
- * - Thread dispatching
- * - Error handling
- * - Type-safe stat access
+ * Implementation of [IStatsRepository] coordinating specialized reactive data sources.
  */
 @Singleton
 class StatsRepositoryImpl @Inject constructor(
@@ -48,7 +40,50 @@ class StatsRepositoryImpl @Inject constructor(
     private val thermalDataSource: ThermalDataSource
 ) : IStatsRepository {
 
-    private val tag = "StatsRepositoryImpl"
+    private val _errorFlow = MutableSharedFlow<StatError>(replay = 0)
+    override fun observeErrors(): Flow<StatError> = _errorFlow.asSharedFlow()
+
+    private suspend fun emitError(category: StatCategory, type: ErrorType, message: String) {
+        _errorFlow.emit(StatError(category, type, message))
+    }
+
+    /**
+     * Observe combined telemetry snapshot as a reactive stream.
+     */
+    override fun observeCombinedTelemetry(): Flow<CombinedTelemetry> {
+        return combine(
+            systemStatsDataSource.observe(),
+            batteryDataSource.observe(),
+            networkDataSource.observe(),
+            diskDataSource.observe(),
+            thermalDataSource.observe()
+        ) { system, battery, network, disk, thermal ->
+            CombinedTelemetry(
+                systemStats = system,
+                batteryInfo = battery,
+                networkStats = network,
+                diskStats = disk,
+                thermalStats = thermal,
+                timestamp = System.currentTimeMillis()
+            )
+        }.flowOn(Dispatchers.IO)
+    }
+
+    /**
+     * Poll all telemetry immediately.
+     */
+    override suspend fun pollCombinedTelemetry(): CombinedTelemetry {
+        return withContext(Dispatchers.IO) {
+            CombinedTelemetry(
+                systemStats = systemStatsDataSource.read(),
+                batteryInfo = batteryDataSource.read(),
+                networkStats = networkDataSource.read(),
+                diskStats = diskDataSource.read(),
+                thermalStats = thermalDataSource.read(),
+                timestamp = System.currentTimeMillis()
+            )
+        }
+    }
 
     /**
      * Observe all statistics as a map by category.
@@ -81,7 +116,7 @@ class StatsRepositoryImpl @Inject constructor(
             StatCategory.NETWORK -> networkDataSource.observe()
             StatCategory.STORAGE -> diskDataSource.observe()
             StatCategory.THERMAL -> thermalDataSource.observe()
-            StatCategory.CUSTOM -> emptyFlow() // Custom stats not implemented yet
+            StatCategory.CUSTOM -> emptyFlow()
         }
     }
 
@@ -99,7 +134,7 @@ class StatsRepositoryImpl @Inject constructor(
                     StatCategory.THERMAL to thermalDataSource.read()
                 )
             } catch (e: Exception) {
-                Logger.e(tag, "Error polling all stats", e)
+                Logger.e(TAG, "Error polling all stats", e)
                 emptyMap()
             }
         }
@@ -120,32 +155,25 @@ class StatsRepositoryImpl @Inject constructor(
                     StatCategory.CUSTOM -> throw UnsupportedOperationException("Custom stats not implemented")
                 }
             } catch (e: Exception) {
-                Logger.e(tag, "Error polling stats for category: $category", e)
+                Logger.e(TAG, "Error polling stats for category: $category", e)
+                emitError(category, ErrorType.READ_ERROR, e.message ?: "Unknown error")
                 createDefaultStat(category)
             }
         }
     }
 
-    /**
-     * Observe system statistics (CPU, memory) as a Flow.
-     */
-    override fun observeSystemStats(): Flow<SystemStats> {
-        return systemStatsDataSource.observe()
-    }
+    override fun observeSystemStats(): Flow<SystemStats> = systemStatsDataSource.observe()
 
-    /**
-     * Poll system statistics once.
-     */
     override suspend fun pollSystemStats(): SystemStats {
         return withContext(Dispatchers.IO) {
             try {
                 systemStatsDataSource.read()
             } catch (e: Exception) {
-                Logger.e(tag, "Error polling system stats", e)
+                Logger.e(TAG, "Error polling system stats", e)
                 SystemStats(
                     timestamp = System.currentTimeMillis(),
-                    memoryUsedBytes = 0,
-                    memoryTotalBytes = 0,
+                    memoryUsedBytes = 0L,
+                    memoryTotalBytes = 0L,
                     memoryPercent = 0f,
                     cpuPercent = 0f
                 )
@@ -153,123 +181,82 @@ class StatsRepositoryImpl @Inject constructor(
         }
     }
 
-    /**
-     * Get memory usage percentage.
-     */
     override suspend fun getMemoryPercent(): Float {
         return withContext(Dispatchers.IO) {
             try {
                 systemStatsDataSource.read().memoryPercent
             } catch (e: Exception) {
-                Logger.e(tag, "Error getting memory percent", e)
+                Logger.e(TAG, "Error getting memory percent", e)
                 0f
             }
         }
     }
 
-    /**
-     * Get CPU usage percentage.
-     */
     override suspend fun getCpuPercent(): Float {
         return withContext(Dispatchers.IO) {
             try {
                 systemStatsDataSource.read().cpuPercent
             } catch (e: Exception) {
-                Logger.e(tag, "Error getting CPU percent", e)
+                Logger.e(TAG, "Error getting CPU percent", e)
                 0f
             }
         }
     }
 
-    /**
-     * Observe battery information.
-     */
-    override fun observeBatteryInfo(): Flow<BatteryInfo> {
-        return batteryDataSource.observe()
-    }
+    override fun observeBatteryInfo(): Flow<BatteryInfo> = batteryDataSource.observe()
 
-    /**
-     * Observe network statistics.
-     */
-    override fun observeNetworkStats(): Flow<NetworkStats> {
-        return networkDataSource.observe()
-    }
+    override fun observeNetworkStats(): Flow<NetworkStats> = networkDataSource.observe()
 
-    /**
-     * Observe disk/storage statistics.
-     */
-    override fun observeDiskStats(): Flow<DiskStats> {
-        return diskDataSource.observe()
-    }
+    override fun observeDiskStats(): Flow<DiskStats> = diskDataSource.observe()
 
-    /**
-     * Poll disk/storage statistics once.
-     */
     override suspend fun pollDiskStats(): DiskStats {
         return withContext(Dispatchers.IO) {
             try {
                 diskDataSource.read()
             } catch (e: Exception) {
-                Logger.e(tag, "Error polling disk stats", e)
+                Logger.e(TAG, "Error polling disk stats", e)
                 DiskStats(
                     timestamp = System.currentTimeMillis(),
-                    totalBytes = 0,
-                    usedBytes = 0,
-                    freeBytes = 0,
+                    totalBytes = 0L,
+                    usedBytes = 0L,
+                    freeBytes = 0L,
                     percentUsed = 0f
                 )
             }
         }
     }
 
-    /**
-     * Observe thermal/temperature statistics.
-     */
-    override fun observeThermalStats(): Flow<ThermalStats> {
-        return thermalDataSource.observe()
-    }
+    override fun observeThermalStats(): Flow<ThermalStats> = thermalDataSource.observe()
 
-    /**
-     * Poll thermal/temperature statistics once.
-     */
     override suspend fun pollThermalStats(): ThermalStats {
         return withContext(Dispatchers.IO) {
             try {
                 thermalDataSource.read()
             } catch (e: Exception) {
-                Logger.e(tag, "Error polling thermal stats", e)
-                ThermalStats(
-                    timestamp = System.currentTimeMillis()
-                )
+                Logger.e(TAG, "Error polling thermal stats", e)
+                ThermalStats(timestamp = System.currentTimeMillis())
             }
         }
     }
 
-    /**
-     * Create a default stat value for the given category.
-     */
     private fun createDefaultStat(category: StatCategory): StatType {
         return when (category) {
             StatCategory.SYSTEM -> SystemStats(
                 timestamp = System.currentTimeMillis(),
-                memoryUsedBytes = 0,
-                memoryTotalBytes = 0,
+                memoryUsedBytes = 0L,
+                memoryTotalBytes = 0L,
                 memoryPercent = 0f,
                 cpuPercent = 0f
             )
-            StatCategory.POWER -> BatteryInfo(
-                timestamp = System.currentTimeMillis()
-            )
-            StatCategory.NETWORK -> NetworkStats(
-                timestamp = System.currentTimeMillis()
-            )
-            StatCategory.STORAGE -> DiskStats(
-                timestamp = System.currentTimeMillis()
-            )
-            StatCategory.THERMAL -> ThermalStats(
-                timestamp = System.currentTimeMillis()
-            )
+            StatCategory.POWER -> BatteryInfo(timestamp = System.currentTimeMillis())
+            StatCategory.NETWORK -> NetworkStats(timestamp = System.currentTimeMillis())
+            StatCategory.STORAGE -> DiskStats(timestamp = System.currentTimeMillis())
+            StatCategory.THERMAL -> ThermalStats(timestamp = System.currentTimeMillis())
             StatCategory.CUSTOM -> throw UnsupportedOperationException("Custom stats not implemented")
         }
+    }
+
+    companion object {
+        private const val TAG = "StatsRepositoryImpl"
     }
 }

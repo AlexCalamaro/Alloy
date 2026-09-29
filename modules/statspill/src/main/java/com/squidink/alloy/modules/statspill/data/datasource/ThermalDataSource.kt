@@ -1,9 +1,14 @@
-package com.squidink.alloy.core.data.datasource
+package com.squidink.alloy.modules.statspill.data.datasource
 
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
 import com.squidink.alloy.core.common.Logger
 import com.squidink.alloy.modules.statspill.domain.model.ThermalStats
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
@@ -11,30 +16,27 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Data source for thermal/temperature statistics.
- * Currently uses battery temperature from BatteryManager.
- * Note: Full system thermal access (CPU, skin temps) requires hidden APIs or root.
+ * Data source for thermal and temperature statistics.
+ * Reads battery temperature via sticky battery broadcast.
  */
 @Singleton
 class ThermalDataSource @Inject constructor(
-    private val context: Context
+    @ApplicationContext private val context: Context
 ) : StatDataSource<ThermalStats> {
-
-    private val tag = "ThermalDataSource"
 
     /**
      * Read current thermal statistics.
      */
     override suspend fun read(): ThermalStats = withContext(Dispatchers.IO) {
         try {
-            val batteryTemp = getBatteryTemperature()
+            val batteryTemp = getBatteryTemperatureCelsius()
 
             ThermalStats(
                 timestamp = System.currentTimeMillis(),
                 batteryTemperature = batteryTemp
             )
         } catch (e: Exception) {
-            Logger.e(tag, "Error reading thermal stats", e)
+            Logger.e(TAG, "Error reading thermal stats", e)
             ThermalStats(
                 timestamp = System.currentTimeMillis()
             )
@@ -42,26 +44,33 @@ class ThermalDataSource @Inject constructor(
     }
 
     /**
-     * Observe thermal statistics as a continuous flow.
-     * Polls at 2Hz since temperature changes relatively slowly.
+     * Observe thermal statistics as a flow.
+     * Polls at 0.2Hz (every 5 seconds) as temperature shifts slowly.
      */
     override fun observe(): Flow<ThermalStats> = flow {
         while (true) {
             emit(read())
-            kotlinx.coroutines.delay(500) // 2Hz
+            delay(POLL_INTERVAL_MS)
         }
     }
 
-    /**
-     * Get battery temperature from BatteryManager.
-     * Returns temperature in Celsius.
-     * Note: Accurate system temperature readings require hidden APIs or root access.
-     * Battery temperature can be obtained from battery broadcasts (see BatteryDataSource).
-     */
-    private fun getBatteryTemperature(): Float? {
-        // Temperature is not directly available via public APIs.
-        // BatteryDataSource provides temperature from battery broadcasts.
-        // This method returns null to indicate unavailable data.
-        return null
+    private fun getBatteryTemperatureCelsius(): Float? {
+        return try {
+            val intent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+            val tenthsOfCelsius = intent?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0) ?: 0
+            if (tenthsOfCelsius > 0) {
+                tenthsOfCelsius / 10f
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            Logger.e(TAG, "Error obtaining battery temperature", e)
+            null
+        }
+    }
+
+    companion object {
+        private const val TAG = "ThermalDataSource"
+        const val POLL_INTERVAL_MS = 5000L // 5 seconds
     }
 }

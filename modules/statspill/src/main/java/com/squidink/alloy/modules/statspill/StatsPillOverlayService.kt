@@ -8,18 +8,19 @@ import android.provider.Settings
 import android.view.Gravity
 import android.view.WindowManager
 import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.Modifier
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
@@ -27,29 +28,24 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.squidink.alloy.core.data.repository.SettingsRepository
 import com.squidink.alloy.core.design.AlloyTheme
-import com.squidink.alloy.core.proc.SystemStatsReader
+import com.squidink.alloy.modules.statspill.domain.usecase.ObserveTelemetryUseCase
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import java.util.Locale
 import javax.inject.Inject
 
 /**
  * SYSTEM_ALERT_WINDOW floating overlay pill displaying live vitals using 100% Jetpack Compose.
+ * Observes real-time telemetry from [ObserveTelemetryUseCase] across app and desktop windows.
  */
 @AndroidEntryPoint
 class StatsPillOverlayService : LifecycleService(), SavedStateRegistryOwner {
 
-    @Inject lateinit var systemStatsReader: SystemStatsReader
+    @Inject lateinit var observeTelemetryUseCase: ObserveTelemetryUseCase
     @Inject lateinit var settingsRepository: SettingsRepository
 
     private var windowManager: WindowManager? = null
     private var overlayComposeView: ComposeView? = null
-    private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var currentParams: WindowManager.LayoutParams? = null
 
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
@@ -71,24 +67,22 @@ class StatsPillOverlayService : LifecycleService(), SavedStateRegistryOwner {
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         observeSettings()
         setupComposeOverlayView()
-        startTelemetryLoop()
+        observeTelemetry()
     }
 
     private fun observeSettings() {
-        serviceScope.launch {
-            // Observe corner position
+        lifecycleScope.launch {
             launch {
                 settingsRepository.observeCornerPosition().collect { positionName ->
-                    try {
-                        currentCornerPosition = CornerPosition.valueOf(positionName)
+                    currentCornerPosition = try {
+                        CornerPosition.valueOf(positionName)
                     } catch (e: IllegalArgumentException) {
-                        currentCornerPosition = CornerPosition.TOP_RIGHT
+                        CornerPosition.TOP_RIGHT
                     }
                     updateOverlayPosition()
                 }
             }
-            
-            // Observe use percentages
+
             launch {
                 settingsRepository.observeUsePercentages().collect { usePerc ->
                     currentUsePercentages = usePerc
@@ -160,43 +154,37 @@ class StatsPillOverlayService : LifecycleService(), SavedStateRegistryOwner {
         windowManager?.addView(overlayComposeView, params)
     }
 
-    private fun startTelemetryLoop() {
-        serviceScope.launch {
-            while (true) {
-                val mem = withContext(Dispatchers.IO) { systemStatsReader.readMemInfo() }
-                val cpu = withContext(Dispatchers.IO) { systemStatsReader.readCpuUsagePercent() }
-                val net = withContext(Dispatchers.IO) { systemStatsReader.readNetworkStats() }
-                
-                val memUsedMb = (mem.totalMemKb - mem.availableMemKb) / 1024
-                val memTotalMb = mem.totalMemKb / 1024
-                val memPercent = if (memTotalMb > 0) (memUsedMb.toFloat() / memTotalMb) * 100 else 0f
-                
-                val cpuText = cpu?.let { 
+    private fun observeTelemetry() {
+        lifecycleScope.launch {
+            observeTelemetryUseCase().collect { telemetry ->
+                val cpuPercent = telemetry.systemStats?.cpuPercent
+                val cpuText = cpuPercent?.let {
                     if (currentUsePercentages) {
-                        String.format(java.util.Locale.US, "%.1f%%", it * 100)
+                        String.format(Locale.US, "%.1f%%", it)
                     } else {
-                        String.format(java.util.Locale.US, "%.1f", it * 100)
+                        String.format(Locale.US, "%.1f", it)
                     }
                 } ?: "--"
-                
-                val ramText = if (currentUsePercentages) {
-                    String.format(java.util.Locale.US, "%.1f%%", memPercent)
-                } else {
-                    String.format(java.util.Locale.US, "%d/%d MB", memUsedMb, memTotalMb)
-                }
-                
-                val rxText = String.format(java.util.Locale.US, "%.0f KB/s", net.rxBytesPerSecond)
-                val txText = String.format(java.util.Locale.US, "%.0f KB/s", net.txBytesPerSecond)
+
+                val ramText = telemetry.systemStats?.let { stats ->
+                    val memUsedMb = stats.memoryUsedBytes / (1024 * 1024)
+                    val memTotalMb = stats.memoryTotalBytes / (1024 * 1024)
+                    if (currentUsePercentages) {
+                        String.format(Locale.US, "%.1f%%", stats.memoryPercent)
+                    } else {
+                        String.format(Locale.US, "%d/%d MB", memUsedMb, memTotalMb)
+                    }
+                } ?: "--"
+
+                val rxText = String.format(Locale.US, "%.0f KB/s", telemetry.networkStats.rxBytesPerSecond)
+                val txText = String.format(Locale.US, "%.0f KB/s", telemetry.networkStats.txBytesPerSecond)
                 liveTextState = "CPU: $cpuText | RAM: $ramText | ↓$rxText ↑$txText"
-                
-                delay(1000L)
             }
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        serviceScope.cancel()
         overlayComposeView?.let { windowManager?.removeView(it) }
     }
 

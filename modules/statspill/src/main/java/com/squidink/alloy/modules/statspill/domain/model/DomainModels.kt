@@ -127,3 +127,15 @@ data class ThermalStats(
             ?.average()
             ?.toFloat()
 }
+
+/**
+ * Consolidated telemetry snapshot aggregating all domain statistics.
+ */
+data class CombinedTelemetry(
+    val systemStats: SystemStats? = null,
+    val batteryInfo: BatteryInfo = BatteryInfo(),
+    val networkStats: NetworkStats = NetworkStats(),
+    val diskStats: DiskStats? = null,
+    val thermalStats: ThermalStats? = null,
+    val timestamp: Long = System.currentTimeMillis()
+)

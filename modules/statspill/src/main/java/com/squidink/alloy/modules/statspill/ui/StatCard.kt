@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,55 +44,14 @@ data class StatValue(
  */
 enum class CardColorScheme {
     SURFACE_VARIANT,   // Default neutral color
-    PRIMARY_CONTAINER,  // Low usage / good status
-    WARNING,           // Medium usage / warning status
+    PRIMARY_CONTAINER,  // Low usage / optimal status
+    WARNING,           // Moderate-to-high usage / warning status
     ERROR,             // High usage / critical status
-    CUSTOM             // For special cases with custom colors
+    CUSTOM             // For special cases
 }
 
 /**
- * Calculates the background color based on usage percentage.
- * Returns green → yellow → red gradient.
- */
-@Composable
-fun calculatePercentageColor(percentage: Float): Color {
-    return when {
-        percentage < 50 -> MaterialTheme.colorScheme.primaryContainer
-        percentage < 80 -> Color(0xFFFFA726) // Orange/Yellow
-        else -> MaterialTheme.colorScheme.error
-    }
-}
-
-/**
- * Calculates the background color for battery based on level.
- */
-@Composable
-fun calculateBatteryColor(percentage: Int): Color {
-    return when {
-        percentage < 20 -> MaterialTheme.colorScheme.error
-        percentage < 50 -> Color(0xFFFFA726) // Orange
-        else -> MaterialTheme.colorScheme.primaryContainer
-    }
-}
-
-/**
- * Calculates the background color for temperature.
- */
-@Composable
-fun calculateTemperatureColor(maxTemp: Float?): Color {
-    return when {
-        maxTemp == null -> MaterialTheme.colorScheme.surfaceVariant
-        maxTemp > 45f -> MaterialTheme.colorScheme.error
-        maxTemp > 35f -> Color(0xFFFFA726) // Orange
-        else -> MaterialTheme.colorScheme.surfaceVariant
-    }
-}
-
-/**
- * Reusable stat card composable that displays resource usage information.
- *
- * @param config The configuration containing all display data
- * @param modifier Modifier to apply to the card
+ * Reusable stat card composable following Material 3 guidelines and WCAG AA contrast.
  */
 @Composable
 fun StatCard(
@@ -103,20 +61,22 @@ fun StatCard(
     val backgroundColor = when (config.colorScheme) {
         CardColorScheme.SURFACE_VARIANT -> MaterialTheme.colorScheme.surfaceVariant
         CardColorScheme.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
-        CardColorScheme.WARNING -> Color(0xFFFFA726)
-        CardColorScheme.ERROR -> MaterialTheme.colorScheme.error
+        CardColorScheme.WARNING -> Color(0xFFFFD54F) // Accessible amber container
+        CardColorScheme.ERROR -> MaterialTheme.colorScheme.errorContainer
         CardColorScheme.CUSTOM -> MaterialTheme.colorScheme.surfaceVariant
     }
 
     val onTextColor = when (config.colorScheme) {
-        CardColorScheme.SURFACE_VARIANT -> MaterialTheme.colorScheme.onSurface
-        else -> MaterialTheme.colorScheme.onPrimary
+        CardColorScheme.SURFACE_VARIANT -> MaterialTheme.colorScheme.onSurfaceVariant
+        CardColorScheme.PRIMARY_CONTAINER -> MaterialTheme.colorScheme.onPrimaryContainer
+        CardColorScheme.WARNING -> Color(0xFF261900) // High-contrast dark text on amber
+        CardColorScheme.ERROR -> MaterialTheme.colorScheme.onErrorContainer
+        CardColorScheme.CUSTOM -> MaterialTheme.colorScheme.onSurface
     }
 
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
             .desktopHover(),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -132,7 +92,7 @@ fun StatCard(
                     color = onTextColor,
                     modifier = Modifier.weight(1f)
                 )
-                
+
                 config.primaryValue.takeIf { it.isNotEmpty() }?.let { value ->
                     Text(
                         text = value,
@@ -142,15 +102,17 @@ fun StatCard(
                     )
                 }
             }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            config.secondaryValues.forEach { statValue ->
-                Text(
-                    text = "${statValue.label}: ${statValue.value}",
-                    style = statValue.style,
-                    color = onTextColor
-                )
+
+            if (config.secondaryValues.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                config.secondaryValues.forEach { statValue ->
+                    Text(
+                        text = if (statValue.label.isNotEmpty()) "${statValue.label}: ${statValue.value}" else statValue.value,
+                        style = statValue.style,
+                        color = onTextColor
+                    )
+                }
             }
         }
     }
