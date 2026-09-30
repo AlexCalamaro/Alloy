@@ -15,6 +15,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -25,4 +29,6 @@ dependencies {
     ksp(libs.hilt.compiler)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation("io.mockk:mockk:1.13.9")
+    testImplementation("io.mockk:mockk-agent:1.13.9")
 }

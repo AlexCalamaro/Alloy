@@ -1,23 +1,26 @@
 package com.squidink.alloy.registry
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.RssFeed
+import androidx.compose.material.icons.filled.Settings
 import com.squidink.alloy.core.common.ModuleInfo
 import com.squidink.alloy.core.common.ModuleRegistry
+import com.squidink.alloy.core.common.di.ApplicationScope
 import com.squidink.alloy.core.datastore.DataStoreManager
 import com.squidink.alloy.core.feature.FeatureDefinition
 import com.squidink.alloy.core.feature.FeatureIds
 import com.squidink.alloy.core.feature.IFeatureRegistry
 import com.squidink.alloy.core.feature.featureRegistry
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,6 +40,7 @@ class ModuleRegistryImpl
     @Inject
     constructor(
         private val dataStoreManager: DataStoreManager,
+        @ApplicationScope private val applicationScope: CoroutineScope,
     ) : ModuleRegistry, IFeatureRegistry by featureRegistry() {
 
         init {
@@ -81,7 +85,7 @@ class ModuleRegistryImpl
                     screenRoute = "scratch",
                     category = "Productivity",
                     sortOrder = 3,
-                    icon = Icons.Default.Campaign
+                    icon = Icons.Default.EditNote
                 )
             )
 
@@ -111,18 +115,28 @@ class ModuleRegistryImpl
                 )
             )
 
-            // Read initial enabled states from DataStore
-            runBlocking {
-                val states = featureRegistry.getFeatures().associate { feature ->
-                    feature.id to dataStoreManager.isModuleEnabled(feature.id).first()
-                }
-                // Update feature states with persisted values
-                states.forEach { (id, enabled) ->
-                    if (enabled != featureRegistry.isFeatureEnabled(id)) {
-                        featureRegistry.featureStates.value = 
-                            featureRegistry.featureStates.value.toMutableMap().apply {
-                                this[id] = enabled
+            // Register Settings feature
+            featureRegistry.registerFeature(
+                FeatureDefinition(
+                    id = FeatureIds.SETTINGS,
+                    name = "Settings",
+                    description = "App preferences & customization",
+                    screenRoute = "settings",
+                    category = "System",
+                    sortOrder = 6,
+                    icon = Icons.Default.Settings
+                )
+            )
+
+            // Asynchronously sync enabled states from DataStore
+            applicationScope.launch {
+                featureRegistry.getFeatures().forEach { feature ->
+                    launch {
+                        dataStoreManager.isModuleEnabled(feature.id).collect { enabled ->
+                            featureRegistry.featureStates.update { current ->
+                                current + (feature.id to enabled)
                             }
+                        }
                     }
                 }
             }

@@ -94,9 +94,21 @@ class RssReaderGlanceWidget : GlanceAppWidget() {
          * Triggers a refresh for all active instances of the RSS Reader Glance widget.
          */
         fun notifyWidgetDataChanged(context: Context) {
-            CoroutineScope(Dispatchers.IO).launch {
+            val appContext = context.applicationContext
+            val scope = runCatching {
+                dagger.hilt.android.EntryPointAccessors.fromApplication(
+                    appContext,
+                    com.squidink.alloy.core.common.di.DispatchersEntryPoint::class.java
+                ).applicationScope()
+            }.getOrDefault(
+                kotlinx.coroutines.CoroutineScope(
+                    kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO
+                )
+            )
+
+            scope.launch(kotlinx.coroutines.Dispatchers.IO) {
                 try {
-                    RssReaderGlanceWidget().updateAll(context)
+                    RssReaderGlanceWidget().updateAll(appContext)
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to update Glance widget", e)
                 }

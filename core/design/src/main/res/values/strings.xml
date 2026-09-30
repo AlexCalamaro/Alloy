@@ -80,6 +80,15 @@
     
     <!-- Settings Module -->
     <string name="settings_title">Settings</string>
+    <string name="settings_appearance_header">Appearance</string>
+    <string name="settings_dynamic_color_title">Dynamic Color (Material You)</string>
+    <string name="settings_dynamic_color_desc">Harmonize the app palette with system wallpaper accent colors</string>
+    <string name="settings_system_header">System &amp; Telemetry</string>
+    <string name="settings_percentages_title">Display Vitals as Percentages</string>
+    <string name="settings_percentages_desc">Show CPU &amp; RAM usage as percentages instead of raw units</string>
+    <string name="settings_cache_header">Data &amp; Storage</string>
+    <string name="settings_cache_title">Offline Content Cache</string>
+    <string name="settings_cache_desc">Enable disk caching for feeds and article metadata</string>
     
     <!-- Common -->
     <string name="common_cancel">Cancel</string>

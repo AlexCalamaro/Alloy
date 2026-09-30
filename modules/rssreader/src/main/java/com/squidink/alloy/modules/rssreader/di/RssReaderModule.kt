@@ -42,8 +42,16 @@ object RssReaderModule {
      */
     @Provides
     @Singleton
-    fun provideRssFeedDao(@ApplicationContext context: Context): RssFeedDao {
-        val db = RssFeedDatabase.getInstance(context)
+    fun provideRssFeedDao(
+        @ApplicationContext context: Context,
+        encryptedRoomFactory: com.squidink.alloy.core.datastore.EncryptedRoomFactory
+    ): RssFeedDao {
+        val openHelperFactory = runCatching {
+            kotlinx.coroutines.runBlocking {
+                encryptedRoomFactory.getFactoryFor(RssFeedDatabase.DATABASE_NAME)
+            }
+        }.getOrNull()
+        val db = RssFeedDatabase.getInstance(context, openHelperFactory)
         return db.rssFeedDao()
     }
 

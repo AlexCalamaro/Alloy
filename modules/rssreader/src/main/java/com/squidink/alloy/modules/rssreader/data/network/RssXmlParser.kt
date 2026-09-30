@@ -30,8 +30,19 @@ data class ParsedFeedItem(
 object RssXmlParser {
 
     fun parse(inputStream: InputStream, feedUrl: String): ParsedFeed {
-        val factory = DocumentBuilderFactory.newInstance()
-        factory.isNamespaceAware = false
+        val factory = DocumentBuilderFactory.newInstance().apply {
+            isNamespaceAware = false
+            try {
+                setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true)
+                setFeature("http://xml.org/sax/features/external-general-entities", false)
+                setFeature("http://xml.org/sax/features/external-parameter-entities", false)
+                setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+            } catch (_: Exception) {
+                // Ignore unsupported features on host/unit-test JVM or older runtimes
+            }
+            isXIncludeAware = false
+            isExpandEntityReferences = false
+        }
         val builder = factory.newDocumentBuilder()
         val document = builder.parse(inputStream)
         val root = document.documentElement ?: return ParsedFeed(null, null, null, emptyList())

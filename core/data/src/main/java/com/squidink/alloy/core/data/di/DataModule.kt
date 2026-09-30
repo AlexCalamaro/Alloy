@@ -1,9 +1,6 @@
 package com.squidink.alloy.core.data.di
 
 import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
 import com.squidink.alloy.core.common.Logger
 import com.squidink.alloy.core.data.cache.MemoryCache
 import com.squidink.alloy.core.data.datasource.LocalDataSource
@@ -21,8 +18,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Singleton
-
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "alloy_preferences")
 
 /**
  * Hilt DI module for data layer dependencies.

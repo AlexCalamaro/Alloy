@@ -21,6 +21,8 @@ android {
 
 dependencies {
     implementation(project(":core:common"))
+    implementation(project(":core:data"))
+    implementation(project(":core:datastore"))
     implementation(project(":core:design"))
     implementation(project(":core:domain"))
 
@@ -36,4 +38,6 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
+    testImplementation("io.mockk:mockk:1.13.9")
+    testImplementation("io.mockk:mockk-agent:1.13.9")
 }

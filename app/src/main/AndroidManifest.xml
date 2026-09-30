@@ -7,17 +7,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     
-    <!-- Permissions for clipboard and system access -->
-    <uses-permission android:name="android.permission.READ_CLIPBOARD" />
-    <uses-permission android:name="android.permission.WRITE_CLIPBOARD" />
-    
-    <!-- Permissions for external storage (Treemap, Downloads, Backup) -->
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
-    
-    <!-- Permissions for phone storage access -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <!-- Biometric auth for Scratch Lockbox -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <application

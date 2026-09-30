@@ -3,6 +3,7 @@ package com.squidink.alloy.modules.statspill
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.pm.ServiceInfo
+import android.os.Build
 import android.graphics.PixelFormat
 import android.provider.Settings
 import android.view.Gravity
@@ -113,7 +114,13 @@ class StatsPillOverlayService : LifecycleService(), SavedStateRegistryOwner {
             .setOngoing(true)
             .build()
 
-        startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, notification, 0)
+        } else {
+            startForeground(NOTIFICATION_ID, notification)
+        }
     }
 
     private fun setupComposeOverlayView() {

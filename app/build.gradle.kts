@@ -56,6 +56,9 @@ dependencies {
     implementation(project(":modules:rssreader"))
     implementation(project(":modules:scratch"))
     implementation(project(":modules:lists"))
+    implementation(project(":modules:settings"))
+
+    lintChecks(project(":lint"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

@@ -17,6 +17,14 @@ annotation class IoDispatcher
 @Retention(AnnotationRetention.BINARY)
 annotation class MainDispatcher
 
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class DefaultDispatcher
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class ApplicationScope
+
 @Module
 @InstallIn(SingletonComponent::class)
 object DispatchersModule {
@@ -33,5 +41,25 @@ object DispatchersModule {
 
     @Provides
     @Singleton
-    fun provideDefaultDispatcher(): CoroutineDispatcher = Dispatchers.IO
+    @DefaultDispatcher
+    fun provideDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
+
+    @Provides
+    @Singleton
+    @ApplicationScope
+    fun provideApplicationScope(
+        @DefaultDispatcher defaultDispatcher: CoroutineDispatcher
+    ): kotlinx.coroutines.CoroutineScope =
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + defaultDispatcher)
 }
+
+@dagger.hilt.EntryPoint
+@InstallIn(SingletonComponent::class)
+interface DispatchersEntryPoint {
+    @ApplicationScope
+    fun applicationScope(): kotlinx.coroutines.CoroutineScope
+
+    @IoDispatcher
+    fun ioDispatcher(): CoroutineDispatcher
+}
+

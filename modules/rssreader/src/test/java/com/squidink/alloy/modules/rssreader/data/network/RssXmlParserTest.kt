@@ -99,4 +99,29 @@ class RssXmlParserTest {
         assertEquals("Superconducting breakthrough", item.title)
         assertEquals("https://cdn.arstechnica.net/image.jpg", item.imageUrl)
     }
+
+    @Test
+    fun `xxe external entity injection does not resolve`() {
+        val xmlWithXxe = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE rss [
+                <!ENTITY xxe SYSTEM "file:///etc/passwd">
+            ]>
+            <rss version="2.0">
+                <channel>
+                    <title>&xxe;</title>
+                    <item>
+                        <title>Test Item</title>
+                        <description>&xxe;</description>
+                    </item>
+                </channel>
+            </rss>
+        """.trimIndent()
+
+        val parsed = RssXmlParser.parse(ByteArrayInputStream(xmlWithXxe.toByteArray()), "https://evil.com/feed")
+        // The title and description should NOT contain the secret /etc/passwd contents
+        assertTrue(parsed.title == null || !parsed.title.contains("root:"))
+        val item = parsed.items.firstOrNull()
+        assertTrue(item == null || item.description == null || !item.description.contains("root:"))
+    }
 }

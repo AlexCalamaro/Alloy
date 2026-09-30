@@ -45,7 +45,7 @@ class EncryptedRoomFactory @Inject constructor(
                     val ciphertext = Base64.decode(encodedCiphertext, Base64.NO_WRAP)
                     cryptoManager.decrypt(EncryptedData(ciphertext, iv))
                 } catch (e: Exception) {
-                    generateAndSaveNewKey(dbName)
+                    throw IllegalStateException("Failed to decrypt database key for $dbName. Keystore may be locked or key invalid.", e)
                 }
             }
 

@@ -29,7 +29,14 @@ class ArticleLauncherActivity : Activity() {
 
         if (!articleId.isNullOrBlank()) {
             val appContext = applicationContext
-            CoroutineScope(Dispatchers.IO).launch {
+            val scope = runCatching {
+                dagger.hilt.android.EntryPointAccessors.fromApplication(
+                    appContext,
+                    com.squidink.alloy.core.common.di.DispatchersEntryPoint::class.java
+                ).applicationScope()
+            }.getOrDefault(CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.IO))
+
+            scope.launch(Dispatchers.IO) {
                 try {
                     val db = RssFeedDatabase.getInstance(appContext)
                     db.rssFeedDao().markItemAsRead(articleId)

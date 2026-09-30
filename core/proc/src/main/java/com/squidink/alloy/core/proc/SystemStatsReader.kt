@@ -50,13 +50,13 @@ open class SystemStatsReader @Inject constructor(
         context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
     }
 
-    private var previousRxBytes: Long = 0
-    private var previousTxBytes: Long = 0
-    private var lastReadTimeMs: Long = 0
+    private var previousRxBytes: Long = -1L
+    private var previousTxBytes: Long = -1L
+    private var lastReadTimeMs: Long = 0L
 
     // CPU tracking - using process-level stats as approximation
-    private var previousProcessCpuTimeMs: Long = 0
-    private var previousUptimeMs: Long = 0
+    private var previousProcessCpuTimeMs: Long = 0L
+    private var previousUptimeMs: Long = 0L
 
     /**
      * Reads memory information using ActivityManager.
@@ -84,8 +84,8 @@ open class SystemStatsReader @Inject constructor(
     }
 
     /**
-     * Reads CPU usage for the current process using Debug and ActivityManager.
-     * Returns CPU percentage as an approximation based on process CPU time.
+     * Reads CPU usage for the current process using official Android Process APIs.
+     * Returns CPU percentage normalized by core count (0.0f..100.0f).
      *
      * Note: Android doesn't provide system-wide CPU usage without root.
      * This returns the current process CPU usage as a reasonable approximation.
@@ -93,12 +93,13 @@ open class SystemStatsReader @Inject constructor(
     @Synchronized
     open fun readCpuUsagePercent(): Float? {
         return try {
-            val uptimeMs = System.currentTimeMillis()
+            val uptimeMs = android.os.SystemClock.elapsedRealtime()
             val processCpuTimeMs = getProcessCpuTimeMs()
 
             val timeDelta = uptimeMs - previousUptimeMs
-            if (timeDelta <= 0) {
+            if (timeDelta <= 0 || previousUptimeMs == 0L) {
                 previousUptimeMs = uptimeMs
+                previousProcessCpuTimeMs = processCpuTimeMs
                 return null
             }
 
@@ -106,10 +107,10 @@ open class SystemStatsReader @Inject constructor(
             previousProcessCpuTimeMs = processCpuTimeMs
             previousUptimeMs = uptimeMs
 
-            // Calculate CPU usage as percentage of elapsed time
-            // This gives us the process CPU usage over the time window
-            val cpuUsage = (cpuDelta.toFloat() / timeDelta.toFloat()) * 100.0f
-            cpuUsage.coerceIn(0.0f, 100.0f)
+            // Calculate CPU usage as percentage of elapsed time normalized by core count
+            val cores = readCpuCores().coerceAtLeast(1)
+            val cpuUsage = ((cpuDelta.toFloat() / (timeDelta.toFloat() * cores)) * 100.0f).coerceIn(0.0f, 100.0f)
+            cpuUsage
         } catch (e: Exception) {
             Logger.e(TAG, "Error reading CPU usage", e)
             null
@@ -117,29 +118,12 @@ open class SystemStatsReader @Inject constructor(
     }
 
     /**
-     * Gets the total CPU time consumed by the current process.
-     * Uses Debug.getProcessState() and thread CPU time accumulation.
+     * Gets the total CPU time consumed by the current process in milliseconds.
+     * Uses official Android OS Process.getElapsedCpuTime() (API 24+).
      */
     private fun getProcessCpuTimeMs(): Long {
         return try {
-            // Get CPU time from all threads in the current process
-            val threads = Thread.getAllStackTraces().keys
-            var totalCpuNanos = 0L
-
-            for (thread in threads) {
-                try {
-                    // getThreadCpuTimeNanos() is available on API 26+
-                    // Use reflection to handle older API levels gracefully
-                    val method = thread.javaClass.getMethod("getThreadCpuTimeNanos")
-                    totalCpuNanos += method.invoke(thread) as Long
-                } catch (e: Exception) {
-                    // Method not available on this API level, skip this thread
-                    // This will happen on API < 26
-                }
-            }
-
-            // Convert nanoseconds to milliseconds
-            totalCpuNanos / 1_000_000L
+            android.os.Process.getElapsedCpuTime()
         } catch (e: Exception) {
             Logger.e(TAG, "Error getting process CPU time", e)
             0L
@@ -147,7 +131,7 @@ open class SystemStatsReader @Inject constructor(
     }
 
     /**
-     * Reads network statistics using TrafficStats.
+     * Reads network statistics using TrafficStats and monotonic clock.
      * Returns total RX/TX bytes and calculates KB/s since last call.
      *
      * Note: TrafficStats provides app-level network usage, not system-wide.
@@ -160,19 +144,19 @@ open class SystemStatsReader @Inject constructor(
             val totalRx = TrafficStats.getTotalRxBytes()
             val totalTx = TrafficStats.getTotalTxBytes()
 
-            val now = System.currentTimeMillis()
+            val now = android.os.SystemClock.elapsedRealtime()
             val deltaMs = now - lastReadTimeMs
             lastReadTimeMs = now
 
-            // Calculate KB/s (kilobytes per second)
-            val rxKbps = if (deltaMs > 0 && previousRxBytes >= 0) {
+            // Calculate Bytes/s (bytes per second)
+            val rxBytesPerSec = if (deltaMs > 0 && previousRxBytes >= 0) {
                 val delta = totalRx - previousRxBytes
-                if (delta >= 0) delta * 1000f / deltaMs / 1024f else 0f
+                if (delta >= 0) delta * 1000f / deltaMs else 0f
             } else 0f
 
-            val txKbps = if (deltaMs > 0 && previousTxBytes >= 0) {
+            val txBytesPerSec = if (deltaMs > 0 && previousTxBytes >= 0) {
                 val delta = totalTx - previousTxBytes
-                if (delta >= 0) delta * 1000f / deltaMs / 1024f else 0f
+                if (delta >= 0) delta * 1000f / deltaMs else 0f
             } else 0f
 
             previousRxBytes = totalRx
@@ -181,8 +165,8 @@ open class SystemStatsReader @Inject constructor(
             NetStats(
                 rxBytes = totalRx,
                 txBytes = totalTx,
-                rxBytesPerSecond = rxKbps,
-                txBytesPerSecond = txKbps
+                rxBytesPerSecond = rxBytesPerSec,
+                txBytesPerSecond = txBytesPerSec
             )
         } catch (e: Exception) {
             Logger.e(TAG, "Error reading network stats", e)

@@ -135,26 +135,27 @@ abstract class BaseRepository<Domain, Data, ID>(
     /**
      * Fetch data using a specific cache policy.
      *
+     * @param id The unique identifier
      * @param policy The cache policy to use
      * @return Flow emitting the domain model
      */
-    suspend fun fetchWithPolicy(policy: CachePolicy): Flow<Domain?> {
+    suspend fun fetchWithPolicy(id: ID, policy: CachePolicy): Flow<Domain?> {
         return when {
             policy.shouldUseRemote() && remoteDataSource != null -> {
                 // Try remote first
-                val remoteData = remoteDataSource.fetchById(getIdFromDomain())
+                val remoteData = remoteDataSource.fetchById(id)
                 if (remoteData != null) {
                     localDataSource.update(remoteData)
                     flow { emit(mapToDomain(remoteData)) }
                 } else if (policy.shouldUseCache()) {
                     // Fall back to cache
-                    observeById(getIdFromDomain())
+                    observeById(id)
                 } else {
                     flow { }
                 }
             }
             policy.shouldUseCache() -> {
-                observeById(getIdFromDomain())
+                observeById(id)
             }
             else -> {
                 flow { }
@@ -175,9 +176,10 @@ abstract class BaseRepository<Domain, Data, ID>(
      * Get the ID from a domain model.
      * Subclasses should override this for their specific ID type.
      *
+     * @param domain The domain model
      * @return The unique identifier
      */
-    protected abstract fun getIdFromDomain(): ID
+    protected abstract fun getIdFromDomain(domain: Domain): ID
 
     /**
      * Map a data model to a domain model.

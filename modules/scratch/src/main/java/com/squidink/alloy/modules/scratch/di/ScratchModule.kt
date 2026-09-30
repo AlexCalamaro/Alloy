@@ -40,29 +40,6 @@ object ScratchModule {
             }
         }.getOrNull()
 
-        // Clean-slate self-healing: if an unencrypted or incompatible database file exists,
-        // purge it so a fresh encrypted database can be initialized without crashing.
-        val dbFile = context.getDatabasePath(dbName)
-        if (dbFile.exists() && openHelperFactory != null) {
-            try {
-                val helper = openHelperFactory.create(
-                    SupportSQLiteOpenHelper.Configuration.builder(context)
-                        .name(dbName)
-                        .callback(object : SupportSQLiteOpenHelper.Callback(1) {
-                            override fun onCreate(db: SupportSQLiteDatabase) {}
-                            override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) {}
-                        })
-                        .build()
-                )
-                helper.readableDatabase.use { db ->
-                    db.query("SELECT count(*) FROM sqlite_master").use { it.moveToFirst() }
-                }
-                helper.close()
-            } catch (e: Exception) {
-                context.deleteDatabase(dbName)
-            }
-        }
-
         val builder = Room.databaseBuilder(
             context,
             ScratchDatabase::class.java,

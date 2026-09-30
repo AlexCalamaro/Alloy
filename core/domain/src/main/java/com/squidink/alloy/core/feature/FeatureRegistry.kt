@@ -2,6 +2,7 @@ package com.squidink.alloy.core.feature
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 
 /**
  * Interface for the feature registry.
@@ -70,7 +71,7 @@ class FeatureRegistry private constructor() : IFeatureRegistry {
     override val features = kotlinx.coroutines.flow.MutableStateFlow<Map<String, FeatureDefinition>>(emptyMap())
     override val featureStates = kotlinx.coroutines.flow.MutableStateFlow<Map<String, Boolean>>(emptyMap())
     
-    private val _actionProviders = mutableMapOf<String, () -> IFeatureActions>()
+    private val _actionProviders = java.util.concurrent.ConcurrentHashMap<String, () -> IFeatureActions>()
     
     companion object {
         @Volatile
@@ -87,15 +88,15 @@ class FeatureRegistry private constructor() : IFeatureRegistry {
      * Register a feature with its definition.
      */
     fun registerFeature(featureDef: FeatureDefinition) {
-        val current = features.value.toMutableMap()
-        current[featureDef.id] = featureDef
-        features.value = current
+        features.update { it + (featureDef.id to featureDef) }
         
         // Initialize enabled state to true if not set
-        val states = featureStates.value.toMutableMap()
-        if (featureDef.id !in states) {
-            states[featureDef.id] = true
-            featureStates.value = states
+        featureStates.update { states ->
+            if (featureDef.id !in states) {
+                states + (featureDef.id to true)
+            } else {
+                states
+            }
         }
     }
     
@@ -103,9 +104,9 @@ class FeatureRegistry private constructor() : IFeatureRegistry {
      * Unregister a feature.
      */
     fun unregisterFeature(featureId: String) {
-        val current = features.value.toMutableMap()
-        current.remove(featureId)
-        features.value = current
+        features.update { it - featureId }
+        featureStates.update { it - featureId }
+        _actionProviders.remove(featureId)
     }
     
     /**
@@ -152,9 +153,7 @@ class FeatureRegistry private constructor() : IFeatureRegistry {
     }
     
     override suspend fun setFeatureEnabled(id: String, enabled: Boolean) {
-        val states = featureStates.value.toMutableMap()
-        states[id] = enabled
-        featureStates.value = states
+        featureStates.update { it + (id to enabled) }
     }
     
     override fun getEnabledCategories(): List<String> {

@@ -27,6 +27,7 @@ import com.squidink.alloy.core.design.AlloyTheme
 import com.squidink.alloy.core.feature.featureRegistry
 import com.squidink.alloy.core.layout.DrawerScaffold
 import com.squidink.alloy.core.navigation.Screens
+import com.squidink.alloy.core.navigation.getFeatureId
 import com.squidink.alloy.modules.lists.ListsViewModel
 import com.squidink.alloy.modules.lists.ui.ListsScreen
 import com.squidink.alloy.modules.rssreader.RssReaderViewModel
@@ -35,11 +36,11 @@ import com.squidink.alloy.modules.scenes.ScenesViewModel
 import com.squidink.alloy.modules.scenes.ui.ScenesScreen
 import com.squidink.alloy.modules.scratch.ScratchViewModel
 import com.squidink.alloy.modules.scratch.ui.ScratchScreen
+import com.squidink.alloy.modules.settings.SettingsViewModel
+import com.squidink.alloy.modules.settings.ui.SettingsScreen
 import com.squidink.alloy.modules.statspill.StatsViewModel
 import com.squidink.alloy.modules.statspill.ui.StatsScreen
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 /**
@@ -60,13 +61,9 @@ class DashboardActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         targetScreenState.value = intent?.getStringExtra(EXTRA_TARGET_SCREEN)
         
-        // Read dynamic color preference (defaults to true)
-        val useDynamicColor = runBlocking {
-            dataStoreManager.getDynamicColor().first()
-        }
-
         setContent {
             val targetScreen by targetScreenState
+            val useDynamicColor by dataStoreManager.getDynamicColor().collectAsState(initial = true)
             DashboardScreen(
                 dynamicColorEnabled = useDynamicColor,
                 targetScreen = targetScreen
@@ -104,7 +101,9 @@ fun DashboardScreen(
     val navController: NavHostController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: Screens.StatsPill.route
-    val featureRegistry by featureRegistry().features.collectAsState()
+    val featureRegistryInstance = featureRegistry()
+    val featureRegistry by featureRegistryInstance.features.collectAsState()
+    val featureStates by featureRegistryInstance.featureStates.collectAsState()
 
     LaunchedEffect(targetScreen) {
         if (!targetScreen.isNullOrBlank() && targetScreen != currentRoute) {
@@ -118,13 +117,21 @@ fun DashboardScreen(
         }
     }
     
-    // Get enabled features sorted by category and sort order
-    val enabledFeatures = featureRegistry.values.filter { 
-        featureRegistry[it.id]?.let { def -> 
-            // Check if feature is enabled (default to true if not in states)
-            true 
-        } ?: true
-    }.sortedBy { it.sortOrder }
+    val allScreens = listOf(
+        Screens.StatsPill,
+        Screens.RssReader,
+        Screens.Scratch,
+        Screens.Lists,
+        Screens.Scenes,
+        Screens.Settings
+    )
+
+    // Filter screens dynamically based on feature enabled states
+    val visibleScreens = allScreens.filter { screen ->
+        val featureId = screen.getFeatureId()
+        if (featureId.isEmpty() || featureId == "settings") true
+        else featureStates[featureId] != false
+    }
 
     AlloyTheme(dynamicColor = dynamicColorEnabled) {
         Surface(
@@ -133,7 +140,7 @@ fun DashboardScreen(
         ) {
             DrawerScaffold(
                 currentFeature = currentRoute,
-                screens = listOf(Screens.StatsPill, Screens.RssReader, Screens.Scratch, Screens.Lists, Screens.Scenes),
+                screens = visibleScreens,
                 onScreenSelected = { route ->
                     if (route != currentRoute) {
                         navController.navigate(route) {
@@ -169,6 +176,10 @@ fun DashboardScreen(
                         composable(Screens.Scenes.route) {
                             val viewModel: ScenesViewModel = hiltViewModel()
                             ScenesScreen(viewModel = viewModel)
+                        }
+                        composable(Screens.Settings.route) {
+                            val viewModel: SettingsViewModel = hiltViewModel()
+                            SettingsScreen(viewModel = viewModel)
                         }
                     }
                 }

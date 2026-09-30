@@ -1,0 +1,343 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>ComplexCondition:RssXmlParser.kt$RssXmlParser$href != null &amp;&amp; (rel.isBlank() || rel == "alternate" || link == null)</ID>
+    <ID>ComplexCondition:RssXmlParser.kt$RssXmlParser$url != null &amp;&amp; (medium == "image" || type.startsWith("image/") || (medium.isBlank() &amp;&amp; type.isBlank()))</ID>
+    <ID>ComplexCondition:ThermalDataSource.kt$ThermalDataSource$type.contains("cpu") || type.contains("soc") || type.contains("tsens") || type.contains("cluster")</ID>
+    <ID>ComplexCondition:ThermalDataSource.kt$ThermalDataSource$typeFile.exists() &amp;&amp; typeFile.canRead() &amp;&amp; tempFile.exists() &amp;&amp; tempFile.canRead()</ID>
+    <ID>CyclomaticComplexMethod:DiskDataSource.kt$DiskDataSource$override suspend fun read(): DiskStats</ID>
+    <ID>CyclomaticComplexMethod:ListEditorDialog.kt$@Composable fun ListEditorDialog( list: KeepList, items: List&lt;KeepListItem&gt;, onDismiss: (pendingText: String) -&gt; Unit, onTitleChange: (String) -&gt; Unit, onAddItem: (String) -&gt; Unit, onInsertItemAfter: (currentItemId: String, newId: String) -&gt; Unit, onUpdateItemText: (itemId: String, text: String) -&gt; Unit, onToggleItemCompletion: (itemId: String) -&gt; Unit, onDeleteItem: (itemId: String) -&gt; Unit, onSetColor: (Long) -&gt; Unit, onTogglePin: () -&gt; Unit, onSave: (pendingText: String) -&gt; Unit, onDeleteList: () -&gt; Unit )</ID>
+    <ID>CyclomaticComplexMethod:ListsViewModel.kt$ListsViewModel$override fun onAction(action: ListsUiAction)</ID>
+    <ID>CyclomaticComplexMethod:RssArticleCard.kt$@Composable fun RssArticleCard( item: RssFeedItem, onOpenArticle: (String) -&gt; Unit, onToggleFavorite: (String) -&gt; Unit, onToggleRead: (String) -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>CyclomaticComplexMethod:RssReaderScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun RssReaderScreen( state: RssReaderUiState, onAction: (RssReaderUiAction) -&gt; Unit, modifier: Modifier = Modifier, snackbarHostState: SnackbarHostState = remember { SnackbarHostState() } )</ID>
+    <ID>CyclomaticComplexMethod:RssReaderViewModel.kt$RssReaderViewModel$override fun onAction(action: RssReaderUiAction)</ID>
+    <ID>CyclomaticComplexMethod:RssXmlParser.kt$RssXmlParser$private fun parseAtomEntry(entry: Element, feedUrl: String): ParsedFeedItem?</ID>
+    <ID>CyclomaticComplexMethod:RssXmlParser.kt$RssXmlParser$private fun parseRssItem(item: Element, feedUrl: String): ParsedFeedItem?</ID>
+    <ID>CyclomaticComplexMethod:ScratchScreen.kt$@Composable fun ScratchScreen( viewModel: ScratchViewModel, modifier: Modifier = Modifier, )</ID>
+    <ID>CyclomaticComplexMethod:ScratchViewModel.kt$ScratchViewModel$override fun onAction(action: ScratchUiAction)</ID>
+    <ID>CyclomaticComplexMethod:StatCard.kt$@Composable fun StatCard( config: StatCardConfig, modifier: Modifier = Modifier )</ID>
+    <ID>CyclomaticComplexMethod:ThermalDataSource.kt$ThermalDataSource$private fun getCpuTemperatureCelsius(): Float?</ID>
+    <ID>ForbiddenComment:AlloyNavGraph.kt$// TODO: Implement scratch detail screen</ID>
+    <ID>FunctionNaming:AlloyNavGraph.kt$@Composable fun AlloyNavGraph( navController: NavHostController, startDestination: String = Screens.START_DESTINATION, modifier: Modifier = Modifier, onStatsPill: @Composable () -&gt; Unit, onRssReader: @Composable () -&gt; Unit, onScratch: @Composable () -&gt; Unit, onScenes: @Composable () -&gt; Unit )</ID>
+    <ID>FunctionNaming:DashboardActivity.kt$@Composable fun DashboardScreen( dynamicColorEnabled: Boolean = true, targetScreen: String? = null )</ID>
+    <ID>FunctionNaming:DesktopScrollbar.kt$@Composable fun DesktopVerticalScrollbar( scrollState: ScrollState, modifier: Modifier = Modifier, thumbColor: Color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) )</ID>
+    <ID>FunctionNaming:DetailPaneScaffold.kt$@Composable fun DetailPaneScaffold( isOpen: Boolean, onDismiss: () -&gt; Unit, title: String, modifier: Modifier = Modifier, content: @Composable () -&gt; Unit )</ID>
+    <ID>FunctionNaming:DrawerScaffold.kt$@Composable fun DrawerScaffold( currentFeature: String, screens: List&lt;Screens&gt;, onScreenSelected: (String) -&gt; Unit, modifier: Modifier = Modifier, title: String? = null, railHeader: (@Composable ColumnScope.() -&gt; Unit)? = null, content: @Composable () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:FeatureDetail.kt$FeatureDetail$@Composable fun DetailContent()</ID>
+    <ID>FunctionNaming:ListCard.kt$@Composable fun ListCard( listWithItems: ListWithItems, onCardClick: () -&gt; Unit, onToggleItem: (itemId: String, isCompleted: Boolean) -&gt; Unit, onTogglePin: () -&gt; Unit, onDeleteList: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:ListEditorDialog.kt$@Composable fun ListEditorDialog( list: KeepList, items: List&lt;KeepListItem&gt;, onDismiss: (pendingText: String) -&gt; Unit, onTitleChange: (String) -&gt; Unit, onAddItem: (String) -&gt; Unit, onInsertItemAfter: (currentItemId: String, newId: String) -&gt; Unit, onUpdateItemText: (itemId: String, text: String) -&gt; Unit, onToggleItemCompletion: (itemId: String) -&gt; Unit, onDeleteItem: (itemId: String) -&gt; Unit, onSetColor: (Long) -&gt; Unit, onTogglePin: () -&gt; Unit, onSave: (pendingText: String) -&gt; Unit, onDeleteList: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:ListsScreen.kt$@Composable fun ListsScreen( viewModel: ListsViewModel, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:NavigationPane.kt$@Composable fun NavigationPane( currentFeature: String, screens: List&lt;Screens&gt;, onScreenSelected: (String) -&gt; Unit, onDismiss: (() -&gt; Unit)? = null, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:NavigationRailPane.kt$@Composable fun NavigationRailPane( currentFeature: String, screens: List&lt;Screens&gt;, onScreenSelected: (String) -&gt; Unit, modifier: Modifier = Modifier, header: (@Composable ColumnScope.() -&gt; Unit)? = null )</ID>
+    <ID>FunctionNaming:PermissionDialog.kt$@Composable fun PermissionRationaleDialog( permission: AppPermission, onGrantClick: () -&gt; Unit, onSettingsClick: () -&gt; Unit, onDismiss: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:PermissionDialog.kt$@Composable fun PermissionRequestDialog( permission: AppPermission, onConfirm: () -&gt; Unit, onDismiss: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:PermissionStatus.kt$@Composable fun PermissionStatusBadge( permissionState: PermissionUiState, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:PermissionStatus.kt$@Composable fun PermissionStatusIndicator( permissionState: PermissionUiState, onReRequestClick: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:RssAddFeedSheet.kt$@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) @Composable fun RssAddFeedSheet( onDismiss: () -&gt; Unit, onAddFeed: (url: String, title: String?) -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:RssArticleCard.kt$@Composable fun RssArticleCard( item: RssFeedItem, onOpenArticle: (String) -&gt; Unit, onToggleFavorite: (String) -&gt; Unit, onToggleRead: (String) -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:RssReaderGlanceWidget.kt$@Composable private fun EmptyWidgetState()</ID>
+    <ID>FunctionNaming:RssReaderGlanceWidget.kt$@Composable private fun GlanceArticleCard( context: Context, item: RssFeedItem )</ID>
+    <ID>FunctionNaming:RssReaderGlanceWidget.kt$@Composable private fun OpenAppButton(context: Context)</ID>
+    <ID>FunctionNaming:RssReaderGlanceWidget.kt$@Composable private fun RssWidgetContent( context: Context, items: List&lt;RssFeedItem&gt; )</ID>
+    <ID>FunctionNaming:RssReaderScreen.kt$@Composable fun RssReaderScreen( viewModel: RssReaderViewModel, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:RssReaderScreen.kt$@Composable private fun EmptyArticlesState(modifier: Modifier = Modifier)</ID>
+    <ID>FunctionNaming:RssReaderScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun RssReaderScreen( state: RssReaderUiState, onAction: (RssReaderUiAction) -&gt; Unit, modifier: Modifier = Modifier, snackbarHostState: SnackbarHostState = remember { SnackbarHostState() } )</ID>
+    <ID>FunctionNaming:RssSettingsPanel.kt$@Composable private fun FeedSubscriptionRow( feed: RssFeed, onToggleEnabled: (Boolean) -&gt; Unit, onDelete: () -&gt; Unit )</ID>
+    <ID>FunctionNaming:RssSettingsPanel.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun RssSettingsPanel( state: RssReaderUiState, onAction: (RssReaderUiAction) -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:ScenesScreen.kt$@Composable fun ScenesScreen( viewModel: ScenesViewModel, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:ScratchScreen.kt$@Composable fun ScratchScreen( viewModel: ScratchViewModel, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:ScratchScreen.kt$@Composable private fun CodeEditorPane( content: String, language: EditorLanguage, onContentChange: (String) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:ScratchScreen.kt$@Composable private fun DocumentTabBar( documents: List&lt;Scratch&gt;, activeDocumentId: String?, unlockedDocumentIds: Set&lt;String&gt;, onSelectDocument: (String) -&gt; Unit, onCloseDocument: (String) -&gt; Unit, )</ID>
+    <ID>FunctionNaming:ScratchScreen.kt$@Composable private fun EditorToolbar( document: Scratch, isUnlockedInSession: Boolean, onLanguageChange: (EditorLanguage) -&gt; Unit, onToggleLock: () -&gt; Unit, onExportClick: () -&gt; Unit, onRenameClick: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:ScratchScreen.kt$@Composable private fun LockboxGatekeeperPane( document: Scratch, onUnlock: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:SettingCards.kt$@Composable fun FeatureDetailSection( title: String, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -&gt; Unit )</ID>
+    <ID>FunctionNaming:SettingCards.kt$@Composable fun InfoCard( message: String, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:SettingCards.kt$@Composable fun SettingCard( title: String, subtitle: String? = null, value: String? = null, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -&gt; Unit = {} )</ID>
+    <ID>FunctionNaming:SettingCards.kt$@Composable fun SettingSection( title: String, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -&gt; Unit )</ID>
+    <ID>FunctionNaming:SettingsPanel.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun SettingsPanel( settings: StatsUiState, onSettingsChange: (StatsUiAction) -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:SettingsScreen.kt$@Composable fun SettingsScreen( viewModel: SettingsViewModel, onNavigateTo: (String) -&gt; Unit = {}, onNavigateUp: () -&gt; Unit = {}, )</ID>
+    <ID>FunctionNaming:SettingsScreen.kt$@Composable internal fun SettingsScreenContent( uiState: SettingsUiState, onAction: (SettingsUiAction) -&gt; Unit, onNavigateTo: (String) -&gt; Unit, onNavigateUp: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:StatCard.kt$@Composable fun StatCard( config: StatCardConfig, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:StatsGlanceWidget.kt$StatsGlanceWidget$@Composable private fun GlanceWidgetContent()</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun BatteryCard( batteryInfo: BatteryInfo, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun BatteryStatCard( batteryInfo: BatteryInfo, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun CpuCard( systemStats: SystemStats, modifier: Modifier = Modifier, usePercentages: Boolean = true )</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun CpuCard( systemStats: SystemStats, settings: StatsUiState, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun CpuStatCard( systemStats: SystemStats, modifier: Modifier = Modifier, usePercentages: Boolean = true )</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun NetworkCard( networkStats: NetworkStats, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun NetworkStatCard( networkStats: NetworkStats, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun RamCard( systemStats: SystemStats, modifier: Modifier = Modifier, usePercentages: Boolean = true )</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun RamCard( systemStats: SystemStats, settings: StatsUiState, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun RamStatCard( systemStats: SystemStats, modifier: Modifier = Modifier, usePercentages: Boolean = true )</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun StatsGrid( cards: List&lt;@Composable () -&gt; Unit&gt;, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun StatsGrid( stats: CombinedTelemetry, settings: StatsUiState, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun StorageCard( diskStats: DiskStats, modifier: Modifier = Modifier, usePercentages: Boolean = true )</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun StorageCard( diskStats: DiskStats, settings: StatsUiState, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun StorageStatCard( diskStats: DiskStats, modifier: Modifier = Modifier, usePercentages: Boolean = true )</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun TemperatureCard( thermalStats: ThermalStats, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:StatsGrid.kt$@Composable fun TemperatureStatCard( thermalStats: ThermalStats, modifier: Modifier = Modifier )</ID>
+    <ID>FunctionNaming:StatsScreen.kt$@Composable fun StatsScreen( viewModel: StatsViewModel, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:Theme.kt$@Composable fun AlloyTheme( darkTheme: Boolean = isSystemInDarkTheme(), dynamicColor: Boolean = true, content: @Composable () -&gt; Unit )</ID>
+    <ID>LongMethod:DashboardActivity.kt$@Composable fun DashboardScreen( dynamicColorEnabled: Boolean = true, targetScreen: String? = null )</ID>
+    <ID>LongMethod:DetailPaneScaffold.kt$@Composable fun DetailPaneScaffold( isOpen: Boolean, onDismiss: () -&gt; Unit, title: String, modifier: Modifier = Modifier, content: @Composable () -&gt; Unit )</ID>
+    <ID>LongMethod:DiskDataSource.kt$DiskDataSource$override suspend fun read(): DiskStats</ID>
+    <ID>LongMethod:ListCard.kt$@Composable fun ListCard( listWithItems: ListWithItems, onCardClick: () -&gt; Unit, onToggleItem: (itemId: String, isCompleted: Boolean) -&gt; Unit, onTogglePin: () -&gt; Unit, onDeleteList: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:ListEditorDialog.kt$@Composable fun ListEditorDialog( list: KeepList, items: List&lt;KeepListItem&gt;, onDismiss: (pendingText: String) -&gt; Unit, onTitleChange: (String) -&gt; Unit, onAddItem: (String) -&gt; Unit, onInsertItemAfter: (currentItemId: String, newId: String) -&gt; Unit, onUpdateItemText: (itemId: String, text: String) -&gt; Unit, onToggleItemCompletion: (itemId: String) -&gt; Unit, onDeleteItem: (itemId: String) -&gt; Unit, onSetColor: (Long) -&gt; Unit, onTogglePin: () -&gt; Unit, onSave: (pendingText: String) -&gt; Unit, onDeleteList: () -&gt; Unit )</ID>
+    <ID>LongMethod:ListsScreen.kt$@Composable fun ListsScreen( viewModel: ListsViewModel, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:ListsViewModel.kt$ListsViewModel$override fun onAction(action: ListsUiAction)</ID>
+    <ID>LongMethod:ModuleRegistryImpl.kt$ModuleRegistryImpl$private fun initializeFeatures()</ID>
+    <ID>LongMethod:NavigationPane.kt$@Composable fun NavigationPane( currentFeature: String, screens: List&lt;Screens&gt;, onScreenSelected: (String) -&gt; Unit, onDismiss: (() -&gt; Unit)? = null, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:RssAddFeedSheet.kt$@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) @Composable fun RssAddFeedSheet( onDismiss: () -&gt; Unit, onAddFeed: (url: String, title: String?) -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:RssArticleCard.kt$@Composable fun RssArticleCard( item: RssFeedItem, onOpenArticle: (String) -&gt; Unit, onToggleFavorite: (String) -&gt; Unit, onToggleRead: (String) -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:RssReaderGlanceWidget.kt$@Composable private fun GlanceArticleCard( context: Context, item: RssFeedItem )</ID>
+    <ID>LongMethod:RssReaderScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun RssReaderScreen( state: RssReaderUiState, onAction: (RssReaderUiAction) -&gt; Unit, modifier: Modifier = Modifier, snackbarHostState: SnackbarHostState = remember { SnackbarHostState() } )</ID>
+    <ID>LongMethod:RssSettingsPanel.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun RssSettingsPanel( state: RssReaderUiState, onAction: (RssReaderUiAction) -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:RssXmlParser.kt$RssXmlParser$private fun parseRssItem(item: Element, feedUrl: String): ParsedFeedItem?</ID>
+    <ID>LongMethod:ScratchScreen.kt$@Composable fun ScratchScreen( viewModel: ScratchViewModel, modifier: Modifier = Modifier, )</ID>
+    <ID>LongMethod:ScratchScreen.kt$@Composable private fun EditorToolbar( document: Scratch, isUnlockedInSession: Boolean, onLanguageChange: (EditorLanguage) -&gt; Unit, onToggleLock: () -&gt; Unit, onExportClick: () -&gt; Unit, onRenameClick: () -&gt; Unit, )</ID>
+    <ID>LongMethod:SettingsPanel.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun SettingsPanel( settings: StatsUiState, onSettingsChange: (StatsUiAction) -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:StatCard.kt$@Composable fun StatCard( config: StatCardConfig, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:StatsScreen.kt$@Composable fun StatsScreen( viewModel: StatsViewModel, modifier: Modifier = Modifier, )</ID>
+    <ID>LongParameterList:AlloyNavGraph.kt$( navController: NavHostController, startDestination: String = Screens.START_DESTINATION, modifier: Modifier = Modifier, onStatsPill: @Composable () -&gt; Unit, onRssReader: @Composable () -&gt; Unit, onScratch: @Composable () -&gt; Unit, onScenes: @Composable () -&gt; Unit )</ID>
+    <ID>LongParameterList:DrawerScaffold.kt$( currentFeature: String, screens: List&lt;Screens&gt;, onScreenSelected: (String) -&gt; Unit, modifier: Modifier = Modifier, title: String? = null, railHeader: (@Composable ColumnScope.() -&gt; Unit)? = null, content: @Composable () -&gt; Unit, )</ID>
+    <ID>LongParameterList:ListCard.kt$( listWithItems: ListWithItems, onCardClick: () -&gt; Unit, onToggleItem: (itemId: String, isCompleted: Boolean) -&gt; Unit, onTogglePin: () -&gt; Unit, onDeleteList: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongParameterList:ListEditorDialog.kt$( list: KeepList, items: List&lt;KeepListItem&gt;, onDismiss: (pendingText: String) -&gt; Unit, onTitleChange: (String) -&gt; Unit, onAddItem: (String) -&gt; Unit, onInsertItemAfter: (currentItemId: String, newId: String) -&gt; Unit, onUpdateItemText: (itemId: String, text: String) -&gt; Unit, onToggleItemCompletion: (itemId: String) -&gt; Unit, onDeleteItem: (itemId: String) -&gt; Unit, onSetColor: (Long) -&gt; Unit, onTogglePin: () -&gt; Unit, onSave: (pendingText: String) -&gt; Unit, onDeleteList: () -&gt; Unit )</ID>
+    <ID>LongParameterList:PermissionsManager.kt$PermissionsManager$( context: Context, activity: Activity, permission: AppPermission, launcher: ActivityResultLauncher&lt;String&gt;, onGranted: () -&gt; Unit, onDenied: () -&gt; Unit = {}, onShowRationale: () -&gt; Unit = {} )</ID>
+    <ID>LongParameterList:RssReaderViewModel.kt$RssReaderViewModel$( private val observeFeedsUseCase: ObserveFeedsUseCase, private val observeArticlesUseCase: ObserveArticlesUseCase, private val refreshFeedsUseCase: RefreshFeedsUseCase, private val addFeedUseCase: AddFeedUseCase, private val updateFeedUseCase: UpdateFeedUseCase, private val deleteFeedUseCase: DeleteFeedUseCase, private val toggleFavoriteUseCase: ToggleFavoriteUseCase, private val markArticleReadUseCase: MarkArticleReadUseCase, private val purgeCacheUseCase: PurgeCacheUseCase )</ID>
+    <ID>LongParameterList:ScratchScreen.kt$( document: Scratch, isUnlockedInSession: Boolean, onLanguageChange: (EditorLanguage) -&gt; Unit, onToggleLock: () -&gt; Unit, onExportClick: () -&gt; Unit, onRenameClick: () -&gt; Unit, )</ID>
+    <ID>LongParameterList:StatsColorUtils.kt$( value: Float, min: Float = 0f, max: Float = 100f, higherIsBetter: Boolean = false, isDarkTheme: Boolean = false, saturation: Float = 0.35f )</ID>
+    <ID>MagicNumber:BatteryDataSource.kt$BatteryDataSource$100</ID>
+    <ID>MagicNumber:BatteryDataSource.kt$BatteryDataSource$100f</ID>
+    <ID>MagicNumber:BatteryDataSource.kt$BatteryDataSource$8</ID>
+    <ID>MagicNumber:CryptoManager.kt$CryptoManager$128</ID>
+    <ID>MagicNumber:CryptoManager.kt$CryptoManager$256</ID>
+    <ID>MagicNumber:DiskDataSource.kt$DiskDataSource$100f</ID>
+    <ID>MagicNumber:DomainModels.kt$BatteryInfo$1000</ID>
+    <ID>MagicNumber:DomainModels.kt$BatteryInfo$10f</ID>
+    <ID>MagicNumber:DomainModels.kt$BatteryInfo$3</ID>
+    <ID>MagicNumber:DomainModels.kt$BatteryInfo$4</ID>
+    <ID>MagicNumber:DomainModels.kt$BatteryInfo$5</ID>
+    <ID>MagicNumber:DomainModels.kt$BatteryInfo$6</ID>
+    <ID>MagicNumber:DomainModels.kt$BatteryInfo$7</ID>
+    <ID>MagicNumber:DomainModels.kt$DiskStats$100f</ID>
+    <ID>MagicNumber:DomainModels.kt$DiskStats.Companion$1024</ID>
+    <ID>MagicNumber:DomainModels.kt$DiskStats.Companion$1024.0</ID>
+    <ID>MagicNumber:DomainModels.kt$NetworkStats$1000</ID>
+    <ID>MagicNumber:DomainModels.kt$NetworkStats$1_000</ID>
+    <ID>MagicNumber:DomainModels.kt$NetworkStats$1_000_000</ID>
+    <ID>MagicNumber:DomainModels.kt$NetworkStats$1_000_000.0</ID>
+    <ID>MagicNumber:DomainModels.kt$StorageVolumeInfo.Companion$1024</ID>
+    <ID>MagicNumber:DomainModels.kt$StorageVolumeInfo.Companion$1024.0</ID>
+    <ID>MagicNumber:EncryptedRoomFactory.kt$EncryptedRoomFactory$32</ID>
+    <ID>MagicNumber:HighlightsVisualTransformation.kt$HighlightsVisualTransformation$0x00FFFFFF</ID>
+    <ID>MagicNumber:ListCard.kt$0xFF202124</ID>
+    <ID>MagicNumber:ListCard.kt$5</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.BLOSSOM$0xFF5B2245L</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.BLOSSOM$0xFFFDCFE8L</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.CHALK$0xFF3C3F41L</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.CHALK$0xFFE8EAEDL</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.CLAY$0xFF442F19L</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.CLAY$0xFFE6C9A8L</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.CORAL$0xFF5C2B29L</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.CORAL$0xFFF28B82L</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.DUSK$0xFF42275EL</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.DUSK$0xFFD7AEFBL</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.FOG$0xFF2D555EL</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.FOG$0xFFCBF0F8L</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.MINT$0xFF345920L</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.MINT$0xFFCCFF90L</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.PEACH$0xFF614A19L</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.PEACH$0xFFFBBC04L</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.SAGE$0xFF16504BL</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.SAGE$0xFFA7FFEBL</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.SAND$0xFF635D19L</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.SAND$0xFFFFF475L</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.STORM$0xFF1E3A5FL</ID>
+    <ID>MagicNumber:ListColor.kt$ListColor.STORM$0xFFAECBFAL</ID>
+    <ID>MagicNumber:ListEditorDialog.kt$0.85f</ID>
+    <ID>MagicNumber:ListEditorDialog.kt$0.92f</ID>
+    <ID>MagicNumber:ListEditorDialog.kt$0xFF202124</ID>
+    <ID>MagicNumber:ListEditorDialog.kt$50</ID>
+    <ID>MagicNumber:MemoryCache.kt$MemoryCache.&lt;no name provided&gt;$0.75f</ID>
+    <ID>MagicNumber:RssArticleCard.kt$1000</ID>
+    <ID>MagicNumber:RssArticleCard.kt$24</ID>
+    <ID>MagicNumber:RssArticleCard.kt$60</ID>
+    <ID>MagicNumber:RssArticleCard.kt$7</ID>
+    <ID>MagicNumber:RssReaderModule.kt$RssReaderModule$15</ID>
+    <ID>MagicNumber:RssReaderModule.kt$RssReaderModule$20</ID>
+    <ID>MagicNumber:RssRepositoryImpl.kt$RssRepositoryImpl$1000</ID>
+    <ID>MagicNumber:RssRepositoryImpl.kt$RssRepositoryImpl$14L</ID>
+    <ID>MagicNumber:RssRepositoryImpl.kt$RssRepositoryImpl$24</ID>
+    <ID>MagicNumber:RssRepositoryImpl.kt$RssRepositoryImpl$60</ID>
+    <ID>MagicNumber:RssSettingsPanel.kt$100</ID>
+    <ID>MagicNumber:RssSettingsPanel.kt$14</ID>
+    <ID>MagicNumber:RssSettingsPanel.kt$200</ID>
+    <ID>MagicNumber:RssSettingsPanel.kt$25</ID>
+    <ID>MagicNumber:RssSettingsPanel.kt$30</ID>
+    <ID>MagicNumber:RssSettingsPanel.kt$50</ID>
+    <ID>MagicNumber:RssSettingsPanel.kt$7</ID>
+    <ID>MagicNumber:SceneLauncher.kt$SceneLauncher$3</ID>
+    <ID>MagicNumber:SceneLauncher.kt$SceneLauncher$4</ID>
+    <ID>MagicNumber:SettingsRepository.kt$SettingsRepository$100</ID>
+    <ID>MagicNumber:SettingsRepository.kt$SettingsRepository$1000L</ID>
+    <ID>MagicNumber:StatCard.kt$0.45f</ID>
+    <ID>MagicNumber:StatCard.kt$0xFF1C1B1F</ID>
+    <ID>MagicNumber:StatCard.kt$0xFF261900</ID>
+    <ID>MagicNumber:StatCard.kt$0xFFF4EFF4</ID>
+    <ID>MagicNumber:StatCard.kt$0xFFFFD54F</ID>
+    <ID>MagicNumber:StatsColorUtils.kt$0.0031308f</ID>
+    <ID>MagicNumber:StatsColorUtils.kt$0.055f</ID>
+    <ID>MagicNumber:StatsColorUtils.kt$0.22f</ID>
+    <ID>MagicNumber:StatsColorUtils.kt$0.45f</ID>
+    <ID>MagicNumber:StatsColorUtils.kt$0.4f</ID>
+    <ID>MagicNumber:StatsColorUtils.kt$0.70f</ID>
+    <ID>MagicNumber:StatsColorUtils.kt$0.90f</ID>
+    <ID>MagicNumber:StatsColorUtils.kt$1.055f</ID>
+    <ID>MagicNumber:StatsColorUtils.kt$100f</ID>
+    <ID>MagicNumber:StatsColorUtils.kt$12.92f</ID>
+    <ID>MagicNumber:StatsColorUtils.kt$120f</ID>
+    <ID>MagicNumber:StatsColorUtils.kt$2.4</ID>
+    <ID>MagicNumber:StatsColorUtils.kt$20f</ID>
+    <ID>MagicNumber:StatsColorUtils.kt$30f</ID>
+    <ID>MagicNumber:StatsGrid.kt$1000f</ID>
+    <ID>MagicNumber:StatsGrid.kt$1024</ID>
+    <ID>MagicNumber:StatsGrid.kt$1024.0</ID>
+    <ID>MagicNumber:StatsPillOverlayService.kt$StatsPillOverlayService$1024</ID>
+    <ID>MagicNumber:StatsPillOverlayService.kt$StatsPillOverlayService$32</ID>
+    <ID>MagicNumber:SystemStatsDataSource.kt$SystemStatsDataSource$100f</ID>
+    <ID>MagicNumber:SystemStatsDataSource.kt$SystemStatsDataSource$1024L</ID>
+    <ID>MagicNumber:SystemStatsReader.kt$SystemStatsReader$100.0f</ID>
+    <ID>MagicNumber:SystemStatsReader.kt$SystemStatsReader$1000f</ID>
+    <ID>MagicNumber:SystemStatsReader.kt$SystemStatsReader$1024</ID>
+    <ID>MagicNumber:SystemStatsReader.kt$SystemStatsReader$1024f</ID>
+    <ID>MagicNumber:SystemStatsReader.kt$SystemStatsReader$3</ID>
+    <ID>MagicNumber:Theme.kt$0xFF000000</ID>
+    <ID>MagicNumber:Theme.kt$0xFF03DAC6</ID>
+    <ID>MagicNumber:Theme.kt$0xFF121212</ID>
+    <ID>MagicNumber:Theme.kt$0xFF1E1E1E</ID>
+    <ID>MagicNumber:Theme.kt$0xFF2196F3</ID>
+    <ID>MagicNumber:Theme.kt$0xFF4CAF50</ID>
+    <ID>MagicNumber:Theme.kt$0xFF6200EE</ID>
+    <ID>MagicNumber:Theme.kt$0xFFB00020</ID>
+    <ID>MagicNumber:Theme.kt$0xFFBB86FC</ID>
+    <ID>MagicNumber:Theme.kt$0xFFCF6679</ID>
+    <ID>MagicNumber:Theme.kt$0xFFFF9800</ID>
+    <ID>MagicNumber:Theme.kt$0xFFFFFFFF</ID>
+    <ID>MagicNumber:ThermalDataSource.kt$ThermalDataSource$1000f</ID>
+    <ID>MagicNumber:ThermalDataSource.kt$ThermalDataSource$10f</ID>
+    <ID>MagicNumber:ThermalDataSource.kt$ThermalDataSource$115.0f</ID>
+    <ID>MagicNumber:ThermalDataSource.kt$ThermalDataSource$15.0f</ID>
+    <ID>MagicNumber:WindowSizeClass.kt$600</ID>
+    <ID>MagicNumber:WindowSizeClass.kt$840</ID>
+    <ID>MatchingDeclarationName:Permission.kt$AppPermission</ID>
+    <ID>MaxLineLength:BatteryDataSource.kt$BatteryDataSource$status = if (isCharging) BatteryManager.BATTERY_STATUS_CHARGING else BatteryManager.BATTERY_STATUS_DISCHARGING</ID>
+    <ID>MaxLineLength:DomainModels.kt$DiskStats.Companion$bytes &gt;= 1L * 1024 * 1024 * 1024 -&gt; String.format(Locale.US, "%.1f GB", bytes / (1024.0 * 1024.0 * 1024.0))</ID>
+    <ID>MaxLineLength:DomainModels.kt$StorageVolumeInfo.Companion$bytes &gt;= 1L * 1024 * 1024 * 1024 -&gt; String.format(Locale.US, "%.1f GB", bytes / (1024.0 * 1024.0 * 1024.0))</ID>
+    <ID>MaxLineLength:EncryptedRoomFactory.kt$EncryptedRoomFactory$throw IllegalStateException("Failed to decrypt database key for $dbName. Keystore may be locked or key invalid.", e)</ID>
+    <ID>MaxLineLength:ListCard.kt$tint = if (list.isPinned) MaterialTheme.colorScheme.primary else contentColor.copy(alpha = 0.6f)</ID>
+    <ID>MaxLineLength:ListEditorDialog.kt$color = if (isSelected) MaterialTheme.colorScheme.primary else contentColor.copy(alpha = 0.25f)</ID>
+    <ID>MaxLineLength:ListsScreen.kt$onCardClick = { viewModel.onAction(ListsUiAction.OpenEditListDialog(listWithItems.list.id)) }</ID>
+    <ID>MaxLineLength:ListsScreen.kt$onInsertItemAfter = { currentId, newId -&gt; viewModel.onAction(ListsUiAction.InsertEditorItemAfter(currentId, newId)) }</ID>
+    <ID>MaxLineLength:ListsScreen.kt$viewModel.onAction(ListsUiAction.ToggleListPinQuick(listWithItems.list.id, listWithItems.list.isPinned))</ID>
+    <ID>MaxLineLength:ListsViewModel.kt$ListsUiAction$InsertEditorItemAfter : ListsUiAction</ID>
+    <ID>MaxLineLength:ModuleInfo.kt$ModuleInfo$@Deprecated("Use FeatureDefinition instead", ReplaceWith("FeatureDefinition", "com.squidink.alloy.core.feature.FeatureDefinition"))</ID>
+    <ID>MaxLineLength:Permission.kt$AppPermission.PostNotifications$rationale = "Alloy can notify you about high CPU/RAM usage, breaking news feeds, and other important events. Notifications help you stay informed without opening the app."</ID>
+    <ID>MaxLineLength:Permission.kt$AppPermission.ReceiveBoot$rationale = "Alloy can start automatically when your device boots to restore your previous session and keep features running."</ID>
+    <ID>MaxLineLength:Permission.kt$AppPermission.SystemOverlay$rationale = "Alloy needs permission to display the live stats pill overlay above other apps. This allows you to monitor system vitals while using any app."</ID>
+    <ID>MaxLineLength:PermissionStatus.kt$is PermissionState.Denied -&gt; stringResource(R.string.permission_status_denied_description, permissionState.permission.title)</ID>
+    <ID>MaxLineLength:PermissionStatus.kt$is PermissionState.Granted -&gt; stringResource(R.string.permission_status_granted_description, permissionState.permission.title)</ID>
+    <ID>MaxLineLength:PermissionStatus.kt$is PermissionState.Pending -&gt; stringResource(R.string.permission_status_pending_description, permissionState.permission.title)</ID>
+    <ID>MaxLineLength:PermissionStatus.kt$is PermissionState.PermanentlyDenied -&gt; stringResource(R.string.permission_status_permanently_denied_description, permissionState.permission.title)</ID>
+    <ID>MaxLineLength:RssArticleCard.kt$tint = if (item.isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline</ID>
+    <ID>MaxLineLength:RssArticleCard.kt$tint = if (item.isRead) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline</ID>
+    <ID>MaxLineLength:RssFeedDao.kt$RssFeedDao$@Query("DELETE FROM rss_feed_items WHERE feedUrl = :feedUrl AND isFavorite = 0 AND id NOT IN (SELECT id FROM rss_feed_items WHERE feedUrl = :feedUrl ORDER BY pubDate DESC LIMIT :keepCount)")</ID>
+    <ID>MaxLineLength:RssReaderScreen.kt$val next = if (state.filterType == ArticleFilter.FAVORITES) ArticleFilter.ALL else ArticleFilter.FAVORITES</ID>
+    <ID>MaxLineLength:RssReaderScreen.kt$val next = if (state.filterType == ArticleFilter.UNREAD) ArticleFilter.ALL else ArticleFilter.UNREAD</ID>
+    <ID>MaxLineLength:RssXmlParser.kt$RssXmlParser$if</ID>
+    <ID>MaxLineLength:ScenesScreen.kt$Text(stringResource(R.string.scenes_steps, scene.steps.size), style = MaterialTheme.typography.bodySmall)</ID>
+    <ID>MaxLineLength:ScenesViewModel.kt$ScenesViewModel.Companion$SceneStep("1", "com.android.chrome", activityName = "com.android.chrome.browser.main.MainActivity", placement = PlacementHint.LEFT)</ID>
+    <ID>MaxLineLength:ScenesViewModel.kt$ScenesViewModel.Companion$SceneStep("2", "com.squidink.alloy.modules.scratch.ScratchActivity", placement = PlacementHint.RIGHT)</ID>
+    <ID>MaxLineLength:ScratchDao.kt$ScratchDao$@Query("UPDATE scratch_notes SET title = :title, language = :language, isLocked = :isLocked, updatedAt = :updatedAt WHERE id = :id")</ID>
+    <ID>MaxLineLength:ScratchFeatureDetail.kt$ScratchFeatureDetail$InfoCard("Lockbox Policy: Documents in the Secure Lockbox automatically re-lock upon application restart or backgrounding.")</ID>
+    <ID>MaxLineLength:ScratchScreen.kt$focusedContainerColor = if (isDark) MaterialTheme.colorScheme.surfaceContainerLowest else MaterialTheme.colorScheme.surface</ID>
+    <ID>MaxLineLength:ScratchScreen.kt$icon = { Icon(Icons.Default.Security, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }</ID>
+    <ID>MaxLineLength:ScratchScreen.kt$tint = if (isUnlockedInSession) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error</ID>
+    <ID>MaxLineLength:ScratchScreen.kt$unfocusedContainerColor = if (isDark) MaterialTheme.colorScheme.surfaceContainerLowest else MaterialTheme.colorScheme.surface</ID>
+    <ID>MaxLineLength:ScratchViewModel.kt$ScratchViewModel$content = "# Welcome to Alloy Lightweight Editor\n\n- Multi-document tabbed workspace\n- Syntax highlighting with 17+ languages\n- Secure Lockbox with biometric protection"</ID>
+    <ID>MaxLineLength:ScratchViewModel.kt$ScratchViewModel$state.activeDocumentId != null &amp;&amp; docs.any { it.id == state.activeDocumentId } -&gt; state.activeDocumentId</ID>
+    <ID>MaxLineLength:StatCard.kt$text = if (statValue.label.isNotEmpty()) "${statValue.label}: ${statValue.value}" else statValue.value</ID>
+    <ID>MaxLineLength:StatsGrid.kt$thermalStats.batteryTemperature?.let { StatValue(label = "Battery Sensor", value = String.format(Locale.US, "%.1f°C", it)) }</ID>
+    <ID>MaxLineLength:StatsGrid.kt$thermalStats.batteryTemperature?.let { StatValue(label = "Battery Temp", value = String.format(Locale.US, "%.1f°C", it)) }</ID>
+    <ID>MaxLineLength:StatsGrid.kt$thermalStats.skinTemperature?.let { StatValue(label = "Skin Sensor", value = String.format(Locale.US, "%.1f°C", it)) }</ID>
+    <ID>MaxLineLength:StatsGrid.kt$thermalStats.skinTemperature?.let { StatValue(label = "Skin Temp", value = String.format(Locale.US, "%.1f°C", it)) }</ID>
+    <ID>MaxLineLength:StatsGrid.kt$value = "${volume.formatUsedBytes()} / ${volume.formatTotalBytes()} (${String.format(Locale.US, "%.0f%%", volume.percentUsed)})"</ID>
+    <ID>MaxLineLength:ThermalDataSource.kt$ThermalDataSource$Logger.w(TAG, "/sys/class/thermal is inaccessible or restricted by SELinux; halting sysfs thermal polling.")</ID>
+    <ID>MaxLineLength:ThermalDataSource.kt$ThermalDataSource$if</ID>
+    <ID>NestedBlockDepth:RssXmlParser.kt$RssXmlParser$private fun Element.findChild(vararg tagNames: String): Element?</ID>
+    <ID>NestedBlockDepth:RssXmlParser.kt$RssXmlParser$private fun Element.findChildren(vararg tagNames: String): List&lt;Element&gt;</ID>
+    <ID>NestedBlockDepth:ThermalDataSource.kt$ThermalDataSource$private fun getCpuTemperatureCelsius(): Float?</ID>
+    <ID>NewLineAtEndOfFile:KeyboardShortcuts.kt$com.squidink.alloy.core.layout.KeyboardShortcuts.kt</ID>
+    <ID>ReturnCount:DateParser.kt$DateParser$fun parseDateToEpochMs(dateStr: String?, fallbackMs: Long = System.currentTimeMillis()): Long</ID>
+    <ID>ReturnCount:ListsViewModel.kt$ListsViewModel$override fun onAction(action: ListsUiAction)</ID>
+    <ID>ReturnCount:NetworkDataSource.kt$NetworkDataSource$private fun getNetworkCapabilitiesInfo(): Triple&lt;NetworkTransportType, Int?, Boolean?&gt;</ID>
+    <ID>ReturnCount:RssRepositoryImpl.kt$RssRepositoryImpl$override suspend fun ensureDefaultFeed(): RssFeed</ID>
+    <ID>ReturnCount:ScratchViewModel.kt$ScratchViewModel$private fun savePendingContent()</ID>
+    <ID>ReturnCount:ThermalDataSource.kt$ThermalDataSource$private fun getCpuTemperatureCelsius(): Float?</ID>
+    <ID>ReturnCount:ThermalDataSource.kt$ThermalDataSource$private fun getThermalStatus(): ThermalStatus</ID>
+    <ID>SwallowedException:DiskDataSource.kt$DiskDataSource$e: Exception</ID>
+    <ID>SwallowedException:StatsPillOverlayService.kt$StatsPillOverlayService$e: IllegalArgumentException</ID>
+    <ID>SwallowedException:StatsViewModel.kt$StatsViewModel$e: IllegalArgumentException</ID>
+    <ID>TooGenericExceptionCaught:ArticleLauncherActivity.kt$ArticleLauncherActivity$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:BatteryDataSource.kt$BatteryDataSource$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:DiskDataSource.kt$DiskDataSource$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:EncryptedRoomFactory.kt$EncryptedRoomFactory$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:NetworkDataSource.kt$NetworkDataSource$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RssReaderGlanceWidget.kt$RssReaderGlanceWidget.Companion$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SceneLauncher.kt$SceneLauncher$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:StatsRepositoryImpl.kt$StatsRepositoryImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:StatsViewModel.kt$StatsViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SystemStatsDataSource.kt$SystemStatsDataSource$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SystemStatsReader.kt$SystemStatsReader$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ThermalDataSource.kt$ThermalDataSource$e: Exception</ID>
+    <ID>TooManyFunctions:BaseRepository.kt$BaseRepository&lt;Domain, Data, ID&gt;</ID>
+    <ID>TooManyFunctions:FeatureRegistry.kt$FeatureRegistry : IFeatureRegistry</ID>
+    <ID>TooManyFunctions:IRssFeedRepository.kt$IRssFeedRepository</ID>
+    <ID>TooManyFunctions:IStatsRepository.kt$IStatsRepository</ID>
+    <ID>TooManyFunctions:RssFeedDao.kt$RssFeedDao</ID>
+    <ID>TooManyFunctions:RssReaderViewModel.kt$RssReaderViewModel : BaseViewModel</ID>
+    <ID>TooManyFunctions:RssRepositoryImpl.kt$RssRepositoryImpl : IRssFeedRepository</ID>
+    <ID>TooManyFunctions:ScratchViewModel.kt$ScratchViewModel : BaseViewModel</ID>
+    <ID>TooManyFunctions:SettingsRepository.kt$SettingsRepository</ID>
+    <ID>TooManyFunctions:StatsGrid.kt$com.squidink.alloy.modules.statspill.ui.StatsGrid.kt</ID>
+    <ID>TooManyFunctions:StatsRepositoryImpl.kt$StatsRepositoryImpl : IStatsRepository</ID>
+    <ID>TooManyFunctions:StatsViewModel.kt$StatsViewModel : BaseViewModel</ID>
+    <ID>UnusedParameter:DesktopScrollbar.kt$scrollState: ScrollState</ID>
+    <ID>UnusedParameter:DrawerScaffold.kt$title: String? = null</ID>
+    <ID>UnusedParameter:PermissionsManager.kt$PermissionsManager$launcher: ActivityResultLauncher&lt;String&gt;</ID>
+    <ID>UnusedParameter:ScratchScreen.kt$document: Scratch</ID>
+    <ID>UnusedParameter:ScratchScreen.kt$isUnlockedInSession: Boolean</ID>
+    <ID>UnusedParameter:SettingsScreen.kt$onAction: (SettingsUiAction) -&gt; Unit</ID>
+    <ID>UnusedParameter:SettingsScreen.kt$onNavigateTo: (String) -&gt; Unit</ID>
+    <ID>UnusedParameter:SettingsScreen.kt$onNavigateUp: () -&gt; Unit</ID>
+    <ID>UnusedParameter:SettingsScreen.kt$uiState: SettingsUiState</ID>
+    <ID>UnusedPrivateProperty:AlloyNavGraph.kt$val scratchId = backStackEntry.arguments?.getString(Screens.ARG_SCRATCH_ID)</ID>
+    <ID>UnusedPrivateProperty:DashboardActivity.kt$val enabledFeatures = featureRegistry.values.filter { featureRegistry[it.id]?.let { def -&gt; // Check if feature is enabled (default to true if not in states) true } ?: true }.sortedBy { it.sortOrder }</ID>
+    <ID>UnusedPrivateProperty:DataModule.kt$DataModule$private const val TAG = "DataModule"</ID>
+    <ID>UnusedPrivateProperty:DataStoreManager.kt$DataStoreManager$private val cryptoManager: CryptoManager</ID>
+    <ID>UnusedPrivateProperty:ScratchViewModel.kt$ScratchViewModel$private var timerJob: Job? = null</ID>
+    <ID>UnusedPrivateProperty:ScratchViewModel.kt$ScratchViewModel$val docToClose = currentDocs.find { it.id == docId } ?: return</ID>
+    <ID>UnusedPrivateProperty:SettingsRepository.kt$SettingsRepository$// Module settings keys private val KEY_MODULE_ENABLED = "module_enabled_"</ID>
+    <ID>UnusedPrivateProperty:SettingsRepository.kt$SettingsRepository$// UI settings keys private val KEY_DYNAMIC_COLOR = "dynamic_color_enabled"</ID>
+    <ID>UnusedPrivateProperty:StatsActionsImpl.kt$StatsActionsImpl$private val statsRepository: IStatsRepository</ID>
+    <ID>UseCheckOrError:BaseRepository.kt$BaseRepository$throw IllegalStateException( "RemoteDataSource not configured for this repository" )</ID>
+    <ID>UseCheckOrError:DocumentExporter.kt$DocumentExporter$throw IllegalStateException("Unable to open output stream for URI: $uri")</ID>
+    <ID>VariableNaming:SettingsRepository.kt$SettingsRepository$// Cache settings keys private val KEY_CACHE_MAX_SIZE = "cache_max_size"</ID>
+    <ID>VariableNaming:SettingsRepository.kt$SettingsRepository$// Module settings keys private val KEY_MODULE_ENABLED = "module_enabled_"</ID>
+    <ID>VariableNaming:SettingsRepository.kt$SettingsRepository$// Network settings keys private val KEY_NETWORK_REFRESH_INTERVAL = "network_refresh_interval"</ID>
+    <ID>VariableNaming:SettingsRepository.kt$SettingsRepository$// Stats module settings keys private val KEY_STATS_USE_PERCENTAGES = "stats_use_percentages"</ID>
+    <ID>VariableNaming:SettingsRepository.kt$SettingsRepository$// UI settings keys private val KEY_DYNAMIC_COLOR = "dynamic_color_enabled"</ID>
+    <ID>VariableNaming:SettingsRepository.kt$SettingsRepository$private val KEY_CACHE_ENABLED = "cache_enabled"</ID>
+    <ID>VariableNaming:SettingsRepository.kt$SettingsRepository$private val KEY_STATS_CORNER_POSITION = "stats_corner_position"</ID>
+  </CurrentIssues>
+</SmellBaseline>

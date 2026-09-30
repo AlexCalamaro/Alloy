@@ -19,7 +19,19 @@ import javax.inject.Singleton
 class LoopbackServer @Inject constructor() {
 
     private var server: EmbeddedServer<*, *>? = null
-    var authToken: String? = null
+    private var authToken: String = generateSecureToken()
+
+    fun setAuthToken(token: String) {
+        this.authToken = token
+    }
+
+    fun getAuthToken(): String = authToken
+
+    private fun generateSecureToken(): String {
+        val randomBytes = ByteArray(32)
+        java.security.SecureRandom().nextBytes(randomBytes)
+        return android.util.Base64.encodeToString(randomBytes, android.util.Base64.NO_WRAP or android.util.Base64.URL_SAFE)
+    }
 
     fun start(port: Int = 8787): Result<Unit> {
         if (server != null) return Result.success(Unit)
@@ -33,7 +45,9 @@ class LoopbackServer @Inject constructor() {
 
                     get("/v1/models") {
                         val tokenHeader = call.request.header("Authorization")
-                        if (authToken != null && tokenHeader != "Bearer $authToken") {
+                        val expected = "Bearer $authToken".toByteArray(Charsets.UTF_8)
+                        val actual = (tokenHeader ?: "").toByteArray(Charsets.UTF_8)
+                        if (!java.security.MessageDigest.isEqual(expected, actual)) {
                             call.respondText("Unauthorized", status = HttpStatusCode.Unauthorized)
                         } else {
                             call.respondText("{\"data\": []}")

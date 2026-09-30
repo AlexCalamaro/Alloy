@@ -84,7 +84,7 @@ open class PermissionsManager {
                 // Special handling for SYSTEM_ALERT_WINDOW
                 val intent = Intent(
                     Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:$activity")
+                    Uri.parse("package:${activity.packageName}")
                 ).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }

@@ -3,10 +3,11 @@ package com.squidink.alloy.core.common
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
@@ -46,7 +47,7 @@ abstract class BaseViewModel<State : UiState, Action : UiAction, Effect : UiEffe
      * Updates the current state using a reducer function.
      */
     protected fun updateState(reducer: (State) -> State) {
-        _uiState.value = reducer(_uiState.value)
+        _uiState.update(reducer)
     }
 
     /**
