@@ -2,6 +2,7 @@ package com.squidink.alloy.core.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.RssFeed
@@ -22,6 +23,7 @@ sealed class Screens(val route: String) {
     data object StatsPill : Screens("stats_pill")
     data object RssReader : Screens("rss_reader")
     data object Scratch : Screens("scratch")
+    data object Lists : Screens("lists")
     data object Scenes : Screens("scenes")
     
     // Detail routes (if needed in the future)
@@ -41,7 +43,7 @@ sealed class Screens(val route: String) {
          * Get all main feature screens (excluding detail routes).
          */
         fun getMainScreens(): List<Screens> {
-            return listOf(StatsPill, RssReader, Scratch, Scenes)
+            return listOf(StatsPill, RssReader, Scratch, Lists, Scenes)
         }
     }
 }
@@ -55,6 +57,7 @@ sealed class NavActions {
     object NavigateToStatsPill : NavActions()
     object NavigateToRssReader : NavActions()
     object NavigateToScratch : NavActions()
+    object NavigateToLists : NavActions()
     object NavigateToScenes : NavActions()
     
     data class NavigateToScratchDetail(val scratchId: String) : NavActions()
@@ -65,6 +68,7 @@ sealed class NavActions {
                 is NavigateToStatsPill -> Screens.StatsPill.route
                 is NavigateToRssReader -> Screens.RssReader.route
                 is NavigateToScratch -> Screens.Scratch.route
+                is NavigateToLists -> Screens.Lists.route
                 is NavigateToScenes -> Screens.Scenes.route
                 is NavigateToScratchDetail -> Screens.scratchDetailRoute(action.scratchId)
             }
@@ -83,6 +87,7 @@ fun String.getScreenTitle(): String {
         Screens.StatsPill.route -> featureRegistry.getFeature(FeatureIds.STATS_PILL)?.name ?: "System Stats"
         Screens.RssReader.route -> featureRegistry.getFeature(FeatureIds.RSS_READER)?.name ?: "RSS Reader"
         Screens.Scratch.route -> featureRegistry.getFeature(FeatureIds.SCRATCH)?.name ?: "Scratchpad"
+        Screens.Lists.route -> featureRegistry.getFeature(FeatureIds.LISTS)?.name ?: "Lists"
         Screens.Scenes.route -> featureRegistry.getFeature(FeatureIds.SCENES)?.name ?: "Scenes"
         else -> "Alloy"
     }
@@ -102,6 +107,8 @@ fun Screens.getNavigationIcon(): ImageVector {
             ?: Icons.Default.RssFeed
         is Screens.Scratch -> featureRegistry.getFeature(FeatureIds.SCRATCH)?.icon 
             ?: Icons.Default.Campaign
+        is Screens.Lists -> featureRegistry.getFeature(FeatureIds.LISTS)?.icon 
+            ?: Icons.Default.Checklist
         is Screens.Scenes -> featureRegistry.getFeature(FeatureIds.SCENES)?.icon 
             ?: Icons.Default.EmojiEvents
         is Screens.ScratchDetail -> Icons.Default.Dashboard
@@ -116,6 +123,7 @@ fun Screens.getFeatureId(): String {
         is Screens.StatsPill -> FeatureIds.STATS_PILL
         is Screens.RssReader -> FeatureIds.RSS_READER
         is Screens.Scratch -> FeatureIds.SCRATCH
+        is Screens.Lists -> FeatureIds.LISTS
         is Screens.Scenes -> FeatureIds.SCENES
         is Screens.ScratchDetail -> ""
     }

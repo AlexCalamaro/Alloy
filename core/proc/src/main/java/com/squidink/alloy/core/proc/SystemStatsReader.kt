@@ -197,11 +197,16 @@ open class SystemStatsReader @Inject constructor(
         return Runtime.getRuntime().availableProcessors()
     }
 
+    @Volatile
+    private var isLoadAvgSupported: Boolean = true
+
     /**
      * Reads system load averages (1m, 5m, 15m) from /proc/loadavg.
-     * Returns an empty list if /proc/loadavg is inaccessible.
+     * Returns an empty list if /proc/loadavg is inaccessible or denied by SELinux.
+     * Permanently stops querying if the kernel denies access to prevent logcat AVC spam.
      */
     open fun readSystemLoadAverage(): List<Double> {
+        if (!isLoadAvgSupported) return emptyList()
         return try {
             val file = java.io.File("/proc/loadavg")
             if (file.exists() && file.canRead()) {
@@ -214,8 +219,14 @@ open class SystemStatsReader @Inject constructor(
                         parts[2].toDoubleOrNull()
                     )
                 } else emptyList()
-            } else emptyList()
+            } else {
+                isLoadAvgSupported = false
+                Logger.w(TAG, "/proc/loadavg is inaccessible or restricted by SELinux; halting loadavg polling.")
+                emptyList()
+            }
         } catch (e: Exception) {
+            isLoadAvgSupported = false
+            Logger.w(TAG, "Error accessing /proc/loadavg (${e.message}); halting loadavg polling.")
             emptyList()
         }
     }

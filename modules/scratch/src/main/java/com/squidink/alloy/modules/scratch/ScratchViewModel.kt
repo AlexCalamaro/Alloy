@@ -15,22 +15,12 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 
-data class ChecklistItem(
-    val id: String,
-    val text: String,
-    val isCompleted: Boolean = false,
-)
-
 data class ScratchUiState(
     val documents: List<Scratch> = emptyList(),
     val activeDocumentId: String? = null,
     val unlockedDocumentIds: Set<String> = emptySet(),
     val showLockConfirmationDialog: Boolean = false,
     val pendingLockDocumentId: String? = null,
-    val checklistItems: List<ChecklistItem> = emptyList(),
-    val activePane: ScratchPane = ScratchPane.TEXT,
-    val isTimerRunning: Boolean = false,
-    val timerSeconds: Int = 0,
     val autoSaveDebounceMs: Long = 500,
     val userMessage: String? = null,
 ) : UiState {
@@ -64,24 +54,11 @@ sealed interface ScratchUiAction : UiAction {
     data class AuthenticateDocumentSuccess(val documentId: String) : ScratchUiAction
     data object LockAllDocuments : ScratchUiAction
 
-    // Pane & workspace actions
-    data class SetPane(val pane: ScratchPane) : ScratchUiAction
+    // Workspace actions
     data object ClearMessage : ScratchUiAction
-
-    // Header Timer actions (preserved)
-    data object ToggleTimer : ScratchUiAction
-    data object ResetTimer : ScratchUiAction
-
-    // Checklist actions (preserved)
-    data class AddChecklistItem(val text: String) : ScratchUiAction
-    data class ToggleChecklistItem(val itemId: String) : ScratchUiAction
-    data class DeleteChecklistItem(val itemId: String) : ScratchUiAction
-    data class UpdateChecklistItemText(val itemId: String, val text: String) : ScratchUiAction
-    data object ClearChecklist : ScratchUiAction
 }
 
 sealed interface ScratchUiEffect : UiEffect {
-    data object TimerFinished : ScratchUiEffect
     data class RequestBiometricAuth(val documentId: String) : ScratchUiEffect
     data class LaunchExportPicker(
         val documentId: String,
@@ -91,35 +68,17 @@ sealed interface ScratchUiEffect : UiEffect {
     ) : ScratchUiEffect
 }
 
-enum class ScratchPane {
-    TEXT,
-    CHECKLIST,
-}
-
 @HiltViewModel
 class ScratchViewModel @Inject constructor(
     private val scratchRepository: IScratchRepository,
 ) : BaseViewModel<ScratchUiState, ScratchUiAction, ScratchUiEffect>(
-    ScratchViewModel.createInitialState(),
+    ScratchUiState(),
 ) {
     private var timerJob: Job? = null
     private var autoSaveJob: Job? = null
     private var pendingDocId: String? = null
     private var pendingContent: String? = null
     private var pendingExportDocumentId: String? = null
-
-    companion object {
-        fun createInitialState(): ScratchUiState =
-            ScratchUiState(
-                checklistItems = listOf(
-                    ChecklistItem("1", "Review PRD gap analysis", isCompleted = false),
-                    ChecklistItem("2", "Test StatsPill overlay", isCompleted = false),
-                    ChecklistItem("3", "Verify clipboard transformations", isCompleted = true),
-                ),
-                activePane = ScratchPane.TEXT,
-            )
-    }
-
     init {
         viewModelScope.launch {
             scratchRepository.getScratchpads().collect { docs ->
@@ -182,22 +141,7 @@ class ScratchViewModel @Inject constructor(
                 updateState { it.copy(unlockedDocumentIds = emptySet()) }
             }
 
-            is ScratchUiAction.SetPane -> updateState { it.copy(activePane = action.pane) }
             ScratchUiAction.ClearMessage -> updateState { it.copy(userMessage = null) }
-
-            ScratchUiAction.ToggleTimer -> {
-                if (uiState.value.isTimerRunning) stopTimer() else startTimer()
-            }
-            ScratchUiAction.ResetTimer -> {
-                stopTimer()
-                updateState { it.copy(timerSeconds = 0) }
-            }
-
-            is ScratchUiAction.AddChecklistItem -> addChecklistItem(action.text)
-            is ScratchUiAction.ToggleChecklistItem -> toggleChecklistItem(action.itemId)
-            is ScratchUiAction.DeleteChecklistItem -> deleteChecklistItem(action.itemId)
-            is ScratchUiAction.UpdateChecklistItemText -> updateChecklistItemText(action.itemId, action.text)
-            ScratchUiAction.ClearChecklist -> updateState { it.copy(checklistItems = emptyList()) }
         }
     }
 
@@ -384,56 +328,8 @@ class ScratchViewModel @Inject constructor(
         pendingContent = null
     }
 
-    private fun startTimer() {
-        updateState { it.copy(isTimerRunning = true) }
-        timerJob = viewModelScope.launch {
-            while (uiState.value.isTimerRunning) {
-                delay(1000L)
-                updateState { it.copy(timerSeconds = it.timerSeconds + 1) }
-            }
-        }
-    }
-
-    fun stopTimer() {
-        timerJob?.cancel()
-        timerJob = null
-        updateState { it.copy(isTimerRunning = false) }
-    }
-
-    private fun addChecklistItem(text: String) {
-        val newItem = ChecklistItem(
-            id = UUID.randomUUID().toString(),
-            text = text,
-            isCompleted = false,
-        )
-        updateState { it.copy(checklistItems = it.checklistItems + newItem) }
-    }
-
-    private fun toggleChecklistItem(itemId: String) {
-        updateState { state ->
-            val updated = state.checklistItems.map { item ->
-                if (item.id == itemId) item.copy(isCompleted = !item.isCompleted) else item
-            }
-            state.copy(checklistItems = updated)
-        }
-    }
-
-    private fun deleteChecklistItem(itemId: String) {
-        updateState { it.copy(checklistItems = it.checklistItems.filter { it.id != itemId }) }
-    }
-
-    private fun updateChecklistItemText(itemId: String, text: String) {
-        updateState { state ->
-            val updated = state.checklistItems.map { item ->
-                if (item.id == itemId) item.copy(text = text) else item
-            }
-            state.copy(checklistItems = updated)
-        }
-    }
-
     override fun onCleared() {
         super.onCleared()
-        stopTimer()
         autoSaveJob?.cancel()
         savePendingContent()
     }

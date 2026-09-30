@@ -96,12 +96,25 @@ class ThermalDataSource @Inject constructor(
         }
     }
 
+    @Volatile
+    private var isSysfsThermalSupported: Boolean = true
+
     private fun getCpuTemperatureCelsius(): Float? {
+        if (!isSysfsThermalSupported) return null
         return try {
             val baseDir = File("/sys/class/thermal")
-            if (!baseDir.exists() || !baseDir.canRead()) return null
+            if (!baseDir.exists() || !baseDir.canRead()) {
+                isSysfsThermalSupported = false
+                Logger.w(TAG, "/sys/class/thermal is inaccessible or restricted by SELinux; halting sysfs thermal polling.")
+                return null
+            }
 
-            val zones = baseDir.listFiles { _, name -> name.startsWith("thermal_zone") } ?: return null
+            val zones = baseDir.listFiles { _, name -> name.startsWith("thermal_zone") }
+            if (zones == null) {
+                isSysfsThermalSupported = false
+                Logger.w(TAG, "Cannot list /sys/class/thermal zones; halting sysfs thermal polling.")
+                return null
+            }
             var maxCpuTemp: Float? = null
 
             for (zone in zones) {
@@ -122,6 +135,8 @@ class ThermalDataSource @Inject constructor(
             }
             maxCpuTemp
         } catch (e: Exception) {
+            isSysfsThermalSupported = false
+            Logger.w(TAG, "Error accessing /sys/class/thermal (${e.message}); halting sysfs thermal polling.")
             null
         }
     }

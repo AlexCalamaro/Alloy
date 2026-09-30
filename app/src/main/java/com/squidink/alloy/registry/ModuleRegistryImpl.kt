@@ -2,6 +2,7 @@ package com.squidink.alloy.registry
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.RssFeed
@@ -76,11 +77,24 @@ class ModuleRegistryImpl
                 FeatureDefinition(
                     id = FeatureIds.SCRATCH,
                     name = "Pinned Scratchpad",
-                    description = "Multi-instance notes, checklists & timers",
+                    description = "Multi-instance notes & encrypted lockbox",
                     screenRoute = "scratch",
                     category = "Productivity",
                     sortOrder = 3,
                     icon = Icons.Default.Campaign
+                )
+            )
+
+            // Register Lists feature
+            featureRegistry.registerFeature(
+                FeatureDefinition(
+                    id = FeatureIds.LISTS,
+                    name = "Lists",
+                    description = "Keep-style notes, tasks & checklists",
+                    screenRoute = "lists",
+                    category = "Productivity",
+                    sortOrder = 4,
+                    icon = Icons.Default.Checklist
                 )
             )
 
@@ -92,7 +106,7 @@ class ModuleRegistryImpl
                     description = "Scene launcher with launch bounds geometry",
                     screenRoute = "scenes",
                     category = "Desktop",
-                    sortOrder = 4,
+                    sortOrder = 5,
                     icon = Icons.Default.EmojiEvents
                 )
             )

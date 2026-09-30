@@ -4,8 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import net.sqlcipher.database.SQLiteDatabase
-import net.sqlcipher.database.SupportFactory
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
 /**
  * Room database for RSS feed data.
@@ -35,8 +34,14 @@ abstract class RssFeedDatabase : RoomDatabase() {
          */
         fun getInstance(context: Context): RssFeedDatabase {
             return INSTANCE ?: synchronized(this) {
-                val passphrase = SQLiteDatabase.getBytes("rss_reader_secret_key".toCharArray())
-                val factory = SupportFactory(passphrase)
+                try {
+                    System.loadLibrary("sqlcipher")
+                } catch (_: UnsatisfiedLinkError) {
+                    // Ignored in unit test JVM environments without native libraries
+                }
+
+                val passphrase = "rss_reader_secret_key".toByteArray(Charsets.UTF_8)
+                val factory = SupportOpenHelperFactory(passphrase)
 
                 val instance = Room.databaseBuilder(
                     context.applicationContext,

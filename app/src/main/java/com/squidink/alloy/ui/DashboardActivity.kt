@@ -6,6 +6,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -24,6 +27,8 @@ import com.squidink.alloy.core.design.AlloyTheme
 import com.squidink.alloy.core.feature.featureRegistry
 import com.squidink.alloy.core.layout.DrawerScaffold
 import com.squidink.alloy.core.navigation.Screens
+import com.squidink.alloy.modules.lists.ListsViewModel
+import com.squidink.alloy.modules.lists.ui.ListsScreen
 import com.squidink.alloy.modules.rssreader.RssReaderViewModel
 import com.squidink.alloy.modules.rssreader.ui.RssReaderScreen
 import com.squidink.alloy.modules.scenes.ScenesViewModel
@@ -122,12 +127,13 @@ fun DashboardScreen(
     }.sortedBy { it.sortOrder }
 
     AlloyTheme(dynamicColor = dynamicColorEnabled) {
-        Box(
-            modifier = Modifier
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
         ) {
             DrawerScaffold(
                 currentFeature = currentRoute,
-                screens = listOf(Screens.StatsPill, Screens.RssReader, Screens.Scratch, Screens.Scenes),
+                screens = listOf(Screens.StatsPill, Screens.RssReader, Screens.Scratch, Screens.Lists, Screens.Scenes),
                 onScreenSelected = { route ->
                     if (route != currentRoute) {
                         navController.navigate(route) {
@@ -139,7 +145,6 @@ fun DashboardScreen(
                         }
                     }
                 },
-                title = "Alloy Suite",
                 content = {
                     NavHost(
                         navController = navController,
@@ -156,6 +161,10 @@ fun DashboardScreen(
                         composable(Screens.Scratch.route) {
                             val viewModel: ScratchViewModel = hiltViewModel()
                             ScratchScreen(viewModel = viewModel)
+                        }
+                        composable(Screens.Lists.route) {
+                            val viewModel: ListsViewModel = hiltViewModel()
+                            ListsScreen(viewModel = viewModel)
                         }
                         composable(Screens.Scenes.route) {
                             val viewModel: ScenesViewModel = hiltViewModel()

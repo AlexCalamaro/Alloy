@@ -91,4 +91,4 @@ If you prefer running terminal commands or piping data directly:
 
 ## 3. Best Practices for Qwen 3.5 Prompting
 - **Always provide a clear system prompt**: e.g., `"Write modern, idiomatic Kotlin using Jetpack Compose and Coroutines."`
-- **Set adequate `max_tokens`**: Since Qwen 3.5 generates reasoning tokens internally, ensure `max_tokens` is at least 512–2048 so it has room to think before producing the final content.
+- **Adequate `max_tokens`**: The default limit is 32768 tokens (supporting up to 65536) to give the model ample headroom for internal reasoning chains (<thinking>) while generating complete multi-file implementations without choking.

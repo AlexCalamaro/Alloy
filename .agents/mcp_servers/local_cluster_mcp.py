@@ -16,7 +16,7 @@ QWEN_MODEL_ID = "unsloth/Qwen3.5-122B-A10B-NVFP4"
 SEARXNG_URL = "http://gx10.access.net:8080/coding/search"
 
 
-def query_qwen(prompt, system_prompt=None, max_tokens=8192, temperature=0.6, include_reasoning=False):
+def query_qwen(prompt, system_prompt=None, max_tokens=32768, temperature=0.6, include_reasoning=False):
     """
     Streams from local vLLM endpoint, collects thinking tokens and content tokens,
     and returns the formatted output. Streaming prevents HTTP read timeouts.
@@ -151,8 +151,8 @@ TOOLS = [
                 },
                 "max_tokens": {
                     "type": "integer",
-                    "description": "Maximum tokens to generate (default: 8192, supports up to 65536).",
-                    "default": 8192
+                    "description": "Maximum tokens to generate (default: 32768, supports up to 65536).",
+                    "default": 32768
                 },
                 "temperature": {
                     "type": "number",
@@ -255,7 +255,7 @@ def handle_request(req):
         if tool_name == "ask_local_qwen":
             prompt = args.get("prompt", "")
             system_prompt = args.get("system_prompt")
-            max_tokens = args.get("max_tokens", 8192)
+            max_tokens = args.get("max_tokens", 32768)
             temperature = args.get("temperature", 0.6)
             include_reasoning = args.get("include_reasoning", False)
 

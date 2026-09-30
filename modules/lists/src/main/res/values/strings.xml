@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lists_title">Lists</string>
+    <string name="lists_empty_title">No lists yet</string>
+    <string name="lists_empty_desc">Capture ideas, checklists, and tasks with Google Keep style lists</string>
+    <string name="lists_new_list">New list</string>
+    <string name="lists_edit_list">Edit list</string>
+    <string name="lists_title_hint">Title</string>
+    <string name="lists_item_hint">List item</string>
+    <string name="lists_add_item">Add item</string>
+    <string name="lists_completed_header">Completed items (%1$d)</string>
+    <string name="lists_section_pinned">PINNED</string>
+    <string name="lists_section_others">OTHERS</string>
+    <string name="lists_pin">Pin list</string>
+    <string name="lists_unpin">Unpin list</string>
+    <string name="lists_delete">Delete list</string>
+    <string name="lists_color">Background color</string>
+    <string name="lists_save">Save</string>
+</resources>

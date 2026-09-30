@@ -10,3 +10,5 @@
 # SQLCipher
 -keep class net.sqlcipher.database.* { *; }
 -dontwarn net.sqlcipher.database.**
+-keep class net.zetetic.database.** { *; }
+-dontwarn net.zetetic.database.**

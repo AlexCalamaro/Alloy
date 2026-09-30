@@ -16,7 +16,7 @@ QWEN_API_URL = "http://gx10.access.net:8080/coding/v1/chat/completions"
 QWEN_MODEL_ID = "unsloth/Qwen3.5-122B-A10B-NVFP4"
 
 
-def query_qwen(prompt, system_prompt=None, max_tokens=8192, temperature=0.6, include_reasoning=False):
+def query_qwen(prompt, system_prompt=None, max_tokens=32768, temperature=0.6, include_reasoning=False):
     messages = []
     if system_prompt:
         messages.append({"role": "system", "content": system_prompt})
@@ -78,7 +78,7 @@ def main():
     parser = argparse.ArgumentParser(description="Query local Qwen3.5-122B instance")
     parser.add_argument("prompt", nargs="?", help="Prompt to send to the model")
     parser.add_argument("-s", "--system", help="System prompt", default=None)
-    parser.add_argument("-m", "--max-tokens", type=int, default=8192, help="Max tokens (default 8192)")
+    parser.add_argument("-m", "--max-tokens", type=int, default=32768, help="Max tokens (default 32768)")
     parser.add_argument("-t", "--temperature", type=float, default=0.6, help="Temperature (default 0.6)")
     parser.add_argument("-r", "--include-reasoning", action="store_true", help="Print reasoning trace")
 

@@ -191,18 +191,6 @@ class ScratchViewModelTest {
         assertTrue(viewModel.uiState.value.unlockedDocumentIds.isEmpty())
     }
 
-    @Test
-    fun `toggle timer starts and stops timer`() = runTest {
-        val viewModel = ScratchViewModel(FakeScratchRepository())
-        assertFalse(viewModel.uiState.value.isTimerRunning)
-
-        viewModel.onAction(ScratchUiAction.ToggleTimer)
-        assertTrue(viewModel.uiState.value.isTimerRunning)
-
-        viewModel.onAction(ScratchUiAction.ToggleTimer)
-        assertFalse(viewModel.uiState.value.isTimerRunning)
-        viewModel.stopTimer()
-    }
 
     @Test
     fun `request export on unlocked document emits LaunchExportPicker effect`() = runTest {

@@ -55,6 +55,7 @@ dependencies {
     implementation(project(":modules:scenes"))
     implementation(project(":modules:rssreader"))
     implementation(project(":modules:scratch"))
+    implementation(project(":modules:lists"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

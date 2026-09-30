@@ -4,14 +4,15 @@ import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import net.sqlcipher.database.SupportFactory
+import androidx.sqlite.db.SupportSQLiteOpenHelper
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * Shared factory that generates or retrieves a secure random 32-byte passphrase,
  * encrypts it via Keystore (CryptoManager), stores it in DataStore,
- * and yields the SQLCipher SupportFactory.
+ * and yields the SQLCipher SupportOpenHelperFactory.
  *
  * IMPORTANT: All methods are suspend functions to avoid blocking the calling thread.
  * Database factory creation should be called from a background dispatcher.
@@ -23,15 +24,15 @@ class EncryptedRoomFactory @Inject constructor(
 ) {
 
     /**
-     * Creates a SupportFactory for the specified database.
+     * Creates a SupportSQLiteOpenHelper.Factory for the specified database.
      *
      * This is a suspend function that performs I/O operations (DataStore read/write)
      * and cryptographic operations on a background dispatcher.
      *
      * @param dbName The name of the database (without .db extension)
-     * @return SupportFactory configured with the encrypted passphrase
+     * @return SupportSQLiteOpenHelper.Factory configured with the encrypted passphrase
      */
-    suspend fun getFactoryFor(dbName: String): SupportFactory {
+    suspend fun getFactoryFor(dbName: String): SupportSQLiteOpenHelper.Factory {
         return withContext(Dispatchers.IO) {
             val encodedIv = dataStoreManager.getStringFlow("${dbName}_iv").first()
             val encodedCiphertext = dataStoreManager.getStringFlow("${dbName}_ciphertext").first()
@@ -48,7 +49,7 @@ class EncryptedRoomFactory @Inject constructor(
                 }
             }
 
-            SupportFactory(passphraseBytes)
+            SupportOpenHelperFactory(passphraseBytes)
         }
     }
 
@@ -60,5 +61,15 @@ class EncryptedRoomFactory @Inject constructor(
         dataStoreManager.setString("${dbName}_ciphertext", Base64.encodeToString(encrypted.ciphertext, Base64.NO_WRAP))
 
         return rawKey
+    }
+
+    companion object {
+        init {
+            try {
+                System.loadLibrary("sqlcipher")
+            } catch (_: UnsatisfiedLinkError) {
+                // Ignored in unit test JVM environments without native libraries
+            }
+        }
     }
 }

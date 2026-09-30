@@ -15,7 +15,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.runBlocking
-import net.sqlcipher.database.SQLiteDatabase
 import javax.inject.Singleton
 
 /**
@@ -34,8 +33,6 @@ object ScratchModule {
         @ApplicationContext context: Context,
         encryptedRoomFactory: EncryptedRoomFactory
     ): ScratchDao {
-        SQLiteDatabase.loadLibs(context)
-
         val dbName = "scratch_database"
         val openHelperFactory = runCatching {
             runBlocking {

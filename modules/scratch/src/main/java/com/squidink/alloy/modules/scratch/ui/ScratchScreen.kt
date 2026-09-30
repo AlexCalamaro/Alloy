@@ -31,7 +31,6 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
@@ -40,11 +39,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -64,17 +64,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.squidink.alloy.core.design.R
-import com.squidink.alloy.core.design.desktopHover
 import com.squidink.alloy.core.domain.common.repository.Scratch
-import com.squidink.alloy.modules.scratch.ChecklistItem
-import com.squidink.alloy.modules.scratch.ScratchPane
 import com.squidink.alloy.modules.scratch.ScratchUiAction
 import com.squidink.alloy.modules.scratch.ScratchUiEffect
 import com.squidink.alloy.modules.scratch.ScratchViewModel
@@ -172,7 +168,6 @@ fun ScratchScreen(
                     pendingExportData = Triple(effect.fileName, effect.mimeType, effect.content)
                     exportLauncher.launch(effect.fileName)
                 }
-                ScratchUiEffect.TimerFinished -> {}
             }
         }
     }
@@ -184,12 +179,16 @@ fun ScratchScreen(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-        ) {
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+            ) {
         // Header with Timer and Lock Vault quick action
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -215,54 +214,12 @@ fun ScratchScreen(
                     Text(stringResource(R.string.scratch_lock_vault))
                 }
             }
-
-            Card(modifier = Modifier.desktopHover()) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    val minutes = uiState.timerSeconds / 60
-                    val seconds = uiState.timerSeconds % 60
-                    Text(
-                        text = String.format("%02d:%02d", minutes, seconds),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(end = 8.dp),
-                    )
-                    Button(onClick = { viewModel.onAction(ScratchUiAction.ToggleTimer) }) {
-                        Text(if (uiState.isTimerRunning) stringResource(R.string.scratch_timer_pause) else stringResource(R.string.scratch_timer_start))
-                    }
-                    IconButton(onClick = { viewModel.onAction(ScratchUiAction.ResetTimer) }) {
-                        Text("↺", style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Main Mode Tab Row (Editor / Checklist)
-        TabRow(
-            selectedTabIndex = uiState.activePane.ordinal,
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ) {
-            Tab(
-                selected = uiState.activePane == ScratchPane.TEXT,
-                onClick = { viewModel.onAction(ScratchUiAction.SetPane(ScratchPane.TEXT)) },
-                text = { Text(stringResource(R.string.scratch_text_tab)) },
-            )
-            Tab(
-                selected = uiState.activePane == ScratchPane.CHECKLIST,
-                onClick = { viewModel.onAction(ScratchUiAction.SetPane(ScratchPane.CHECKLIST)) },
-                text = { Text(stringResource(R.string.scratch_checklist_tab)) },
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Workspace Panes
-        when (uiState.activePane) {
-            ScratchPane.TEXT -> {
-                Box(modifier = Modifier.fillMaxSize()) {
+        // Document Workspace
+        Box(modifier = Modifier.fillMaxSize()) {
                     Column(modifier = Modifier.fillMaxSize()) {
                         // Multi-Document Tab Bar
                         if (uiState.documents.isNotEmpty()) {
@@ -357,18 +314,6 @@ fun ScratchScreen(
                         )
                     }
                 }
-            }
-
-            ScratchPane.CHECKLIST -> {
-                ChecklistPane(
-                    items = uiState.checklistItems,
-                    onAddItem = { viewModel.onAction(ScratchUiAction.AddChecklistItem(it)) },
-                    onToggleItem = { viewModel.onAction(ScratchUiAction.ToggleChecklistItem(it)) },
-                    onUpdateItem = { itemId, text -> viewModel.onAction(ScratchUiAction.UpdateChecklistItemText(itemId, text)) },
-                    onDeleteItem = { viewModel.onAction(ScratchUiAction.DeleteChecklistItem(it)) },
-                )
-            }
-        }
     }
 
     // Dialog: Lockbox confirmation explaining encryption and re-lock rules
@@ -429,12 +374,13 @@ fun ScratchScreen(
         )
     }
 
-    SnackbarHost(
-        hostState = snackbarHostState,
-        modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .padding(bottom = 16.dp)
-    )
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
+        )
+        }
     }
 }
 
@@ -623,6 +569,13 @@ private fun CodeEditorPane(
                 fontFamily = FontFamily.Monospace,
                 color = MaterialTheme.colorScheme.onSurface
             ),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = if (isDark) MaterialTheme.colorScheme.surfaceContainerLowest else MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = if (isDark) MaterialTheme.colorScheme.surfaceContainerLowest else MaterialTheme.colorScheme.surface,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                cursorColor = MaterialTheme.colorScheme.primary,
+            ),
             visualTransformation = visualTransformation,
             maxLines = Int.MAX_VALUE,
         )
@@ -689,87 +642,9 @@ private fun LockboxGatekeeperPane(
             Text(
                 text = "Re-locks automatically on app restart or exit",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
 }
 
-@Composable
-private fun ChecklistPane(
-    items: List<ChecklistItem>,
-    onAddItem: (String) -> Unit,
-    onToggleItem: (String) -> Unit,
-    onUpdateItem: (String, String) -> Unit,
-    onDeleteItem: (String) -> Unit,
-) {
-    var newItemText by remember { mutableStateOf("") }
-
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            TextField(
-                value = newItemText,
-                onValueChange = { newItemText = it },
-                modifier = Modifier.weight(1f),
-                placeholder = { Text(stringResource(R.string.scratch_checklist_hint)) },
-                singleLine = true,
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(
-                onClick = {
-                    if (newItemText.isNotBlank()) {
-                        onAddItem(newItemText)
-                        newItemText = ""
-                    }
-                },
-            ) {
-                Text(stringResource(R.string.scratch_add))
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(items, key = { it.id }) { item ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .desktopHover(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Checkbox(
-                        checked = item.isCompleted,
-                        onCheckedChange = { onToggleItem(item.id) },
-                    )
-                    Text(
-                        text = item.text,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 8.dp),
-                        textDecoration = if (item.isCompleted) TextDecoration.LineThrough else null,
-                        color = if (item.isCompleted) Color.Gray else MaterialTheme.colorScheme.onSurface,
-                    )
-                    IconButton(onClick = { onDeleteItem(item.id) }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Delete,
-                            contentDescription = stringResource(R.string.common_delete),
-                        )
-                    }
-                }
-            }
-
-            if (items.isEmpty()) {
-                item {
-                    Text(
-                        stringResource(R.string.scratch_checklist_empty),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(16.dp),
-                        color = Color.Gray,
-                    )
-                }
-            }
-        }
-    }
-}
