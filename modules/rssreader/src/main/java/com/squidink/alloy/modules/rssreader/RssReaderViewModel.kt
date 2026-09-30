@@ -5,140 +5,158 @@ import com.squidink.alloy.core.common.BaseViewModel
 import com.squidink.alloy.core.common.UiAction
 import com.squidink.alloy.core.common.UiEffect
 import com.squidink.alloy.core.common.UiState
-import com.squidink.alloy.core.domain.common.repository.IRssFeedRepository
-import com.squidink.alloy.core.domain.repository.RssFeed
-import com.squidink.alloy.core.domain.repository.RssFeedItem
+import com.squidink.alloy.core.domain.common.model.RssFeed
+import com.squidink.alloy.core.domain.common.model.RssFeedItem
+import com.squidink.alloy.modules.rssreader.domain.usecase.AddFeedUseCase
+import com.squidink.alloy.modules.rssreader.domain.usecase.DeleteFeedUseCase
+import com.squidink.alloy.modules.rssreader.domain.usecase.MarkArticleReadUseCase
+import com.squidink.alloy.modules.rssreader.domain.usecase.ObserveArticlesUseCase
+import com.squidink.alloy.modules.rssreader.domain.usecase.ObserveFeedsUseCase
+import com.squidink.alloy.modules.rssreader.domain.usecase.PurgeCacheUseCase
+import com.squidink.alloy.modules.rssreader.domain.usecase.RefreshFeedsUseCase
+import com.squidink.alloy.modules.rssreader.domain.usecase.ToggleFavoriteUseCase
+import com.squidink.alloy.modules.rssreader.domain.usecase.UpdateFeedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.util.UUID
 import javax.inject.Inject
+
+enum class ArticleFilter {
+    ALL,
+    UNREAD,
+    FAVORITES
+}
 
 data class RssReaderUiState(
     val feeds: List<RssFeed> = emptyList(),
+    val rawArticles: List<RssFeedItem> = emptyList(),
     val feedItems: List<RssFeedItem> = emptyList(),
     val selectedFeed: RssFeed? = null,
+    val filterType: ArticleFilter = ArticleFilter.ALL,
     val searchQuery: String = "",
     val isLoading: Boolean = false,
     val unreadCount: Int = 0,
     val error: String? = null,
+    val showAddSheet: Boolean = false,
+    val showSettings: Boolean = false,
+    val maxItemsPerFeed: Int = 100,
+    val retentionDays: Int = 14
 ) : UiState
 
 sealed interface RssReaderUiAction : UiAction {
-    data class AddFeed(
-        val url: String,
-        val title: String? = null,
-    ) : RssReaderUiAction
-
-    data class UpdateFeed(
-        val feed: RssFeed,
-    ) : RssReaderUiAction
-
-    data class DeleteFeed(
-        val feedId: String,
-    ) : RssReaderUiAction
-
-    data class SelectFeed(
-        val feed: RssFeed?,
-    ) : RssReaderUiAction
-
-    data class UpdateSearchQuery(
-        val query: String,
-    ) : RssReaderUiAction
-
-    data class MarkItemAsRead(
-        val itemId: String,
-    ) : RssReaderUiAction
-
-    data class MarkFeedAsRead(
-        val feedUrl: String,
-    ) : RssReaderUiAction
-
-    data class ToggleFavorite(
-        val itemId: String,
-    ) : RssReaderUiAction
-
-    data class DeleteItem(
-        val itemId: String,
-    ) : RssReaderUiAction
-
-    object RefreshFeeds : RssReaderUiAction
-    object RefreshCurrentFeed : RssReaderUiAction
-    object ClearError : RssReaderUiAction
+    data class AddFeed(val url: String, val title: String? = null) : RssReaderUiAction
+    data class UpdateFeed(val feed: RssFeed) : RssReaderUiAction
+    data class DeleteFeed(val feedId: String) : RssReaderUiAction
+    data class ToggleFeedEnabled(val feedId: String, val isEnabled: Boolean) : RssReaderUiAction
+    data class SelectFeed(val feed: RssFeed?) : RssReaderUiAction
+    data class SetFilterType(val filter: ArticleFilter) : RssReaderUiAction
+    data class UpdateSearchQuery(val query: String) : RssReaderUiAction
+    data class MarkItemAsRead(val itemId: String) : RssReaderUiAction
+    data class MarkFeedAsRead(val feedUrl: String) : RssReaderUiAction
+    data object MarkAllAsRead : RssReaderUiAction
+    data class ToggleFavorite(val itemId: String) : RssReaderUiAction
+    data class UpdateMaxItemsPerFeed(val count: Int) : RssReaderUiAction
+    data class UpdateRetentionDays(val days: Int) : RssReaderUiAction
+    data object ClearReadArticles : RssReaderUiAction
+    data object PurgeAncientArticles : RssReaderUiAction
+    data object RefreshFeeds : RssReaderUiAction
+    data object RefreshCurrentFeed : RssReaderUiAction
+    data object OpenAddSheet : RssReaderUiAction
+    data object DismissAddSheet : RssReaderUiAction
+    data object OpenSettings : RssReaderUiAction
+    data object DismissSettings : RssReaderUiAction
+    data object ClearError : RssReaderUiAction
 }
 
 sealed interface RssReaderUiEffect : UiEffect {
-    data class ShowToast(
-        val message: String,
-    ) : RssReaderUiEffect
-
-    data class NavigateToFeedDetails(
-        val feedUrl: String,
-    ) : RssReaderUiEffect
-
-    data class NavigateToArticle(
-        val articleUrl: String,
-    ) : RssReaderUiEffect
+    data class ShowToast(val message: String) : RssReaderUiEffect
+    data class NavigateToArticle(val articleUrl: String) : RssReaderUiEffect
 }
 
 @HiltViewModel
 class RssReaderViewModel @Inject constructor(
-    private val rssFeedRepository: IRssFeedRepository,
+    private val observeFeedsUseCase: ObserveFeedsUseCase,
+    private val observeArticlesUseCase: ObserveArticlesUseCase,
+    private val refreshFeedsUseCase: RefreshFeedsUseCase,
+    private val addFeedUseCase: AddFeedUseCase,
+    private val updateFeedUseCase: UpdateFeedUseCase,
+    private val deleteFeedUseCase: DeleteFeedUseCase,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val markArticleReadUseCase: MarkArticleReadUseCase,
+    private val purgeCacheUseCase: PurgeCacheUseCase
 ) : BaseViewModel<RssReaderUiState, RssReaderUiAction, RssReaderUiEffect>(
-        RssReaderUiState()
-    ) {
+    RssReaderUiState()
+) {
 
     init {
-        // Observe all feed subscriptions
-        observeFeedSubscriptions()
-
-        // Observe unread count
-        observeUnreadCount()
-
-        // Observe feed items when a feed is selected
-        observeFeedItems()
+        initializeFeedsAndObserve()
     }
 
-    private fun observeFeedSubscriptions() {
-        rssFeedRepository.getAllFeedSubscriptions()
-            .onEach { feeds ->
-                updateState { it.copy(feeds = filterBySearch(feeds)) }
-            }
-            .launchIn(viewModelScope)
-    }
-
-    private fun observeUnreadCount() {
+    private fun initializeFeedsAndObserve() {
         viewModelScope.launch {
-            val count = rssFeedRepository.getUnreadFeedItemsCount()
-            updateState { it.copy(unreadCount = count) }
+            // Ensure default Google Technology feed exists
+            refreshFeedsUseCase.ensureDefaultFeed()
+            // Initial background fetch
+            refreshFeedsUseCase.refreshAll()
         }
-    }
 
-    private fun observeFeedItems() {
-        rssFeedRepository.getAllFeedItems()
-            .onEach { items ->
-                val filtered = if (uiState.value.selectedFeed != null) {
-                    items.filter { it.feedUrl == uiState.value.selectedFeed?.url }
-                } else {
-                    items
+        // Observe feeds
+        observeFeedsUseCase()
+            .onEach { feeds ->
+                updateState { it.copy(feeds = feeds) }
+            }
+            .launchIn(viewModelScope)
+
+        // Observe articles & compute filtered stream
+        observeArticlesUseCase()
+            .onEach { allItems ->
+                val unread = allItems.count { !it.isRead }
+                updateState { state ->
+                    val filtered = applyFilters(
+                        items = allItems,
+                        selectedFeed = state.selectedFeed,
+                        filter = state.filterType,
+                        query = state.searchQuery
+                    )
+                    state.copy(
+                        rawArticles = allItems,
+                        feedItems = filtered,
+                        unreadCount = unread
+                    )
                 }
-                updateState { it.copy(feedItems = filtered) }
             }
             .launchIn(viewModelScope)
     }
 
-    private fun filterBySearch(feeds: List<RssFeed>): List<RssFeed> {
-        val query = uiState.value.searchQuery
-        return if (query.isBlank()) {
-            feeds
-        } else {
-            feeds.filter {
-                it.title?.contains(query, ignoreCase = true) == true ||
-                it.url.contains(query, ignoreCase = true) ||
-                it.description?.contains(query, ignoreCase = true) == true
+    private fun applyFilters(
+        items: List<RssFeedItem>,
+        selectedFeed: RssFeed?,
+        filter: ArticleFilter,
+        query: String
+    ): List<RssFeedItem> {
+        return items.asSequence()
+            .filter { item ->
+                if (selectedFeed == null) true else item.feedUrl == selectedFeed.url
             }
-        }
+            .filter { item ->
+                when (filter) {
+                    ArticleFilter.ALL -> true
+                    ArticleFilter.UNREAD -> !item.isRead
+                    ArticleFilter.FAVORITES -> item.isFavorite
+                }
+            }
+            .filter { item ->
+                if (query.isBlank()) {
+                    true
+                } else {
+                    item.title.contains(query, ignoreCase = true) ||
+                        item.description?.contains(query, ignoreCase = true) == true ||
+                        item.feedTitle?.contains(query, ignoreCase = true) == true
+                }
+            }
+            .toList()
     }
 
     override fun onAction(action: RssReaderUiAction) {
@@ -146,195 +164,184 @@ class RssReaderViewModel @Inject constructor(
             is RssReaderUiAction.AddFeed -> addFeed(action.url, action.title)
             is RssReaderUiAction.UpdateFeed -> updateFeed(action.feed)
             is RssReaderUiAction.DeleteFeed -> deleteFeed(action.feedId)
+            is RssReaderUiAction.ToggleFeedEnabled -> toggleFeedEnabled(action.feedId, action.isEnabled)
             is RssReaderUiAction.SelectFeed -> selectFeed(action.feed)
+            is RssReaderUiAction.SetFilterType -> setFilterType(action.filter)
             is RssReaderUiAction.UpdateSearchQuery -> updateSearchQuery(action.query)
             is RssReaderUiAction.MarkItemAsRead -> markItemAsRead(action.itemId)
             is RssReaderUiAction.MarkFeedAsRead -> markFeedAsRead(action.feedUrl)
+            is RssReaderUiAction.MarkAllAsRead -> markAllAsRead()
             is RssReaderUiAction.ToggleFavorite -> toggleFavorite(action.itemId)
-            is RssReaderUiAction.DeleteItem -> deleteItem(action.itemId)
+            is RssReaderUiAction.UpdateMaxItemsPerFeed -> updateMaxItems(action.count)
+            is RssReaderUiAction.UpdateRetentionDays -> updateRetention(action.days)
+            is RssReaderUiAction.ClearReadArticles -> clearReadArticles()
+            is RssReaderUiAction.PurgeAncientArticles -> purgeAncientArticles()
             is RssReaderUiAction.RefreshFeeds -> refreshAllFeeds()
             is RssReaderUiAction.RefreshCurrentFeed -> refreshCurrentFeed()
-            is RssReaderUiAction.ClearError -> clearError()
+            is RssReaderUiAction.OpenAddSheet -> updateState { it.copy(showAddSheet = true) }
+            is RssReaderUiAction.DismissAddSheet -> updateState { it.copy(showAddSheet = false) }
+            is RssReaderUiAction.OpenSettings -> updateState { it.copy(showSettings = true) }
+            is RssReaderUiAction.DismissSettings -> updateState { it.copy(showSettings = false) }
+            is RssReaderUiAction.ClearError -> updateState { it.copy(error = null) }
         }
     }
 
     private fun addFeed(url: String, title: String?) {
         viewModelScope.launch {
-            try {
-                val newFeed = RssFeed(
-                    id = UUID.randomUUID().toString(),
-                    url = url.trim(),
-                    title = title,
-                    description = null,
-                    imageUrl = null,
-                    isEnabled = true,
-                    lastFetchedAt = 0,
-                    fetchIntervalMinutes = 60,
-                    maxItemsToKeep = 100
-                )
-                rssFeedRepository.addFeedSubscription(newFeed)
-                sendEffect(RssReaderUiEffect.ShowToast("Feed added: $url"))
-            } catch (e: Exception) {
-                updateState { it.copy(error = "Failed to add feed: ${e.message}") }
-            }
+            updateState { it.copy(isLoading = true) }
+            addFeedUseCase(url, title, maxItemsToKeep = uiState.value.maxItemsPerFeed)
+                .onSuccess {
+                    sendEffect(RssReaderUiEffect.ShowToast("Subscribed to ${it.title ?: it.url}"))
+                }
+                .onFailure { e ->
+                    updateState { it.copy(error = "Failed to add feed: ${e.message}") }
+                }
+            updateState { it.copy(isLoading = false) }
         }
     }
 
     private fun updateFeed(feed: RssFeed) {
         viewModelScope.launch {
-            try {
-                rssFeedRepository.updateFeedSubscription(feed)
-                sendEffect(RssReaderUiEffect.ShowToast("Feed updated"))
-            } catch (e: Exception) {
-                updateState { it.copy(error = "Failed to update feed: ${e.message}") }
-            }
+            updateFeedUseCase(feed)
+            sendEffect(RssReaderUiEffect.ShowToast("Feed updated"))
         }
     }
 
     private fun deleteFeed(feedId: String) {
         viewModelScope.launch {
-            try {
-                val feed = rssFeedRepository.getFeedSubscriptionById(feedId)
-                feed?.let {
-                    rssFeedRepository.deleteFeedItemsByFeedUrl(it.url)
-                    rssFeedRepository.deleteFeedSubscription(feedId)
-                    sendEffect(RssReaderUiEffect.ShowToast("Feed deleted"))
-                }
-            } catch (e: Exception) {
-                updateState { it.copy(error = "Failed to delete feed: ${e.message}") }
+            deleteFeedUseCase(feedId)
+            sendEffect(RssReaderUiEffect.ShowToast("Feed removed"))
+        }
+    }
+
+    private fun toggleFeedEnabled(feedId: String, isEnabled: Boolean) {
+        viewModelScope.launch {
+            val feed = uiState.value.feeds.find { it.id == feedId }
+            if (feed != null) {
+                updateFeedUseCase(feed.copy(isEnabled = isEnabled))
             }
         }
     }
 
     private fun selectFeed(feed: RssFeed?) {
-        updateState { it.copy(selectedFeed = feed) }
+        updateState { state ->
+            val filtered = applyFilters(
+                items = state.rawArticles,
+                selectedFeed = feed,
+                filter = state.filterType,
+                query = state.searchQuery
+            )
+            state.copy(selectedFeed = feed, feedItems = filtered)
+        }
+    }
+
+    private fun setFilterType(filter: ArticleFilter) {
+        updateState { state ->
+            val filtered = applyFilters(
+                items = state.rawArticles,
+                selectedFeed = state.selectedFeed,
+                filter = filter,
+                query = state.searchQuery
+            )
+            state.copy(filterType = filter, feedItems = filtered)
+        }
     }
 
     private fun updateSearchQuery(query: String) {
-        updateState { it.copy(searchQuery = query) }
+        updateState { state ->
+            val filtered = applyFilters(
+                items = state.rawArticles,
+                selectedFeed = state.selectedFeed,
+                filter = state.filterType,
+                query = query
+            )
+            state.copy(searchQuery = query, feedItems = filtered)
+        }
     }
 
     private fun markItemAsRead(itemId: String) {
         viewModelScope.launch {
-            try {
-                rssFeedRepository.markItemAsRead(itemId)
-                updateUnreadCount()
-            } catch (e: Exception) {
-                updateState { it.copy(error = "Failed to mark item as read: ${e.message}") }
-            }
+            markArticleReadUseCase.markOne(itemId)
         }
     }
 
     private fun markFeedAsRead(feedUrl: String) {
         viewModelScope.launch {
-            try {
-                rssFeedRepository.markFeedItemsAsRead(feedUrl)
-                updateUnreadCount()
-                sendEffect(RssReaderUiEffect.ShowToast("Feed marked as read"))
-            } catch (e: Exception) {
-                updateState { it.copy(error = "Failed to mark feed as read: ${e.message}") }
-            }
+            markArticleReadUseCase.markFeed(feedUrl)
+            sendEffect(RssReaderUiEffect.ShowToast("Feed marked as read"))
+        }
+    }
+
+    private fun markAllAsRead() {
+        viewModelScope.launch {
+            markArticleReadUseCase.markAll()
+            sendEffect(RssReaderUiEffect.ShowToast("All articles marked as read"))
         }
     }
 
     private fun toggleFavorite(itemId: String) {
         viewModelScope.launch {
-            try {
-                val item = rssFeedRepository.getFeedItemById(itemId)
-                item?.let {
-                    rssFeedRepository.toggleFavorite(itemId, !it.isFavorite)
-                }
-            } catch (e: Exception) {
-                updateState { it.copy(error = "Failed to toggle favorite: ${e.message}") }
+            val item = uiState.value.rawArticles.find { it.id == itemId }
+            if (item != null) {
+                toggleFavoriteUseCase(itemId, !item.isFavorite)
             }
         }
     }
 
-    private fun deleteItem(itemId: String) {
+    private fun updateMaxItems(count: Int) {
+        updateState { it.copy(maxItemsPerFeed = count) }
         viewModelScope.launch {
-            try {
-                rssFeedRepository.deleteFeedItem(itemId)
-                updateUnreadCount()
-                sendEffect(RssReaderUiEffect.ShowToast("Item deleted"))
-            } catch (e: Exception) {
-                updateState { it.copy(error = "Failed to delete item: ${e.message}") }
+            uiState.value.feeds.forEach { feed ->
+                updateFeedUseCase(feed.copy(maxItemsToKeep = count))
             }
+            sendEffect(RssReaderUiEffect.ShowToast("Cache max limit set to $count"))
+        }
+    }
+
+    private fun updateRetention(days: Int) {
+        updateState { it.copy(retentionDays = days) }
+        sendEffect(RssReaderUiEffect.ShowToast("Retention policy set to $days days"))
+    }
+
+    private fun clearReadArticles() {
+        viewModelScope.launch {
+            val deletedCount = purgeCacheUseCase.clearAllRead()
+            sendEffect(RssReaderUiEffect.ShowToast("Cleared $deletedCount read articles"))
+        }
+    }
+
+    private fun purgeAncientArticles() {
+        viewModelScope.launch {
+            val purgedCount = purgeCacheUseCase.purgeExpired(uiState.value.retentionDays)
+            sendEffect(RssReaderUiEffect.ShowToast("Purged $purgedCount expired articles"))
         }
     }
 
     private fun refreshAllFeeds() {
-        updateState { it.copy(isLoading = true) }
         viewModelScope.launch {
-            try {
-                // TODO: Implement actual RSS feed fetching
-                // This would use an RSS parsing library to fetch from URLs
-                val feeds = rssFeedRepository.getEnabledFeedSubscriptionsList()
-                feeds.forEach { feed ->
-                    // fetchFeedItems(feed)
-                }
+            updateState { it.copy(isLoading = true) }
+            val result = refreshFeedsUseCase.refreshAll()
+            result.onSuccess {
                 sendEffect(RssReaderUiEffect.ShowToast("Feeds refreshed"))
-            } catch (e: Exception) {
-                updateState { it.copy(error = "Failed to refresh feeds: ${e.message}") }
-            } finally {
-                updateState { it.copy(isLoading = false) }
+            }.onFailure { e ->
+                updateState { it.copy(error = "Refresh failed: ${e.message}") }
             }
+            updateState { it.copy(isLoading = false) }
         }
     }
 
     private fun refreshCurrentFeed() {
-        val currentFeed = uiState.value.selectedFeed
-        if (currentFeed != null) {
-            updateState { it.copy(isLoading = true) }
-            viewModelScope.launch {
-                try {
-                    // TODO: Implement actual RSS feed fetching
-                    // fetchFeedItems(currentFeed)
-                    sendEffect(RssReaderUiEffect.ShowToast("Feed refreshed"))
-                } catch (e: Exception) {
-                    updateState { it.copy(error = "Failed to refresh feed: ${e.message}") }
-                } finally {
-                    updateState { it.copy(isLoading = false) }
-                }
-            }
-        }
-    }
-
-    private fun clearError() {
-        updateState { it.copy(error = null) }
-    }
-
-    private fun updateUnreadCount() {
+        val current = uiState.value.selectedFeed ?: return
         viewModelScope.launch {
-            val count = rssFeedRepository.getUnreadFeedItemsCount()
-            updateState { it.copy(unreadCount = count) }
+            updateState { it.copy(isLoading = true) }
+            refreshFeedsUseCase.refreshSingle(current.id)
+                .onSuccess {
+                    sendEffect(RssReaderUiEffect.ShowToast("${current.title ?: "Feed"} refreshed"))
+                }
+                .onFailure { e ->
+                    updateState { it.copy(error = "Refresh failed: ${e.message}") }
+                }
+            updateState { it.copy(isLoading = false) }
         }
-    }
-
-    /**
-     * Fetch items from a specific RSS feed.
-     * TODO: Implement with RSS parsing library
-     */
-    private suspend fun fetchFeedItems(feed: RssFeed) {
-        // This would use an RSS parsing library like:
-        // - com.romandanylyk:rssreader
-        // - org.simpleframework.xml
-        // 
-        // Example:
-        // val rssClient = RssClient.Builder().build()
-        // val feedData = rssClient.fetch(feed.url)
-        // val items = feedData.items.map { rssItem ->
-        //     RssFeedItem(
-        //         id = UUID.randomUUID().toString(),
-        //         feedUrl = feed.url,
-        //         feedTitle = feed.title,
-        //         title = rssItem.title,
-        //         description = rssItem.description,
-        //         link = rssItem.link,
-        //         author = rssItem.author,
-        //         pubDate = rssItem.pubDate,
-        //         imageUrl = rssItem.imageUrl
-        //     )
-        // }
-        // rssFeedRepository.addFeedItems(items)
     }
 }

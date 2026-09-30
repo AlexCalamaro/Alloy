@@ -18,7 +18,7 @@ import androidx.navigation.navArgument
  * @param startDestination The starting screen route
  * @param modifier Modifier to apply to the NavHost
  * @param onStatsPill Clickable composable for Stats Pill screen
- * @param onClip Clickable composable for Clip screen
+ * @param onRssReader Clickable composable for RSS Reader screen
  * @param onScratch Clickable composable for Scratch screen
  * @param onScenes Clickable composable for Scenes screen
  */
@@ -28,7 +28,7 @@ fun AlloyNavGraph(
     startDestination: String = Screens.START_DESTINATION,
     modifier: Modifier = Modifier,
     onStatsPill: @Composable () -> Unit,
-    onClip: @Composable () -> Unit,
+    onRssReader: @Composable () -> Unit,
     onScratch: @Composable () -> Unit,
     onScenes: @Composable () -> Unit
 ) {
@@ -42,9 +42,9 @@ fun AlloyNavGraph(
             onStatsPill()
         }
         
-        // Clip Screen
-        composable(Screens.Clip.route) {
-            onClip()
+        // RSS Reader Screen
+        composable(Screens.RssReader.route) {
+            onRssReader()
         }
         
         // Scratch Screen
@@ -55,17 +55,6 @@ fun AlloyNavGraph(
         // Scenes Screen
         composable(Screens.Scenes.route) {
             onScenes()
-        }
-        
-        // Clip Detail Screen (future use)
-        composable(
-            route = "clip_detail/{${Screens.ARG_CLIP_ID}}",
-            arguments = listOf(
-                navArgument(Screens.ARG_CLIP_ID) { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val clipId = backStackEntry.arguments?.getString(Screens.ARG_CLIP_ID)
-            // TODO: Implement clip detail screen
         }
         
         // Scratch Detail Screen (future use)

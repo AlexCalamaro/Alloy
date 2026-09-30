@@ -1,422 +1,384 @@
 package com.squidink.alloy.modules.rssreader.ui
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Inbox
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.squidink.alloy.core.common.UiAction
-import com.squidink.alloy.core.domain.repository.RssFeed
-import com.squidink.alloy.core.domain.repository.RssFeedItem
+import com.squidink.alloy.core.layout.DetailPaneScaffold
+import com.squidink.alloy.core.layout.deriveWindowSizeClass
+import com.squidink.alloy.core.layout.isExpanded
+import com.squidink.alloy.modules.rssreader.ArticleFilter
 import com.squidink.alloy.modules.rssreader.RssReaderUiAction
+import com.squidink.alloy.modules.rssreader.RssReaderUiEffect
 import com.squidink.alloy.modules.rssreader.RssReaderUiState
-import java.text.SimpleDateFormat
-import java.util.*
+import com.squidink.alloy.modules.rssreader.RssReaderViewModel
 
 /**
- * Main RSS Reader screen composable.
- * Displays feed subscriptions and feed items.
+ * Top-level Stateful RSS Reader screen composable.
+ */
+@Composable
+fun RssReaderScreen(
+    viewModel: RssReaderViewModel,
+    modifier: Modifier = Modifier
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is RssReaderUiEffect.ShowToast -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+                is RssReaderUiEffect.NavigateToArticle -> {
+                    openInNativeBrowser(context, effect.articleUrl)
+                }
+            }
+        }
+    }
+
+    RssReaderScreen(
+        state = uiState,
+        onAction = viewModel::onAction,
+        snackbarHostState = snackbarHostState,
+        modifier = modifier
+    )
+}
+
+/**
+ * Stateless RSS Reader Screen supporting adaptive layout and slide-in settings.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RssReaderScreen(
     state: RssReaderUiState,
     onAction: (RssReaderUiAction) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
+    val windowSizeClass = deriveWindowSizeClass()
+    val isExpandedScreen = windowSizeClass.isExpanded()
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("RSS Reader") },
-                actions = {
-                    IconButton(onClick = { onAction(RssReaderUiAction.RefreshFeeds) }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                title = {
+                    Column {
+                        Text(
+                            text = "RSS Reader",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        state.selectedFeed?.let { feed ->
+                            Text(
+                                text = feed.title ?: feed.url,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
+                },
+                actions = {
+                    // Mark all read button
                     if (state.unreadCount > 0) {
-                        BadgeContainer {
-                            Badge {
-                                Text(text = state.unreadCount.toString())
+                        IconButton(onClick = { onAction(RssReaderUiAction.MarkAllAsRead) }) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Mark all as read"
+                            )
+                        }
+                    }
+
+                    // Refresh button
+                    IconButton(
+                        onClick = {
+                            if (state.selectedFeed != null) {
+                                onAction(RssReaderUiAction.RefreshCurrentFeed)
+                            } else {
+                                onAction(RssReaderUiAction.RefreshFeeds)
                             }
                         }
+                    ) {
+                        if (state.unreadCount > 0) {
+                            BadgedBox(
+                                badge = {
+                                    Badge {
+                                        Text(text = if (state.unreadCount > 99) "99+" else state.unreadCount.toString())
+                                    }
+                                }
+                            ) {
+                                Icon(Icons.Default.Refresh, contentDescription = "Refresh feeds")
+                            }
+                        } else {
+                            Icon(Icons.Default.Refresh, contentDescription = "Refresh feeds")
+                        }
+                    }
+
+                    // Settings Sidebar Toggle
+                    IconButton(onClick = { onAction(RssReaderUiAction.OpenSettings) }) {
+                        Icon(Icons.Default.Settings, contentDescription = "RSS Settings")
                     }
                 }
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { /* Show add feed dialog */ },
-                containerColor = MaterialTheme.colorScheme.primary
+                onClick = { onAction(RssReaderUiAction.OpenAddSheet) },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Feed")
             }
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Search bar
-            OutlinedTextField(
-                value = state.searchQuery,
-                onValueChange = { onAction(RssReaderUiAction.UpdateSearchQuery(it)) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                placeholder = { Text("Search feeds...") },
-                leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = "Search")
-                },
-                singleLine = true
-            )
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Search bar
+                OutlinedTextField(
+                    value = state.searchQuery,
+                    onValueChange = { onAction(RssReaderUiAction.UpdateSearchQuery(it)) },
+                    placeholder = { Text("Search articles or topics...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (state.searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { onAction(RssReaderUiAction.UpdateSearchQuery("")) }) {
+                                Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
 
-            // Main content
-            if (state.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                // Filter chips carousel (All, Unread, Favorites, plus Subscribed Feeds)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    CircularProgressIndicator()
-                }
-            } else {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    // Feeds list
-                    FeedsList(
-                        feeds = state.feeds,
-                        selectedFeed = state.selectedFeed,
-                        onFeedClick = { onAction(RssReaderUiAction.SelectFeed(it)) },
-                        modifier = Modifier
-                            .width(300.dp)
-                            .fillMaxHeight()
+                    FilterChip(
+                        selected = state.selectedFeed == null && state.filterType == ArticleFilter.ALL,
+                        onClick = {
+                            onAction(RssReaderUiAction.SelectFeed(null))
+                            onAction(RssReaderUiAction.SetFilterType(ArticleFilter.ALL))
+                        },
+                        label = { Text("All Feeds") }
                     )
 
-                    // Feed items or empty state
-                    if (state.selectedFeed != null) {
-                        FeedItemsList(
-                            items = state.feedItems,
-                            onItemClick = { /* Navigate to article */ },
-                            onMarkAsRead = { onAction(RssReaderUiAction.MarkItemAsRead(it)) },
-                            onToggleFavorite = { onAction(RssReaderUiAction.ToggleFavorite(it)) },
-                            onDelete = { onAction(RssReaderUiAction.DeleteItem(it)) },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        EmptyState(
-                            message = "Select a feed to view articles",
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                }
-            }
-
-            // Error message
-            state.error?.let { error ->
-                Surface(
-                    color = MaterialTheme.colorScheme.errorContainer,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = error,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(16.dp)
+                    FilterChip(
+                        selected = state.filterType == ArticleFilter.UNREAD,
+                        onClick = {
+                            val next = if (state.filterType == ArticleFilter.UNREAD) ArticleFilter.ALL else ArticleFilter.UNREAD
+                            onAction(RssReaderUiAction.SetFilterType(next))
+                        },
+                        label = { Text("Unread (${state.unreadCount})") }
                     )
-                }
-            }
-        }
-    }
-}
 
-/**
- * List of RSS feed subscriptions.
- */
-@Composable
-private fun FeedsList(
-    feeds: List<RssFeed>,
-    selectedFeed: RssFeed?,
-    onFeedClick: (RssFeed) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .verticalDivider(width = 1.dp, color = Color.LightGray)
-    ) {
-        Text(
-            text = "Subscriptions (${feeds.size})",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(16.dp)
-        )
-
-        LazyColumn {
-            items(feeds, key = { it.id }) { feed ->
-                FeedItemRow(
-                    feed = feed,
-                    isSelected = feed.id == selectedFeed?.id,
-                    onClick = { onFeedClick(feed) }
-                )
-            }
-
-            if (feeds.isEmpty()) {
-                item {
-                    EmptyState(
-                        message = "No feeds subscribed",
-                        modifier = Modifier.fillMaxWidth()
+                    FilterChip(
+                        selected = state.filterType == ArticleFilter.FAVORITES,
+                        onClick = {
+                            val next = if (state.filterType == ArticleFilter.FAVORITES) ArticleFilter.ALL else ArticleFilter.FAVORITES
+                            onAction(RssReaderUiAction.SetFilterType(next))
+                        },
+                        label = { Text("Favorites") }
                     )
-                }
-            }
-        }
-    }
-}
 
-/**
- * Individual feed row.
- */
-@Composable
-private fun FeedItemRow(
-    feed: RssFeed,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Surface(
-        color = if (isSelected) {
-            MaterialTheme.colorScheme.secondaryContainer
-        } else {
-            Color.Transparent
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Feed icon
-            Icon(
-                imageVector = Icons.Default.RssFeed,
-                contentDescription = null,
-                tint = if (isSelected) {
-                    MaterialTheme.colorScheme.onSecondaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                },
-                modifier = Modifier.padding(end = 12.dp)
-            )
-
-            // Feed title
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = feed.title ?: feed.url,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1
-                )
-                Text(
-                    text = feed.url,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
-                )
-            }
-        }
-    }
-}
-
-/**
- * List of RSS feed items (articles).
- */
-@Composable
-private fun FeedItemsList(
-    items: List<RssFeedItem>,
-    onItemClick: (String) -> Unit,
-    onMarkAsRead: (String) -> Unit,
-    onToggleFavorite: (String) -> Unit,
-    onDelete: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(
-        modifier = modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(items, key = { it.id }) { item ->
-            FeedItemCard(
-                item = item,
-                onClick = { onItemClick(item.id) },
-                onMarkAsRead = { onMarkAsRead(item.id) },
-                onToggleFavorite = { onToggleFavorite(item.id) },
-                onDelete = { onDelete(item.id) }
-            )
-        }
-
-        if (items.isEmpty()) {
-            item {
-                EmptyState(
-                    message = "No articles in this feed",
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-    }
-}
-
-/**
- * Individual feed item card.
- */
-@Composable
-private fun FeedItemCard(
-    item: RssFeedItem,
-    onClick: () -> Unit,
-    onMarkAsRead: () -> Unit,
-    onToggleFavorite: () -> Unit,
-    onDelete: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = if (item.isRead) {
-                Color.Transparent
-            } else {
-                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
-            }
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            // Title
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = if (!item.isRead) FontWeight.Bold else FontWeight.Normal,
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
-
-            // Description preview
-            item.description?.let { desc ->
-                Text(
-                    text = desc,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
-
-            // Metadata row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Date
-                Text(
-                    text = formatDate(item.pubDate),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                // Actions
-                Row {
-                    IconButton(onClick = onToggleFavorite) {
-                        Icon(
-                            imageVector = if (item.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Favorite",
-                            tint = if (item.isFavorite) {
-                                MaterialTheme.colorScheme.error
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
+                    // Feed-specific filter chips
+                    state.feeds.forEach { feed ->
+                        FilterChip(
+                            selected = state.selectedFeed?.id == feed.id,
+                            onClick = {
+                                val next = if (state.selectedFeed?.id == feed.id) null else feed
+                                onAction(RssReaderUiAction.SelectFeed(next))
+                            },
+                            label = {
+                                Text(
+                                    text = feed.title ?: feed.url,
+                                    maxLines = 1
+                                )
                             }
                         )
                     }
+                }
 
-                    IconButton(onClick = onMarkAsRead) {
-                        Icon(
-                            imageVector = if (item.isRead) Icons.Default.CheckCircle else Icons.Default.Circle,
-                            contentDescription = "Mark as read",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    IconButton(onClick = onDelete) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                // Loading progress bar
+                if (state.isLoading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 3.dp)
                     }
                 }
+
+                // Main Adaptive Feed List
+                if (state.feedItems.isEmpty() && !state.isLoading) {
+                    EmptyArticlesState(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    )
+                } else {
+                    if (isExpandedScreen) {
+                        // Staggered multi-column grid on Expanded screens (tablets / desktop)
+                        LazyVerticalStaggeredGrid(
+                            columns = StaggeredGridCells.Adaptive(minSize = 340.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentPadding = PaddingValues(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalItemSpacing = 16.dp
+                        ) {
+                            items(state.feedItems, key = { it.id }) { item ->
+                                RssArticleCard(
+                                    item = item,
+                                    onOpenArticle = { url ->
+                                        onAction(RssReaderUiAction.MarkItemAsRead(item.id))
+                                        openInNativeBrowser(context, url)
+                                    },
+                                    onToggleFavorite = { onAction(RssReaderUiAction.ToggleFavorite(item.id)) },
+                                    onToggleRead = { onAction(RssReaderUiAction.MarkItemAsRead(item.id)) }
+                                )
+                            }
+                        }
+                    } else {
+                        // Single-column list on Compact / Medium screens (phones)
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(state.feedItems, key = { it.id }) { item ->
+                                RssArticleCard(
+                                    item = item,
+                                    onOpenArticle = { url ->
+                                        onAction(RssReaderUiAction.MarkItemAsRead(item.id))
+                                        openInNativeBrowser(context, url)
+                                    },
+                                    onToggleFavorite = { onAction(RssReaderUiAction.ToggleFavorite(item.id)) },
+                                    onToggleRead = { onAction(RssReaderUiAction.MarkItemAsRead(item.id)) }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Slide-over Settings Sidebar using DetailPaneScaffold
+            DetailPaneScaffold(
+                isOpen = state.showSettings,
+                onDismiss = { onAction(RssReaderUiAction.DismissSettings) },
+                title = "RSS Settings"
+            ) {
+                RssSettingsPanel(
+                    state = state,
+                    onAction = onAction
+                )
+            }
+
+            // Material 3 Modal Bottom Sheet for Adding Feeds
+            if (state.showAddSheet) {
+                RssAddFeedSheet(
+                    onDismiss = { onAction(RssReaderUiAction.DismissAddSheet) },
+                    onAddFeed = { url, title ->
+                        onAction(RssReaderUiAction.AddFeed(url, title))
+                    }
+                )
             }
         }
     }
 }
 
-/**
- * Empty state placeholder.
- */
 @Composable
-private fun EmptyState(
-    message: String,
-    modifier: Modifier = Modifier
-) {
+private fun EmptyArticlesState(modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(32.dp),
+        modifier = modifier.padding(32.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 imageVector = Icons.Default.Inbox,
                 contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                modifier = Modifier.size(56.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = message,
-                style = MaterialTheme.typography.bodyLarge,
+                text = "No articles found",
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Subscribe to feeds or adjust your filter query",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
             )
         }
     }
-}
-
-/**
- * Format timestamp to readable date.
- */
-private fun formatDate(timestamp: Long): String {
-    val sdf = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
-    return sdf.format(Date(timestamp))
-}
-
-/**
- * Vertical divider composable.
- */
-@Composable
-private fun Modifier.verticalDivider(
-    width: dp,
-    color: Color
-): Modifier {
-    return this.then(
-        Modifier
-            .width(width)
-            .background(color)
-    )
 }

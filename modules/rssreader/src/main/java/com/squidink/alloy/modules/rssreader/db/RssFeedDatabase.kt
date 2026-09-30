@@ -17,7 +17,7 @@ import net.sqlcipher.database.SupportFactory
         RssFeedItemEntity::class
     ],
     version = 1,
-    exportSchema = true
+    exportSchema = false
 )
 abstract class RssFeedDatabase : RoomDatabase() {
 

@@ -19,6 +19,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -27,6 +31,7 @@ dependencies {
     implementation(project(":core:datastore"))
     implementation(project(":core:domain"))
     implementation(project(":core:layout"))
+    implementation(project(":core:navigation"))
     implementation(project(":core:permissions"))
 
     implementation(libs.androidx.core.ktx)
@@ -52,9 +57,14 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
 
+    // Networking & Image Loading
+    implementation(libs.okhttp)
+    implementation(libs.coil.compose)
+
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
+    testImplementation(libs.okhttp.mockwebserver)
     testImplementation("io.mockk:mockk:1.13.9")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
 }

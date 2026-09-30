@@ -209,4 +209,34 @@ interface IRssFeedRepository {
      * Delete all feed subscriptions.
      */
     suspend fun deleteAllFeedSubscriptions()
+
+    /**
+     * Mark all items as read across all feeds.
+     */
+    suspend fun markAllItemsAsRead()
+
+    /**
+     * Refreshes a single feed from network, parsing new articles and executing intelligent cache pruning.
+     */
+    suspend fun refreshFeed(feedId: String): Result<Unit>
+
+    /**
+     * Refreshes all active feed subscriptions concurrently.
+     */
+    suspend fun refreshAllFeeds(): Result<Unit>
+
+    /**
+     * Cleans up read articles older than [cutoffDays] days that are not marked as favorite.
+     */
+    suspend fun cleanupExpiredReadItems(cutoffDays: Int): Int
+
+    /**
+     * Cleans up all read articles that are not marked as favorite.
+     */
+    suspend fun deleteReadFeedItems(): Int
+
+    /**
+     * Ensures default Google News Technology feed is registered if database is empty.
+     */
+    suspend fun ensureDefaultFeed(): RssFeed
 }

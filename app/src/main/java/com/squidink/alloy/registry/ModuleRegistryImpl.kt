@@ -4,7 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.FolderZip
+import androidx.compose.material.icons.filled.RssFeed
 import com.squidink.alloy.core.common.ModuleInfo
 import com.squidink.alloy.core.common.ModuleRegistry
 import com.squidink.alloy.core.datastore.DataStoreManager
@@ -58,16 +58,16 @@ class ModuleRegistryImpl
                 )
             )
 
-            // Register Clip feature
+            // Register RSS Reader feature
             featureRegistry.registerFeature(
                 FeatureDefinition(
-                    id = FeatureIds.CLIP,
-                    name = "Clipboard Workbench",
-                    description = "Searchable encrypted clipboard history",
-                    screenRoute = "clip",
+                    id = FeatureIds.RSS_READER,
+                    name = "RSS Reader",
+                    description = "Follow news & RSS feeds with intelligent caching",
+                    screenRoute = "rss_reader",
                     category = "Productivity",
                     sortOrder = 2,
-                    icon = Icons.Default.FolderZip
+                    icon = Icons.Default.RssFeed
                 )
             )
 

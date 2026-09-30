@@ -53,7 +53,7 @@ dependencies {
 
     implementation(project(":modules:statspill"))
     implementation(project(":modules:scenes"))
-    implementation(project(":modules:clip"))
+    implementation(project(":modules:rssreader"))
     implementation(project(":modules:scratch"))
 
     implementation(libs.androidx.core.ktx)

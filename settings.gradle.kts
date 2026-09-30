@@ -40,7 +40,6 @@ include(":tooling:probe")
 
 include(":modules:statspill")
 include(":modules:scenes")
-include(":modules:clip")
 include(":modules:scratch")
 include(":modules:settings")
 include(":modules:rssreader")

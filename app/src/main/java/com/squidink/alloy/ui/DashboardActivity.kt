@@ -1,13 +1,16 @@
 package com.squidink.alloy.ui
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -21,8 +24,8 @@ import com.squidink.alloy.core.design.AlloyTheme
 import com.squidink.alloy.core.feature.featureRegistry
 import com.squidink.alloy.core.layout.DrawerScaffold
 import com.squidink.alloy.core.navigation.Screens
-import com.squidink.alloy.modules.clip.ClipViewModel
-import com.squidink.alloy.modules.clip.ui.ClipScreen
+import com.squidink.alloy.modules.rssreader.RssReaderViewModel
+import com.squidink.alloy.modules.rssreader.ui.RssReaderScreen
 import com.squidink.alloy.modules.scenes.ScenesViewModel
 import com.squidink.alloy.modules.scenes.ui.ScenesScreen
 import com.squidink.alloy.modules.scratch.ScratchViewModel
@@ -45,9 +48,12 @@ class DashboardActivity : ComponentActivity() {
     @Inject
     lateinit var dataStoreManager: DataStoreManager
 
+    private val targetScreenState = mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        targetScreenState.value = intent?.getStringExtra(EXTRA_TARGET_SCREEN)
         
         // Read dynamic color preference (defaults to true)
         val useDynamicColor = runBlocking {
@@ -55,8 +61,24 @@ class DashboardActivity : ComponentActivity() {
         }
 
         setContent {
-            DashboardScreen(dynamicColorEnabled = useDynamicColor)
+            val targetScreen by targetScreenState
+            DashboardScreen(
+                dynamicColorEnabled = useDynamicColor,
+                targetScreen = targetScreen
+            )
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        intent.getStringExtra(EXTRA_TARGET_SCREEN)?.let { target ->
+            targetScreenState.value = target
+        }
+    }
+
+    companion object {
+        const val EXTRA_TARGET_SCREEN = "target_screen"
     }
 }
 
@@ -70,11 +92,26 @@ class DashboardActivity : ComponentActivity() {
  * - Modal drawer for compact/medium screens
  */
 @Composable
-fun DashboardScreen(dynamicColorEnabled: Boolean = true) {
+fun DashboardScreen(
+    dynamicColorEnabled: Boolean = true,
+    targetScreen: String? = null
+) {
     val navController: NavHostController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: Screens.StatsPill.route
     val featureRegistry by featureRegistry().features.collectAsState()
+
+    LaunchedEffect(targetScreen) {
+        if (!targetScreen.isNullOrBlank() && targetScreen != currentRoute) {
+            navController.navigate(targetScreen) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
     
     // Get enabled features sorted by category and sort order
     val enabledFeatures = featureRegistry.values.filter { 
@@ -90,7 +127,7 @@ fun DashboardScreen(dynamicColorEnabled: Boolean = true) {
         ) {
             DrawerScaffold(
                 currentFeature = currentRoute,
-                screens = listOf(Screens.StatsPill, Screens.Clip, Screens.Scratch, Screens.Scenes),
+                screens = listOf(Screens.StatsPill, Screens.RssReader, Screens.Scratch, Screens.Scenes),
                 onScreenSelected = { route ->
                     if (route != currentRoute) {
                         navController.navigate(route) {
@@ -112,9 +149,9 @@ fun DashboardScreen(dynamicColorEnabled: Boolean = true) {
                             val viewModel: StatsViewModel = hiltViewModel()
                             StatsScreen(viewModel = viewModel)
                         }
-                        composable(Screens.Clip.route) {
-                            val viewModel: ClipViewModel = hiltViewModel()
-                            ClipScreen(viewModel = viewModel)
+                        composable(Screens.RssReader.route) {
+                            val viewModel: RssReaderViewModel = hiltViewModel()
+                            RssReaderScreen(viewModel = viewModel)
                         }
                         composable(Screens.Scratch.route) {
                             val viewModel: ScratchViewModel = hiltViewModel()

@@ -33,28 +33,8 @@ sealed class AppPermission(
     object PostNotifications : AppPermission(
         manifestName = android.Manifest.permission.POST_NOTIFICATIONS,
         title = "Show notifications",
-        description = "Alert you about system events and clip updates",
-        rationale = "Alloy can notify you about high CPU/RAM usage, new clips, and other important events. Notifications help you stay informed without opening the app."
-    )
-    
-    /**
-     * Read clipboard permission (deprecated on Android 11+, but we check anyway)
-     */
-    object ReadClipboard : AppPermission(
-        manifestName = "android.permission.READ_CLIPBOARD",
-        title = "Read clipboard",
-        description = "Access clipboard content for clipboard management",
-        rationale = "Alloy needs to read your clipboard to manage and display your clipboard history. This is essential for the clipboard manager feature."
-    )
-    
-    /**
-     * Write clipboard permission
-     */
-    object WriteClipboard : AppPermission(
-        manifestName = "android.permission.WRITE_CLIPBOARD",
-        title = "Write to clipboard",
-        description = "Write content to clipboard for pasting",
-        rationale = "Alloy needs to write to your clipboard so you can paste saved clips into other apps."
+        description = "Alert you about system events and news updates",
+        rationale = "Alloy can notify you about high CPU/RAM usage, breaking news feeds, and other important events. Notifications help you stay informed without opening the app."
     )
     
     /**

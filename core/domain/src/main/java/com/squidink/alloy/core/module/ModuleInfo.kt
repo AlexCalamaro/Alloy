@@ -64,7 +64,7 @@ data class ModuleInfo(
 @Deprecated("Use FeatureIds instead")
 object ModuleIds {
     const val STATS_PILL = "stats_pill"
-    const val CLIP = "clip"
+    const val RSS_READER = "rss_reader"
     const val SCRATCH = "scratch"
     const val SCENES = "scenes"
 }
@@ -85,11 +85,11 @@ object ModuleInfos {
         sortOrder = 1
     )
     
-    val CLIP = ModuleInfo(
-        id = ModuleIds.CLIP,
-        name = "Clipboard",
-        description = "Manage and organize clipboard entries",
-        screenRoute = "clip",
+    val RSS_READER = ModuleInfo(
+        id = ModuleIds.RSS_READER,
+        name = "RSS Reader",
+        description = "Follow news & RSS feeds with intelligent caching",
+        screenRoute = "rss_reader",
         category = "Productivity",
         sortOrder = 1
     )

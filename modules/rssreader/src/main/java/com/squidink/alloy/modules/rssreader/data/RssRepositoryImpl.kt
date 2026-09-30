@@ -1,21 +1,32 @@
 package com.squidink.alloy.modules.rssreader.data
 
-import com.squidink.alloy.core.domain.common.repository.IRssFeedRepository
 import com.squidink.alloy.core.domain.common.model.RssFeed
 import com.squidink.alloy.core.domain.common.model.RssFeedItem
+import com.squidink.alloy.core.domain.common.repository.IRssFeedRepository
+import com.squidink.alloy.modules.rssreader.data.network.GoogleNewsUrlBuilder
+import com.squidink.alloy.modules.rssreader.data.network.IRssHttpEngine
 import com.squidink.alloy.modules.rssreader.db.RssFeedDao
 import com.squidink.alloy.modules.rssreader.db.RssFeedItemEntity
 import com.squidink.alloy.modules.rssreader.db.RssFeedSubscriptionEntity
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import java.util.UUID
 import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Implementation of the RSS feed repository.
- * Bridges the database layer with the domain layer.
+ * Coordinates local Room database caching and remote OkHttp network fetching
+ * with intelligent retention and cache pruning policies.
  */
+@Singleton
 class RssRepositoryImpl @Inject constructor(
-    private val rssFeedDao: RssFeedDao
+    private val rssFeedDao: RssFeedDao,
+    private val rssHttpEngine: IRssHttpEngine
 ) : IRssFeedRepository {
 
     // ==================== Feed Subscriptions ====================
@@ -31,7 +42,11 @@ class RssRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteFeedSubscription(feedId: String) {
-        rssFeedDao.deleteFeedSubscriptionById(feedId)
+        val feed = rssFeedDao.getFeedSubscriptionById(feedId)
+        if (feed != null) {
+            rssFeedDao.deleteFeedItemsByFeedUrl(feed.url)
+            rssFeedDao.deleteFeedSubscriptionById(feedId)
+        }
     }
 
     override suspend fun getFeedSubscriptionById(feedId: String): RssFeed? {
@@ -127,6 +142,10 @@ class RssRepositoryImpl @Inject constructor(
         rssFeedDao.markFeedItemsAsRead(feedUrl)
     }
 
+    override suspend fun markAllItemsAsRead() {
+        rssFeedDao.markAllItemsAsRead()
+    }
+
     override suspend fun toggleFavorite(itemId: String, isFavorite: Boolean) {
         rssFeedDao.toggleFavorite(itemId, isFavorite)
     }
@@ -145,6 +164,117 @@ class RssRepositoryImpl @Inject constructor(
 
     override suspend fun deleteAllFeedSubscriptions() {
         rssFeedDao.deleteAllFeedSubscriptions()
+    }
+
+    // ==================== Network Sync & Retention Operations ====================
+
+    override suspend fun refreshFeed(feedId: String): Result<Unit> {
+        return runCatching {
+            val feed = rssFeedDao.getFeedSubscriptionById(feedId)
+                ?: throw IllegalArgumentException("Feed $feedId not found")
+
+            val parsed = rssHttpEngine.fetchFeed(feed.url)
+
+            // Update feed title/description if not set
+            val resolvedTitle = feed.title ?: parsed.title ?: "RSS Feed"
+            val resolvedImage = feed.imageUrl ?: parsed.imageUrl
+            if (feed.title == null || feed.imageUrl == null) {
+                rssFeedDao.updateFeedSubscription(
+                    feed.copy(
+                        title = resolvedTitle,
+                        imageUrl = resolvedImage,
+                        lastFetchedAt = System.currentTimeMillis()
+                    )
+                )
+            } else {
+                rssFeedDao.updateFeedSubscription(
+                    feed.copy(lastFetchedAt = System.currentTimeMillis())
+                )
+            }
+
+            // Map and insert items with IGNORE strategy to preserve existing user read/favorite state
+            val entities = parsed.items.map { item ->
+                RssFeedItemEntity(
+                    id = item.id,
+                    feedUrl = feed.url,
+                    feedTitle = resolvedTitle,
+                    title = item.title,
+                    description = item.description,
+                    link = item.link,
+                    author = item.author,
+                    pubDate = item.pubDate,
+                    imageUrl = item.imageUrl,
+                    isRead = false,
+                    isFavorite = false,
+                    createdAt = System.currentTimeMillis()
+                )
+            }
+
+            if (entities.isNotEmpty()) {
+                rssFeedDao.insertFeedItemsIgnore(entities)
+            }
+
+            // Intelligent cache pruning:
+            // 1. Keep only maxItemsToKeep recent items for this feed (ignoring favorites)
+            rssFeedDao.cleanupOldItems(feed.url, feed.maxItemsToKeep)
+
+            // 2. Prune read items older than 14 days (ignoring favorites)
+            val fourteenDaysAgo = System.currentTimeMillis() - 14L * 24 * 60 * 60 * 1000
+            rssFeedDao.cleanupExpiredReadItems(fourteenDaysAgo)
+        }
+    }
+
+    override suspend fun refreshAllFeeds(): Result<Unit> = coroutineScope {
+        runCatching {
+            var feeds = rssFeedDao.getEnabledFeedSubscriptionsList()
+            if (feeds.isEmpty()) {
+                ensureDefaultFeed()
+                feeds = rssFeedDao.getEnabledFeedSubscriptionsList()
+            }
+
+            val deferredResults = feeds.map { feed ->
+                async { refreshFeed(feed.id) }
+            }
+            deferredResults.awaitAll()
+            Unit
+        }
+    }
+
+    override suspend fun cleanupExpiredReadItems(cutoffDays: Int): Int {
+        val cutoffMs = System.currentTimeMillis() - (cutoffDays.toLong() * 24 * 60 * 60 * 1000)
+        return rssFeedDao.cleanupExpiredReadItems(cutoffMs)
+    }
+
+    override suspend fun deleteReadFeedItems(): Int {
+        return rssFeedDao.deleteReadFeedItems()
+    }
+
+    override suspend fun ensureDefaultFeed(): RssFeed {
+        val existing = rssFeedDao.getFeedSubscriptionByUrl(GoogleNewsUrlBuilder.DEFAULT_FEED_URL)
+        if (existing != null) {
+            return existing.toDomain()
+        }
+
+        // Check if there are any feeds at all
+        val allFeeds = rssFeedDao.getAllFeedSubscriptions().firstOrNull().orEmpty()
+        if (allFeeds.isNotEmpty()) {
+            return allFeeds.first().toDomain()
+        }
+
+        val defaultSubscription = RssFeed(
+            id = UUID.randomUUID().toString(),
+            url = GoogleNewsUrlBuilder.DEFAULT_FEED_URL,
+            title = GoogleNewsUrlBuilder.DEFAULT_FEED_TITLE,
+            description = "Google News Technology Feed",
+            imageUrl = null,
+            isEnabled = true,
+            lastFetchedAt = 0,
+            fetchIntervalMinutes = 60,
+            maxItemsToKeep = 100,
+            createdAt = System.currentTimeMillis()
+        )
+        addFeedSubscription(defaultSubscription)
+        return defaultSubscription
     }
 }
 

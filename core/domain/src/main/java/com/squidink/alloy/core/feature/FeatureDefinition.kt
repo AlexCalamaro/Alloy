@@ -57,7 +57,7 @@ data class FeatureDefinition(
  */
 object FeatureIds {
     const val STATS_PILL = "stats_pill"
-    const val CLIP = "clip"
+    const val RSS_READER = "rss_reader"
     const val SCRATCH = "scratch"
     const val SCENES = "scenes"
     const val SETTINGS = "settings"

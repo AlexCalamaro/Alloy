@@ -82,7 +82,10 @@ interface RssFeedDao {
     @Query("SELECT * FROM rss_feed_items ORDER BY pubDate DESC LIMIT :limit")
     fun getRecentFeedItemsLimited(limit: Int): Flow<List<RssFeedItemEntity>>
 
-    @Query("SELECT * FROM rss_feed_items WHERE isRead = 0")
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertFeedItemsIgnore(entities: List<RssFeedItemEntity>): List<Long>
+
+    @Query("SELECT COUNT(*) FROM rss_feed_items WHERE isRead = 0")
     suspend fun getUnreadFeedItemsCount(): Int
 
     @Query("UPDATE rss_feed_items SET isRead = 1 WHERE id = :itemId")
@@ -90,6 +93,9 @@ interface RssFeedDao {
 
     @Query("UPDATE rss_feed_items SET isRead = 1 WHERE feedUrl = :feedUrl")
     suspend fun markFeedItemsAsRead(feedUrl: String)
+
+    @Query("UPDATE rss_feed_items SET isRead = 1")
+    suspend fun markAllItemsAsRead()
 
     @Query("UPDATE rss_feed_items SET isFavorite = :isFavorite WHERE id = :itemId")
     suspend fun toggleFavorite(itemId: String, isFavorite: Boolean)
@@ -100,10 +106,22 @@ interface RssFeedDao {
     @Query("DELETE FROM rss_feed_items WHERE id IN (:itemIds)")
     suspend fun deleteFeedItemsByIds(itemIds: List<String>)
 
-    // ==================== Cleanup ====================
+    // ==================== Intelligent Retention & Cache Queries ====================
 
-    @Query("DELETE FROM rss_feed_items WHERE id IN (SELECT id FROM rss_feed_items WHERE feedUrl = :feedUrl ORDER BY pubDate DESC LIMIT -1 OFFSET :keepCount)")
+    @Query("DELETE FROM rss_feed_items WHERE feedUrl = :feedUrl AND isFavorite = 0 AND id NOT IN (SELECT id FROM rss_feed_items WHERE feedUrl = :feedUrl ORDER BY pubDate DESC LIMIT :keepCount)")
     suspend fun cleanupOldItems(feedUrl: String, keepCount: Int)
+
+    @Query("DELETE FROM rss_feed_items WHERE isRead = 1 AND isFavorite = 0 AND pubDate < :cutoffTimestamp")
+    suspend fun cleanupExpiredReadItems(cutoffTimestamp: Long): Int
+
+    @Query("DELETE FROM rss_feed_items WHERE isRead = 1 AND isFavorite = 0")
+    suspend fun deleteReadFeedItems(): Int
+
+    @Query("SELECT COUNT(*) FROM rss_feed_items")
+    suspend fun getTotalArticlesCount(): Int
+
+    @Query("SELECT COUNT(*) FROM rss_feed_items WHERE isFavorite = 1")
+    suspend fun getFavoriteArticlesCount(): Int
 
     @Query("DELETE FROM rss_feed_items")
     suspend fun deleteAllFeedItems()

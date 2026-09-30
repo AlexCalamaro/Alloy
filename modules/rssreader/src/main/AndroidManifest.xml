@@ -20,6 +20,15 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/rss_reader_widget_info" />
         </receiver>
+
+        <!-- Widget Article Launcher Activity -->
+        <activity
+            android:name=".widget.ArticleLauncherActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:noHistory="true" />
     </application>
 
 </manifest>
