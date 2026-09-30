@@ -30,13 +30,6 @@ class EncryptedRoomFactory @Inject constructor(
      *
      * @param dbName The name of the database (without .db extension)
      * @return SupportFactory configured with the encrypted passphrase
-     *
-     * Usage example:
-     * ```
-     * val factory = withContext(Dispatchers.IO) {
-     *     encryptedRoomFactory.getFactoryFor("my_database")
-     * }
-     * ```
      */
     suspend fun getFactoryFor(dbName: String): SupportFactory {
         return withContext(Dispatchers.IO) {
@@ -44,22 +37,28 @@ class EncryptedRoomFactory @Inject constructor(
             val encodedCiphertext = dataStoreManager.getStringFlow("${dbName}_ciphertext").first()
 
             val passphraseBytes = if (encodedIv == null || encodedCiphertext == null) {
-                // Generate and encrypt new 32-byte key
-                val rawKey = cryptoManager.generateSecureRandomBytes(32)
-                val encrypted = cryptoManager.encrypt(rawKey)
-                
-                dataStoreManager.setString("${dbName}_iv", Base64.encodeToString(encrypted.iv, Base64.NO_WRAP))
-                dataStoreManager.setString("${dbName}_ciphertext", Base64.encodeToString(encrypted.ciphertext, Base64.NO_WRAP))
-                
-                rawKey
+                generateAndSaveNewKey(dbName)
             } else {
-                // Decrypt existing key
-                val iv = Base64.decode(encodedIv, Base64.NO_WRAP)
-                val ciphertext = Base64.decode(encodedCiphertext, Base64.NO_WRAP)
-                cryptoManager.decrypt(EncryptedData(ciphertext, iv))
+                try {
+                    val iv = Base64.decode(encodedIv, Base64.NO_WRAP)
+                    val ciphertext = Base64.decode(encodedCiphertext, Base64.NO_WRAP)
+                    cryptoManager.decrypt(EncryptedData(ciphertext, iv))
+                } catch (e: Exception) {
+                    generateAndSaveNewKey(dbName)
+                }
             }
-            
+
             SupportFactory(passphraseBytes)
         }
+    }
+
+    private suspend fun generateAndSaveNewKey(dbName: String): ByteArray {
+        val rawKey = cryptoManager.generateSecureRandomBytes(32)
+        val encrypted = cryptoManager.encrypt(rawKey)
+
+        dataStoreManager.setString("${dbName}_iv", Base64.encodeToString(encrypted.iv, Base64.NO_WRAP))
+        dataStoreManager.setString("${dbName}_ciphertext", Base64.encodeToString(encrypted.ciphertext, Base64.NO_WRAP))
+
+        return rawKey
     }
 }

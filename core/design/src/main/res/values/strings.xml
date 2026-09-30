@@ -49,22 +49,32 @@
     <string name="permission_status_permanently_denied_description">%1$s permanently denied</string>
     <string name="permission_status_pending_description">%1$s pending</string>
     
-    <!-- Scratch Module -->
-    <string name="scratch_title">Pinned Scratchpad</string>
-    <string name="scratch_text_tab">Text</string>
+    <!-- Scratch / Code Editor Module -->
+    <string name="scratch_title">Code &amp; Text Editor</string>
+    <string name="scratch_text_tab">Editor</string>
     <string name="scratch_checklist_tab">Checklist</string>
-    <string name="scratch_stopwatch_tab">Stopwatch</string>
-    <string name="scratch_notes_label">Scratch Notes (.md)</string>
+    <string name="scratch_notes_label">Code &amp; Text Editor</string>
     <string name="scratch_checklist_hint">New checklist item...</string>
     <string name="scratch_checklist_empty">No checklist items. Add one above!</string>
     <string name="scratch_add">Add</string>
+    <string name="scratch_new_doc">New Document</string>
+    <string name="scratch_close_doc">Close Document</string>
+    <string name="scratch_lock_doc">Lock Document</string>
+    <string name="scratch_unlock_doc">Unlock Document</string>
+    <string name="scratch_lock_vault">Lock Vault</string>
+    <string name="scratch_export_doc">Export</string>
+    <string name="scratch_export_success">Document successfully exported</string>
+    <string name="scratch_export_error">Failed to export document: %1$s</string>
+    <string name="scratch_lockbox_confirm_title">Move to Secure Lockbox?</string>
+    <string name="scratch_lockbox_confirm_desc">This document will be encrypted at rest. Access requires biometric (fingerprint/face) or device screen lock (PIN/pattern/password).\n\nIt will automatically re-lock on app restart or exit.</string>
+    <string name="scratch_lockbox_gatekeeper_title">Document Protected in Secure Lockbox</string>
+    <string name="scratch_lockbox_gatekeeper_desc">Contents are encrypted. Authenticate with your fingerprint, face, or device screen lock to view and edit.</string>
+    <string name="scratch_lockbox_unlock_cta">Unlock Document</string>
+    <string name="scratch_format_label">Syntax</string>
     <string name="scratch_timer_start">Start</string>
     <string name="scratch_timer_pause">Pause</string>
     <string name="scratch_timer_stop">Stop</string>
     <string name="scratch_timer_reset">Reset</string>
-    <string name="scratch_timer_lap">Lap</string>
-    <string name="scratch_laps">Laps</string>
-    <string name="scratch_laps_empty">No laps recorded. Press \'Lap\' while running!</string>
     <string name="scratch_reset">Reset</string>
     <string name="scratch_clear">Clear</string>
     

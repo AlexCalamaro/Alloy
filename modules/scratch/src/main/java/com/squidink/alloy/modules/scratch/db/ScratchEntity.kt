@@ -9,5 +9,8 @@ data class ScratchEntity(
     val id: String,
     val title: String = "Untitled Note",
     val content: String = "",
+    val language: String = "PLAIN_TEXT",
+    val isLocked: Boolean = false,
+    val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

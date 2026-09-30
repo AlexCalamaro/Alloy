@@ -21,35 +21,35 @@ import javax.inject.Inject
 class ScratchRepositoryImpl @Inject constructor(
     private val scratchDao: ScratchDao
 ) : IScratchRepository {
-    
+
     override fun getScratchpads(): Flow<List<Scratch>> {
         return scratchDao.getAllNotes().map { entities ->
             entities.map { it.toDomain() }
         }
     }
-    
+
     override fun getScratchpadById(id: String): Flow<Scratch?> {
         return scratchDao.getNoteById(id).map { it?.toDomain() }
     }
-    
+
     override suspend fun insertScratchpad(scratch: Scratch) {
         withContext(Dispatchers.IO) {
             scratchDao.insertNote(scratch.toEntity())
         }
     }
-    
+
     override suspend fun updateScratchpad(scratch: Scratch) {
         withContext(Dispatchers.IO) {
-            scratchDao.updateNote(scratch.content, scratch.updatedAt, scratch.id)
+            scratchDao.insertNote(scratch.toEntity())
         }
     }
-    
+
     override suspend fun deleteScratchpad(id: String) {
         withContext(Dispatchers.IO) {
             scratchDao.deleteNote(id)
         }
     }
-    
+
     override suspend fun deleteAllScratchpads() {
         withContext(Dispatchers.IO) {
             scratchDao.deleteAllNotes()
@@ -60,14 +60,21 @@ class ScratchRepositoryImpl @Inject constructor(
 // Extension functions for mapping between domain and entity models
 private fun ScratchEntity.toDomain(): Scratch = Scratch(
     id = id,
+    title = title,
     content = content,
-    label = "Default Note",
-    createdAt = updatedAt,
+    label = title,
+    language = language,
+    isLocked = isLocked,
+    createdAt = createdAt,
     updatedAt = updatedAt
 )
 
 private fun Scratch.toEntity(): ScratchEntity = ScratchEntity(
     id = id,
+    title = title,
     content = content,
+    language = language,
+    isLocked = isLocked,
+    createdAt = createdAt,
     updatedAt = updatedAt
 )

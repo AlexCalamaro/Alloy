@@ -1,43 +1,40 @@
-# Scratch Module
+# Scratch & Code Editor Module
 
-Pinned scratchpad for quick notes, checklists, and time tracking.
+Lightweight tabbed code and text editor with syntax highlighting, task checklists, and secure biometric lockbox.
 
 ## Overview
 
-The Scratch module provides a persistent, always-available workspace for quick notes, task checklists, and time tracking. It features auto-save functionality and multiple workspace panes for different productivity modes.
+The Scratch module provides a multi-document, tabbed text and code editing workspace. It features real-time syntax highlighting for 17+ languages powered by SnipMe Highlights, debounced auto-save per document, and a hardware-encrypted Secure Lockbox gated by biometric and device screen lock authentication.
 
 ## Capabilities
 
 ### Core Features
 
-- **Text Editor Pane**
-  - Markdown-compatible text editing
-  - Auto-save with 500ms debounce
-  - Persistent storage via Room database
-  - Full-screen editing capability
+- **Multi-Document Tabbed Editor**
+  - Horizontal scrollable document tab bar with active tab indicators
+  - Floating Action Button (FAB) pattern for creating new documents
+  - Document closing and inline renaming
+  - Auto-save with 500ms debounce per document
+
+- **Syntax Highlighting (SnipMe Highlights)**
+  - Powered by `dev.snipme:highlights` pure-Kotlin engine
+  - Non-intrusive Compose `VisualTransformation` with 1:1 cursor offset mapping
+  - Dropdown selector supporting Kotlin, Java, Python, Rust, C++, C#, Go, JavaScript, TypeScript, Shell, Swift, PHP, Ruby, Dart, Markdown, and Plain Text
+  - Dynamic light and dark syntax theme integration
+
+- **Secure Document Lockbox**
+  - Hardware-backed database encryption via SQLCipher and Android Keystore
+  - Biometric (fingerprint, face) and device screen lock (PIN, pattern, password) authorization via AndroidX `BiometricPrompt`
+  - Visual lock indicators: 🔒 Locked (redacted until authenticated) and 🔓 Unlocked (session active)
+  - Clear user confirmation explaining encryption parameters before locking
+  - Auto-lock protection upon application backgrounding (`onStop`) or app restart
 
 - **Checklist Pane**
-  - Add, edit, delete checklist items
-  - Toggle completion status with strikethrough
-  - Persistent item state
-  - Empty state guidance
-
-- **Stopwatch Pane**
-  - Start/stop/reset functionality
-  - Lap recording with split times
-  - Visual lap history display
-  - Split time calculations between laps
+  - Add, edit, and delete checklist tasks
+  - Strikethrough toggle and persistent task state
 
 - **Timer Widget**
-  - Always-visible countdown timer
-  - Start/pause/reset controls
-  - Integrated in header for quick access
-
-- **Detail Pane Integration**
-  - `ScratchFeatureDetail` provides settings panel
-  - Auto-save settings display
-  - Text formatting information
-  - Integrated with three-pane layout
+  - Integrated countdown/elapsed timer in header for productivity sprints
 
 ## Architecture
 
@@ -48,225 +45,72 @@ scratch/
 │   ├── main/
 │   │   ├── AndroidManifest.xml
 │   │   └── java/com/squidink/alloy/modules/scratch/
-│   │       ├── di/
-│   │       │   └── ScratchModule.kt         # Hilt DI module
+│   │       ├── auth/
+│   │       │   └── BiometricPromptManager.kt      # AndroidX BiometricPrompt helper
 │   │       ├── data/
-│   │       │   └── ScratchRepositoryImpl.kt # Repository implementation
+│   │       │   └── ScratchRepositoryImpl.kt       # Repository implementation
 │   │       ├── db/
-│   │       │   ├── ScratchDatabase.kt       # Room database
-│   │       │   ├── ScratchDao.kt            # Data access object
-│   │       │   └── ScratchEntity.kt         # Room entity
-│   │       ├── ScratchFeatureDetail.kt      # Detail pane settings
-│   │       ├── ScratchViewModel.kt          # MVI ViewModel
+│   │       │   ├── ScratchDatabase.kt             # Room database (v2)
+│   │       │   ├── ScratchDao.kt                  # Room DAO
+│   │       │   └── ScratchEntity.kt               # Entity with language & lockbox flags
+│   │       ├── di/
+│   │       │   └── ScratchModule.kt               # Hilt DI with SQLCipher factory
+│   │       ├── model/
+│   │       │   └── EditorLanguage.kt              # Type-safe language enum
+│   │       ├── ScratchActivity.kt                 # Standalone ComponentActivity
+│   │       ├── ScratchFeatureDetail.kt            # 3-pane settings panel
+│   │       ├── ScratchViewModel.kt                # Multi-document MVI ViewModel
 │   │       └── ui/
-│   │           └── ScratchScreen.kt         # Jetpack Compose UI
+│   │           ├── ScratchScreen.kt               # Main Compose UI with tabs & FAB
+│   │           └── syntax/
+│   │               └── HighlightsVisualTransformation.kt # Compose syntax highlighter
 │   └── test/
 │       └── java/com/squidink/alloy/modules/scratch/
-│           └── ScratchViewModelTest.kt
+│           └── ScratchViewModelTest.kt            # Unit test suite
 └── README.md
 ```
 
 ### Layer Breakdown
 
-#### Domain Layer (via core:domain)
-- `IScratchRepository`: Interface defining scratch operations
-- `Scratch`: Domain model for scratchpad entries
+#### Domain Layer (`core:domain`)
+- `IScratchRepository`: Interface for multi-document operations (`getScratchpads`, `insertScratchpad`, `updateScratchpad`, `deleteScratchpad`).
+- `Scratch`: Domain entity modeling documents with `id`, `title`, `content`, `language`, `isLocked`, and timestamps.
 
 #### Data Layer
-- `ScratchRepositoryImpl`: Repository implementation handling:
-  - Database operations via Room DAO
-  - Thread dispatching using coroutines
-  - Mapping between domain models and Room entities
-
-- `ScratchDatabase`: Room database for persistent note storage
-- `ScratchDao`: Async data access with Flow support
+- `ScratchRepositoryImpl`: Implements repository with background dispatching and mapping between domain models and Room entities.
+- `ScratchDatabase`: Version 2 Room database protected by SQLCipher.
+- `ScratchDao`: Reactive `Flow`-based DAO for document queries and metadata updates.
 
 #### Presentation Layer
 
 **ViewModel (MVI Pattern)**
-
 ```kotlin
 data class ScratchUiState(
-    val noteContent: String = "",
+    val documents: List<Scratch> = emptyList(),
+    val activeDocumentId: String? = null,
+    val unlockedDocumentIds: Set<String> = emptySet(),
+    val showLockConfirmationDialog: Boolean = false,
     val checklistItems: List<ChecklistItem> = emptyList(),
     val activePane: ScratchPane = ScratchPane.TEXT,
     val isTimerRunning: Boolean = false,
     val timerSeconds: Int = 0,
-    val isStopwatchRunning: Boolean = false,
-    val stopwatchSeconds: Int = 0,
-    val stopwatchLaps: List<Int> = emptyList(),
+    val autoSaveDebounceMs: Long = 500,
 )
 ```
 
-**Workspace Panes**
-
-- `ScratchPane.TEXT`: Text editor with auto-save
-- `ScratchPane.CHECKLIST`: Task management
-- `ScratchPane.STOPWATCH`: Time tracking
-
 **UI Components**
-
-- `ScratchScreen`: Main container with tab row
-- `TextEditorPane`: Markdown text editing
-- `ChecklistPane`: Task list management
-- `StopwatchPane`: Lap-based time tracking
-
-### Auto-Save Mechanism
-
-The scratchpad implements a debounce-based auto-save:
-
-```kotlin
-private fun scheduleAutoSave(content: String) {
-    autoSaveJob?.cancel()
-    pendingContent = content
-    
-    autoSaveJob = viewModelScope.launch {
-        delay(500) // 500ms debounce
-        savePendingContent()
-    }
-}
-```
-
-## Dependencies
-
-```kotlin
-implementation(project(":core:common"))
-implementation(project(":core:design"))
-implementation(project(":core:datastore"))
-implementation(project(":core:domain"))
-implementation(project(":core:layout"))
-
-// Room for persistence
-implementation(libs.room.runtime)
-implementation(libs.room.ktx)
-ksp(libs.room.compiler)
-
-// Hilt for DI
-implementation(libs.hilt.android)
-ksp(libs.hilt.compiler)
-
-// Navigation Compose for hiltViewModel
-implementation(libs.androidx.hilt.navigation.compose)
-```
-
-## Usage
-
-### Accessing the Scratch Screen
-
-```kotlin
-@Composable
-fun Scratchpad() {
-    val viewModel: ScratchViewModel = hiltViewModel()
-    ScratchScreen(viewModel = viewModel)
-}
-```
-
-### Switching Panes
-
-```kotlin
-// Switch to checklist pane
-viewModel.onAction(ScratchUiAction.SetPane(ScratchPane.CHECKLIST))
-
-// Switch to stopwatch pane
-viewModel.onAction(ScratchUiAction.SetPane(ScratchPane.STOPWATCH))
-```
-
-### Managing Checklist Items
-
-```kotlin
-// Add item
-viewModel.onAction(ScratchUiAction.AddChecklistItem("New task"))
-
-// Toggle completion
-viewModel.onAction(ScratchUiAction.ToggleChecklistItem(itemId))
-
-// Delete item
-viewModel.onAction(ScratchUiAction.DeleteChecklistItem(itemId))
-```
-
-### Stopwatch Controls
-
-```kotlin
-// Start/stop/reset
-viewModel.onAction(ScratchUiAction.StartStopwatch)
-viewModel.onAction(ScratchUiAction.StopStopwatch)
-viewModel.onAction(ScratchUiAction.ResetStopwatch)
-
-// Record lap
-viewModel.onAction(ScratchUiAction.AddLap)
-```
-
-### Detail Pane Settings
-
-The `ScratchFeatureDetail` class implements `FeatureDetail` to provide
-settings content in the three-pane layout's detail pane:
-
-```kotlin
-class ScratchFeatureDetail : FeatureDetail {
-    override val showsDetailPane: Boolean = true
-    
-    @Composable
-    override fun DetailContent() {
-        // Display scratchpad settings info
-    }
-}
-```
-
-When the Scratch feature is selected, the detail pane automatically shows
-the `ScratchFeatureDetail` content.
+- `DocumentTabBar`: Tab strip with title, lock indicators, and close buttons
+- `EditorToolbar`: Language format dropdown, lock toggle, rename button
+- `CodeEditorPane`: Code editor with monospaced font and `HighlightsVisualTransformation`
+- `LockboxGatekeeperPane`: Redaction and authentication CTA for locked documents
+- `ChecklistPane`: Task checklist manager
 
 ## Testing
 
 ```bash
 # Run unit tests
-./gradlew :modules:scratch:test
-
-# Test auto-save debounce
 ./gradlew :modules:scratch:testDebugUnitTest
+
+# Compile verification
+./gradlew :modules:scratch:compileDebugKotlin
 ```
-
-## Technical Details
-
-### Coroutine Lifecycle Management
-
-The ViewModel properly manages coroutines:
-
-```kotlin
-override fun onCleared() {
-    super.onCleared()
-    stopTimer()
-    stopStopwatch()
-    autoSaveJob?.cancel()
-    savePendingContent() // Ensure final save
-}
-```
-
-### Lap Time Calculation
-
-Lap splits are calculated relative to the previous lap:
-
-```kotlin
-val split = lapSeconds - prevLap
-```
-
-## Future Enhancements
-
-See [FEATURE_ENHANCEMENTS.md](../../.md-storage/planning/FEATURE_ENHANCEMENTS.md#scratch-module-pinned-scratchpad) for the complete roadmap.
-
-### High Priority
-- [ ] **Full-screen widget** for home screen whiteboard
-- [ ] **Markdown preview** alongside editor
-- [ ] **Multiple scratchpads** (independent note surfaces)
-- [ ] **Password protection** for private notes
-
-### Medium Priority
-- [ ] **Infinite canvas** with pan/zoom
-- [ ] **Horizontal/vertical layout** support
-- [ ] **Quick clear button**
-- [ ] **Drag & drop images** into notes
-
-### Nice-to-Have
-- [ ] Freehand drawing tools
-- [ ] Export to .md/.txt files
-- [ ] Cross-device sync
-- [ ] Note templates (meeting, daily log)

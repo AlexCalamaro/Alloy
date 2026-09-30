@@ -7,10 +7,13 @@ import kotlinx.coroutines.flow.Flow
  */
 data class Scratch(
     val id: String,
-    val content: String,
-    val label: String,
-    val createdAt: Long,
-    val updatedAt: Long
+    val title: String = "Untitled",
+    val content: String = "",
+    val label: String = "Default Note",
+    val language: String = "PLAIN_TEXT",
+    val isLocked: Boolean = false,
+    val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis()
 )
 
 /**

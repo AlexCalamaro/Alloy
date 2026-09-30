@@ -25,6 +25,15 @@ interface ScratchDao {
         id: String
     )
 
+    @Query("UPDATE scratch_notes SET title = :title, language = :language, isLocked = :isLocked, updatedAt = :updatedAt WHERE id = :id")
+    suspend fun updateMetadata(
+        id: String,
+        title: String,
+        language: String,
+        isLocked: Boolean,
+        updatedAt: Long
+    )
+
     @Query("DELETE FROM scratch_notes WHERE id = :id")
     suspend fun deleteNote(id: String)
 
