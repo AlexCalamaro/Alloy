@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.RssFeed
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -27,6 +28,7 @@ sealed class Screens(val route: String) {
     data object Lists : Screens("lists")
     data object Scenes : Screens("scenes")
     data object Settings : Screens("settings")
+    data object LlmHost : Screens("llm_host")
     
     // Detail routes (if needed in the future)
     data class ScratchDetail(val scratchId: String) : Screens("scratch_detail/$scratchId")
@@ -45,7 +47,7 @@ sealed class Screens(val route: String) {
          * Get all main feature screens (excluding detail routes).
          */
         fun getMainScreens(): List<Screens> {
-            return listOf(StatsPill, RssReader, Scratch, Lists, Scenes, Settings)
+            return listOf(StatsPill, RssReader, Scratch, Lists, Scenes, Settings, LlmHost)
         }
     }
 }
@@ -62,6 +64,7 @@ sealed class NavActions {
     object NavigateToLists : NavActions()
     object NavigateToScenes : NavActions()
     object NavigateToSettings : NavActions()
+    object NavigateToLlmHost : NavActions()
     
     data class NavigateToScratchDetail(val scratchId: String) : NavActions()
     
@@ -74,6 +77,7 @@ sealed class NavActions {
                 is NavigateToLists -> Screens.Lists.route
                 is NavigateToScenes -> Screens.Scenes.route
                 is NavigateToSettings -> Screens.Settings.route
+                is NavigateToLlmHost -> Screens.LlmHost.route
                 is NavigateToScratchDetail -> Screens.scratchDetailRoute(action.scratchId)
             }
         }
@@ -94,6 +98,7 @@ fun String.getScreenTitle(): String {
         Screens.Lists.route -> featureRegistry.getFeature(FeatureIds.LISTS)?.name ?: "Lists"
         Screens.Scenes.route -> featureRegistry.getFeature(FeatureIds.SCENES)?.name ?: "Scenes"
         Screens.Settings.route -> featureRegistry.getFeature(FeatureIds.SETTINGS)?.name ?: "Settings"
+        Screens.LlmHost.route -> featureRegistry.getFeature(FeatureIds.LLM_HOST)?.name ?: "LLM Host"
         else -> "Alloy"
     }
 }
@@ -118,6 +123,8 @@ fun Screens.getNavigationIcon(): ImageVector {
             ?: Icons.Default.EmojiEvents
         is Screens.Settings -> featureRegistry.getFeature(FeatureIds.SETTINGS)?.icon
             ?: Icons.Default.Settings
+        is Screens.LlmHost -> featureRegistry.getFeature(FeatureIds.LLM_HOST)?.icon
+            ?: Icons.Default.Memory
         is Screens.ScratchDetail -> Icons.Default.Dashboard
     }
 }
@@ -133,6 +140,7 @@ fun Screens.getFeatureId(): String {
         is Screens.Lists -> FeatureIds.LISTS
         is Screens.Scenes -> FeatureIds.SCENES
         is Screens.Settings -> FeatureIds.SETTINGS
+        is Screens.LlmHost -> FeatureIds.LLM_HOST
         is Screens.ScratchDetail -> ""
     }
 }

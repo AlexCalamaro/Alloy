@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.RssFeed
 import androidx.compose.material.icons.filled.Settings
 import com.squidink.alloy.core.common.ModuleInfo
@@ -125,6 +126,19 @@ class ModuleRegistryImpl
                     category = "System",
                     sortOrder = 6,
                     icon = Icons.Default.Settings
+                )
+            )
+
+            // Register LLM Host feature
+            featureRegistry.registerFeature(
+                FeatureDefinition(
+                    id = FeatureIds.LLM_HOST,
+                    name = "LLM Host",
+                    description = "On-device LiteRT LLM host for local applications",
+                    screenRoute = "llm_host",
+                    category = "System",
+                    sortOrder = 7,
+                    icon = Icons.Default.Memory
                 )
             )
 

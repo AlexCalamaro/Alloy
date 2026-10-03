@@ -38,6 +38,8 @@ import com.squidink.alloy.modules.scratch.ScratchViewModel
 import com.squidink.alloy.modules.scratch.ui.ScratchScreen
 import com.squidink.alloy.modules.settings.SettingsViewModel
 import com.squidink.alloy.modules.settings.ui.SettingsScreen
+import com.squidink.alloy.modules.llmhost.LlmHostViewModel
+import com.squidink.alloy.modules.llmhost.ui.LlmHostScreen
 import com.squidink.alloy.modules.statspill.StatsViewModel
 import com.squidink.alloy.modules.statspill.ui.StatsScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -123,7 +125,8 @@ fun DashboardScreen(
         Screens.Scratch,
         Screens.Lists,
         Screens.Scenes,
-        Screens.Settings
+        Screens.Settings,
+        Screens.LlmHost
     )
 
     // Filter screens dynamically based on feature enabled states
@@ -180,6 +183,10 @@ fun DashboardScreen(
                         composable(Screens.Settings.route) {
                             val viewModel: SettingsViewModel = hiltViewModel()
                             SettingsScreen(viewModel = viewModel)
+                        }
+                        composable(Screens.LlmHost.route) {
+                            val viewModel: LlmHostViewModel = hiltViewModel()
+                            LlmHostScreen(viewModel = viewModel)
                         }
                     }
                 }

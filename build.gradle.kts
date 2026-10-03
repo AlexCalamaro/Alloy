@@ -30,7 +30,8 @@ detekt {
             "modules/lists/src/main/java",
             "modules/rssreader/src/main/java",
             "modules/scenes/src/main/java",
-            "modules/settings/src/main/java"
+            "modules/settings/src/main/java",
+            "modules/llmhost/src/main/java"
         )
     )
 }

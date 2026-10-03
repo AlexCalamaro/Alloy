@@ -62,6 +62,7 @@ object FeatureIds {
     const val LISTS = "lists"
     const val SCENES = "scenes"
     const val SETTINGS = "settings"
+    const val LLM_HOST = "llm_host"
 }
 
 /**

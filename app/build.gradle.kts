@@ -57,6 +57,7 @@ dependencies {
     implementation(project(":modules:scratch"))
     implementation(project(":modules:lists"))
     implementation(project(":modules:settings"))
+    implementation(project(":modules:llmhost"))
 
     lintChecks(project(":lint"))
 

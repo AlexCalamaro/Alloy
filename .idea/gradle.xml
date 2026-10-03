@@ -21,8 +21,10 @@
             <option value="$PROJECT_DIR$/core/netlocal" />
             <option value="$PROJECT_DIR$/core/permissions" />
             <option value="$PROJECT_DIR$/core/proc" />
+            <option value="$PROJECT_DIR$/lint" />
             <option value="$PROJECT_DIR$/modules" />
             <option value="$PROJECT_DIR$/modules/lists" />
+            <option value="$PROJECT_DIR$/modules/llmhost" />
             <option value="$PROJECT_DIR$/modules/rssreader" />
             <option value="$PROJECT_DIR$/modules/scenes" />
             <option value="$PROJECT_DIR$/modules/scratch" />
